@@ -10,6 +10,8 @@
     "test": "cd lambda && ./test-all.sh"
   },
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.926.0",
+    "@aws-sdk/lib-dynamodb": "^3.926.0",
     "aws-cdk-lib": "^2.222.0",
     "constructs": "^10.4.3"
   },

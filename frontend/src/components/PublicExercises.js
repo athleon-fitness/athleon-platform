@@ -25,7 +25,15 @@ function PublicExercises() {
 
   const fetchExercises = async () => {
     try {
-      // Sample exercises until the public API is fixed
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'https://api.dev.athleon.fitness'}/public/exercises`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setExercises(data);
+    } catch (error) {
+      console.error('Error fetching exercises:', error);
+      // Fallback to sample exercises if API fails
       const sampleExercises = [
         {
           exerciseId: 'ex-muscle-up',
@@ -85,8 +93,6 @@ function PublicExercises() {
         }
       ];
       setExercises(sampleExercises);
-    } catch (error) {
-      console.error('Error fetching exercises:', error);
     } finally {
       setLoading(false);
     }

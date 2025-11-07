@@ -142,6 +142,10 @@ export class AthleonStack extends cdk.Stack {
       new apigateway.LambdaIntegration(competitionsStack.competitionsLambda)
     );
 
+    // Public Exercises
+    const publicExercises = publicRoot.addResource('exercises');
+    publicExercises.addMethod('GET', new apigateway.LambdaIntegration(scoringStack.exercisesLambda));
+
     // Public WODs
     const publicWods = publicRoot.addResource('wods');
     publicWods.addMethod('GET', new apigateway.LambdaIntegration(wodsStack.wodsLambda));

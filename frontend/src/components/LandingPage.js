@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
@@ -6,6 +6,7 @@ import LanguageSwitcher from './common/LanguageSwitcher';
 function LandingPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const handleGetStarted = () => {
     navigate('/login');
@@ -20,7 +21,18 @@ function LandingPage() {
             <img src="/athleon-white-crop.PNG" alt="Athleon" className="logo-image" />
             <span className="logo-text">Athleon</span>
           </div>
-          <div className="nav-links">
+          
+          <button 
+            className="mobile-menu-toggle"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          
+          <div className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}>
             <LanguageSwitcher />
             <a href="/events" className="nav-link">
               {t('navigation.events')}
@@ -185,6 +197,55 @@ function LandingPage() {
 
         .logo-icon {
           font-size: 32px;
+        }
+
+        .mobile-menu-toggle {
+          display: none;
+          flex-direction: column;
+          background: none;
+          border: none;
+          cursor: pointer;
+          padding: 5px;
+        }
+
+        .mobile-menu-toggle span {
+          width: 25px;
+          height: 3px;
+          background: #6B7C93;
+          margin: 3px 0;
+          transition: 0.3s;
+        }
+
+        .nav-links {
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+
+        .nav-link {
+          color: #6B7C93;
+          text-decoration: none;
+          font-weight: 500;
+          transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+          color: #B87333;
+        }
+
+        .auth-link {
+          background: #B87333;
+          color: white;
+          padding: 10px 20px;
+          border-radius: 25px;
+          cursor: pointer;
+          font-weight: 600;
+          transition: all 0.3s;
+        }
+
+        .auth-link:hover {
+          background: #A0632B;
+          transform: translateY(-2px);
         }
 
         /* Hero Section */
@@ -540,6 +601,45 @@ function LandingPage() {
         @media (max-width: 768px) {
           .navbar {
             padding: 15px 20px;
+            position: relative;
+          }
+
+          .mobile-menu-toggle {
+            display: flex;
+          }
+
+          .nav-links {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transform: translateY(-100%);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+          }
+
+          .nav-links-open {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+          }
+
+          .nav-link, .auth-link {
+            padding: 10px 0;
+            text-align: center;
+            border-bottom: 1px solid rgba(107, 124, 147, 0.1);
+          }
+
+          .auth-link {
+            margin-top: 10px;
+            border-radius: 25px;
+            border: none;
           }
 
           .logo {
@@ -549,16 +649,6 @@ function LandingPage() {
           .logo-image {
             width: 32px;
             height: 32px;
-          }
-
-          .nav-links {
-            gap: 10px;
-          }
-
-          .btn-events,
-          .btn-login {
-            padding: 8px 16px;
-            font-size: 14px;
           }
 
           .hero-content {
@@ -607,10 +697,8 @@ function LandingPage() {
             display: none;
           }
 
-          .btn-events,
-          .btn-login {
-            padding: 6px 12px;
-            font-size: 13px;
+          .nav-links {
+            padding: 15px;
           }
 
           .hero-title {
