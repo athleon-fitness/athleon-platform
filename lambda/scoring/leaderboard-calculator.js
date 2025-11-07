@@ -12,7 +12,7 @@ exports.handler = async (event) => {
 
   try {
     // Handle EventBridge event
-    if (event.source === 'scoringames.scores') {
+    if (event.source === 'athleon.scores') {
       const scoreData = event.detail;
       await updateLeaderboard(scoreData.eventId, scoreData.wodId, scoreData.categoryId);
       return { statusCode: 200, body: 'Leaderboard updated' };

@@ -8,6 +8,7 @@ import BackofficeLayout from './components/BackofficeLayout';
 import UserSetup from './components/UserSetup';
 import LandingPage from './components/LandingPage';
 import PublicEvents from './components/PublicEvents';
+import './i18n'; // Initialize i18n
 import PublicWODs from './components/PublicWODs';
 import PublicExercises from './components/PublicExercises';
 import PublicEventDetail from './components/PublicEventDetail';

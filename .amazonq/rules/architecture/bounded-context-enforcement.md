@@ -1,7 +1,7 @@
 # Bounded Context Enforcement
 
 ## Purpose
-Enforces Domain-Driven Design (DDD) bounded context principles to prevent cross-domain violations and maintain clean microservices architecture in the ScorinGames platform.
+Enforces Domain-Driven Design (DDD) bounded context principles to prevent cross-domain violations and maintain clean microservices architecture in the Athleon platform.
 
 ## Priority
 **Critical** - Must be followed without exception

@@ -1,6 +1,6 @@
-# CaliScore Business Rules Documentation
+# Athleon Business Rules Documentation
 
-This directory contains comprehensive business rules and logic documentation for the ScorinGames calisthenics competition management platform.
+This directory contains comprehensive business rules and logic documentation for the Athleon calisthenics competition management platform.
 
 ## Documentation Structure
 

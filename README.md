@@ -244,7 +244,7 @@ POST /scores
 
 1. **Check Super Admin**
    ```javascript
-   const isSuperAdmin = userEmail === 'admin@scoringames.com';
+   const isSuperAdmin = userEmail === 'admin@athleon.fitness';
    if (isSuperAdmin) return { hasAccess: true, role: 'super_admin' };
    ```
 

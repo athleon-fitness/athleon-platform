@@ -1,8 +1,8 @@
-# WOD Types Guide - ScorinGames Platform
+# WOD Types Guide - Athleon Platform
 
 ## Overview
 
-ScorinGames supports three types of WODs (Workouts of the Day) with different levels of availability and sharing. Each type is visually indicated with colored badges in the interface.
+Athleon supports three types of WODs (Workouts of the Day) with different levels of availability and sharing. Each type is visually indicated with colored badges in the interface.
 
 ## WOD Types
 

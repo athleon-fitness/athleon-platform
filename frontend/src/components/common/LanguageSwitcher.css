@@ -1,0 +1,39 @@
+.language-switcher {
+  display: flex;
+  background: rgba(107, 124, 147, 0.2);
+  border-radius: 12px;
+  padding: 4px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(107, 124, 147, 0.3);
+}
+
+.language-switcher .btn {
+  min-width: 36px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.language-switcher .btn-primary {
+  background: linear-gradient(135deg, #FF5722 0%, #FF8A65 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 87, 34, 0.3);
+  transform: translateY(-1px);
+}
+
+.language-switcher .btn-outline-secondary {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.language-switcher .btn-outline-secondary:hover {
+  background: rgba(107, 124, 147, 0.3);
+  color: white;
+  transform: translateY(-1px);
+}

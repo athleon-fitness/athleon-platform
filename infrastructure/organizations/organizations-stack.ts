@@ -3,10 +3,12 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
+import { AthleonSharedLayer } from '../shared/lambda-layer';
 
 export interface OrganizationsStackProps {
   stage: string;
   eventBus: events.EventBus;
+  sharedLayer: AthleonSharedLayer;
 }
 
 export class OrganizationsStack extends Construct {
@@ -63,6 +65,7 @@ export class OrganizationsStack extends Construct {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/organizations'),
+      layers: [props.sharedLayer.layer],
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: {

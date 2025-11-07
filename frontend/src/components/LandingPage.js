@@ -1,8 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './common/LanguageSwitcher';
 
 function LandingPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   
   const handleGetStarted = () => {
     navigate('/login');
@@ -18,116 +21,121 @@ function LandingPage() {
             <span className="logo-text">Athleon</span>
           </div>
           <div className="nav-links">
-            <button className="btn-events" onClick={() => navigate('/events')}>
-              Events
-            </button>
-            <button className="btn-events" onClick={() => navigate('/wods')}>
+            <LanguageSwitcher />
+            <a href="/events" className="nav-link">
+              {t('navigation.events')}
+            </a>
+            <a href="/wods" className="nav-link">
               WODs Library
-            </button>
-            <button className="btn-events" onClick={() => navigate('/exercises')}>
+            </a>
+            <a href="/exercises" className="nav-link">
               Exercises Library
-            </button>
-            <button className="btn-login" onClick={handleGetStarted}>
+            </a>
+            <div className="auth-link" onClick={handleGetStarted}>
               Sign In
-            </button>
+            </div>
           </div>
         </nav>
 
         <div className="hero-content">
           <h1 className="hero-title">
-            Where Calisthenics Champions Are Forged
+            {t('landing.title')}
           </h1>
           <p className="hero-subtitle">
-            The complete platform for organizing, scoring, and tracking calisthenics competitions 
-            with real-time leaderboards, multi-event management, and athlete analytics.
+            {t('landing.subtitle')}
           </p>
           <div className="hero-actions">
-            <button className="btn-primary" onClick={handleGetStarted}>
-              Get Started Free
-            </button>
-            <button className="btn-secondary" onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>
-              Learn More
-            </button>
+            <div className="cta-primary" onClick={handleGetStarted}>
+              <span className="cta-text">{t('landing.getStarted')}</span>
+              <span className="cta-arrow">→</span>
+            </div>
+            <div className="cta-secondary" onClick={() => document.getElementById('features').scrollIntoView({ behavior: 'smooth' })}>
+              {t('landing.learnMore')}
+            </div>
           </div>
         </div>
       </header>
 
       {/* Features Section */}
       <section id="features" className="features">
-        <h2 className="section-title">Everything You Need to Run Competitions</h2>
+        <h2 className="section-title">{t('landing.featuresTitle')}</h2>
         <div className="features-grid">
           <div className="feature-card">
             <div className="feature-icon">🏆</div>
-            <h3>Multi-Competition Management</h3>
-            <p>Host unlimited competitions with separate leaderboards, categories, and events. Perfect for gyms and organizations.</p>
+            <h3>{t('landing.features.multiCompetition.title')}</h3>
+            <p>{t('landing.features.multiCompetition.description')}</p>
           </div>
 
           <div className="feature-card">
             <div className="feature-icon">⚡</div>
-            <h3>Real-Time Scoring</h3>
-            <p>Enter scores instantly and watch leaderboards update in real-time. Athletes and spectators stay engaged throughout the event.</p>
+            <h3>{t('landing.features.realTimeScoring.title')}</h3>
+            <p>{t('landing.features.realTimeScoring.description')}</p>
           </div>
 
           <div className="feature-card">
             <div className="feature-icon">👥</div>
-            <h3>Athlete Management</h3>
-            <p>Self-service registration, category assignments, and complete athlete profiles. Streamline your competition workflow.</p>
+            <h3>{t('landing.features.athleteManagement.title')}</h3>
+            <p>{t('landing.features.athleteManagement.description')}</p>
           </div>
 
           <div className="feature-card">
             <div className="feature-icon">📊</div>
-            <h3>Advanced Analytics</h3>
-            <p>Track performance trends, compare athletes across events, and generate detailed competition reports.</p>
+            <h3>{t('landing.features.analytics.title')}</h3>
+            <p>{t('landing.features.analytics.description')}</p>
           </div>
 
           <div className="feature-card">
             <div className="feature-icon">🎯</div>
-            <h3>Multiple WODs per Event</h3>
-            <p>Create complex competition formats with multiple workouts and scoring systems. From simple to CrossFit Games style.</p>
+            <h3>{t('landing.features.multipleWods.title')}</h3>
+            <p>{t('landing.features.multipleWods.description')}</p>
           </div>
 
           <div className="feature-card">
             <div className="feature-icon">🔒</div>
-            <h3>Role-Based Access</h3>
-            <p>Super admins, organizers, and athletes each get the right level of access. Secure and organized.</p>
+            <h3>{t('landing.features.roleBasedAccess.title')}</h3>
+            <p>{t('landing.features.roleBasedAccess.description')}</p>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
       <section className="how-it-works">
-        <h2 className="section-title">How It Works</h2>
+        <h2 className="section-title">{t('landing.howItWorks.title')}</h2>
         <div className="steps">
           <div className="step">
             <div className="step-number">1</div>
-            <h3>Create Your Competition</h3>
-            <p>Set up your event with dates, categories, and workouts in minutes.</p>
+            <h3>{t('landing.howItWorks.step1.title')}</h3>
+            <p>{t('landing.howItWorks.step1.description')}</p>
           </div>
           <div className="step">
             <div className="step-number">2</div>
-            <h3>Athletes Register</h3>
-            <p>Athletes sign up and select their categories through self-service registration.</p>
+            <h3>{t('landing.howItWorks.step2.title')}</h3>
+            <p>{t('landing.howItWorks.step2.description')}</p>
           </div>
           <div className="step">
             <div className="step-number">3</div>
-            <h3>Score & Track</h3>
-            <p>Enter scores as events happen and watch the leaderboard update live.</p>
+            <h3>{t('landing.howItWorks.step3.title')}</h3>
+            <p>{t('landing.howItWorks.step3.description')}</p>
           </div>
           <div className="step">
             <div className="step-number">4</div>
-            <h3>Celebrate Winners</h3>
-            <p>Final standings, performance analytics, and shareable results.</p>
+            <h3>{t('landing.howItWorks.step4.title')}</h3>
+            <p>{t('landing.howItWorks.step4.description')}</p>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
       <section className="cta">
-        <h2>Ready to Transform Your Competitions?</h2>
-        <p>Join gyms and organizers already using Athleon Forge</p>
-        <button className="btn-primary" onClick={handleGetStarted}>
-          Start Your Free Competition
-        </button>
+        <h2>{t('landing.cta.title')}</h2>
+        <p>{t('landing.cta.subtitle')}</p>
+        <div className="cta-card" onClick={handleGetStarted}>
+          <div className="cta-content">
+            <span className="cta-title">{t('landing.getStarted')}</span>
+            <span className="cta-subtitle">Free forever</span>
+          </div>
+          <div className="cta-icon">✨</div>
+        </div>
       </section>
 
       {/* Footer */}
@@ -217,36 +225,40 @@ function LandingPage() {
 
         /* Buttons */
         .btn-primary {
-          background: white;
-          color: #FF5722;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
           border: none;
           padding: 16px 32px;
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 600;
-          border-radius: 8px;
+          border-radius: 12px;
           cursor: pointer;
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
         .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+          box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
         }
 
         .btn-secondary {
-          background: transparent;
+          background: rgba(255, 255, 255, 0.1);
           color: white;
-          border: 2px solid white;
-          padding: 14px 32px;
-          font-size: 18px;
-          font-weight: 600;
-          border-radius: 8px;
+          border: 2px solid rgba(255, 255, 255, 0.3);
+          padding: 14px 30px;
+          font-size: 16px;
+          font-weight: 500;
+          border-radius: 12px;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          backdrop-filter: blur(10px);
         }
 
         .btn-secondary:hover {
-          background: rgba(255,255,255,0.1);
+          background: rgba(255, 255, 255, 0.2);
+          border-color: rgba(255, 255, 255, 0.5);
+          transform: translateY(-2px);
         }
 
         .nav-links {
@@ -255,38 +267,126 @@ function LandingPage() {
           align-items: center;
         }
 
-        .btn-events {
-          background: linear-gradient(135deg, #B87333 0%, #FF5722 100%);
-          color: white;
-          border: none;
-          padding: 10px 24px;
-          border-radius: 6px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-          box-shadow: 0 4px 12px rgba(255, 87, 34, 0.3);
+        .nav-link {
+          color: #6B7C93;
+          text-decoration: none;
+          font-size: 14px;
+          font-weight: 500;
+          padding: 8px 16px;
+          border-radius: 8px;
+          transition: all 0.3s ease;
+          position: relative;
         }
 
-        .btn-events:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 16px rgba(255, 87, 34, 0.4);
-        }
-
-        .btn-login {
-          background: white;
+        .nav-link:hover {
           color: #FF5722;
-          border: 2px solid white;
-          padding: 10px 24px;
-          font-size: 16px;
-          font-weight: 600;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s;
+          background: rgba(255, 87, 34, 0.1);
         }
 
-        .btn-login:hover {
-          background: rgba(255, 255, 255, 0.9);
+        .auth-link {
+          color: white;
+          font-size: 14px;
+          font-weight: 600;
+          padding: 8px 16px;
+          background: linear-gradient(135deg, #FF5722 0%, #FF8A65 100%);
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(255, 87, 34, 0.3);
+        }
+
+        .auth-link:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 87, 34, 0.4);
+        }
+
+        .cta-primary {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: linear-gradient(135deg, #FF5722 0%, #6B7C93 100%);
+          color: white;
+          padding: 16px 32px;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 20px rgba(255, 87, 34, 0.3);
+        }
+
+        .cta-primary:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 30px rgba(255, 87, 34, 0.4);
+        }
+
+        .cta-text {
+          font-size: 16px;
+          font-weight: 600;
+        }
+
+        .cta-arrow {
+          font-size: 18px;
+          transition: transform 0.3s ease;
+        }
+
+        .cta-primary:hover .cta-arrow {
+          transform: translateX(4px);
+        }
+
+        .cta-secondary {
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 16px;
+          font-weight: 500;
+          padding: 16px 32px;
+          border: 1px solid #6B7C93;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          backdrop-filter: blur(10px);
+        }
+
+        .cta-secondary:hover {
+          background: rgba(107, 124, 147, 0.1);
+          border-color: #6B7C93;
+        }
+
+        .cta-card {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: white;
+          padding: 24px 32px;
+          border-radius: 16px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+          max-width: 400px;
+          margin: 0 auto;
+        }
+
+        .cta-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+        }
+
+        .cta-content {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .cta-title {
+          font-size: 18px;
+          font-weight: 600;
+          color: #333;
+        }
+
+        .cta-subtitle {
+          font-size: 14px;
+          color: #666;
+        }
+
+        .cta-icon {
+          font-size: 24px;
         }
 
         /* Features Section */

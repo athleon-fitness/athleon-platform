@@ -1,7 +1,7 @@
 # Twelve Factor, DDD & Microservices Architecture
 
 ## Purpose
-Ensures ScorinGames platform follows Twelve Factor App principles, Domain-Driven Design (DDD), and microservices best practices for scalable, maintainable, and cloud-native architecture.
+Ensures Athleon platform follows Twelve Factor App principles, Domain-Driven Design (DDD), and microservices best practices for scalable, maintainable, and cloud-native architecture.
 
 ## Priority
 **Critical** - Must be followed without exception

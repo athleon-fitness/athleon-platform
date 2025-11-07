@@ -1,7 +1,7 @@
 # Monitoring - Observability Patterns
 
 ## Purpose
-Ensures consistent monitoring coverage is maintained when adding new features to the ScorinGames platform, enabling proactive issue detection and performance optimization.
+Ensures consistent monitoring coverage is maintained when adding new features to the Athleon platform, enabling proactive issue detection and performance optimization.
 
 ## Priority
 **High** - Should be followed unless conflicting with a critical rule

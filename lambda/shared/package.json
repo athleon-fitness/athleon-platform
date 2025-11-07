@@ -1,5 +1,5 @@
 {
-  "name": "@scoringames/shared",
+  "name": "@athleon/scoring",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {

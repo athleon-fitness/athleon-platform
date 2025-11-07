@@ -14,27 +14,44 @@ import { WodsStack } from './wods/wods-stack';
 import { AuthorizationStack } from './authorization/authorization-stack';
 import { FrontendStack } from './frontend/frontend-stack';
 
-export interface ScorinGamesStackProps extends cdk.StackProps {
+import { EnvironmentConfig } from './config/environment-config';
+
+export interface AthleonStackProps extends cdk.StackProps {
   stage: string;
+  config: EnvironmentConfig;
 }
 
-export class ScorinGamesStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props: ScorinGamesStackProps) {
+export class AthleonStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props: AthleonStackProps) {
     super(scope, id, props);
 
     // 1. Shared Infrastructure
-    const sharedStack = new SharedStack(this, 'Shared', { stage: props.stage });
+    const sharedStack = new SharedStack(this, 'Shared', { 
+      stage: props.stage,
+      config: props.config 
+    });
 
-    // 2. Network Infrastructure
+    // 7. Frontend Stack (create first to get certificate)
+    const frontendStack = new FrontendStack(this, 'Frontend', {
+      stage: props.stage,
+      domain: props.config.domain,
+      enableWaf: props.config.frontend?.waf?.enabled,
+      rateLimiting: props.config.frontend?.waf?.rateLimiting,
+    });
+
+    // 2. Network Infrastructure (use certificate from frontend)
     const networkStack = new NetworkStack(this, 'Network', {
       stage: props.stage,
       userPool: sharedStack.userPool,
+      certificate: frontendStack.certificate,
+      apiDomain: props.config.domain ? `api.${props.config.domain}` : undefined,
     });
 
     // 3. Organizations (RBAC foundation)
     const organizationsStack = new OrganizationsStack(this, 'Organizations', {
       stage: props.stage,
       eventBus: sharedStack.eventBus,
+      sharedLayer: sharedStack.sharedLayer,
     });
 
     // Wire Organizations API routes
@@ -51,6 +68,7 @@ export class ScorinGamesStack extends cdk.Stack {
     const scoringStack = new ScoringStack(this, 'Scoring', {
       stage: props.stage,
       eventBus: sharedStack.eventBus,
+      sharedLayer: sharedStack.sharedLayer,
     });
 
     const competitionsStack = new CompetitionsStack(this, 'Competitions', {
@@ -210,19 +228,25 @@ export class ScorinGamesStack extends cdk.Stack {
       schedulingEventBus: schedulingStack.schedulingEventBus,
     });
 
-    // 7. Frontend Stack
-    const frontendStack = new FrontendStack(this, 'Frontend', {
-      stage: props.stage,
-    });
-
     // Outputs
     new cdk.CfnOutput(this, 'Stage', { value: props.stage });
-    new cdk.CfnOutput(this, 'ApiUrl', { value: networkStack.api.url });
+    new cdk.CfnOutput(this, 'ApiUrl', { 
+      value: networkStack.domainName 
+        ? `https://api.${props.config.domain}` 
+        : networkStack.api.url 
+    });
     new cdk.CfnOutput(this, 'UserPoolId', { value: sharedStack.userPool.userPoolId });
     new cdk.CfnOutput(this, 'UserPoolClientId', { value: sharedStack.userPoolClient.userPoolClientId });
     new cdk.CfnOutput(this, 'CentralEventBus', { value: sharedStack.eventBus.eventBusName });
     new cdk.CfnOutput(this, 'FrontendBucket', { value: frontendStack.bucket.bucketName });
     new cdk.CfnOutput(this, 'FrontendDistributionId', { value: frontendStack.distribution.distributionId });
-    new cdk.CfnOutput(this, 'FrontendUrl', { value: `https://${frontendStack.distribution.distributionDomainName}` });
+    new cdk.CfnOutput(this, 'FrontendUrl', { 
+      value: props.config.domain && frontendStack.certificate 
+        ? `https://${props.config.domain}` 
+        : `https://${frontendStack.distribution.distributionDomainName}` 
+    });
+    if (frontendStack.certificate) {
+      new cdk.CfnOutput(this, 'CertificateArn', { value: frontendStack.certificate.certificateArn });
+    }
   }
 }

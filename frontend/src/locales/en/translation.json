@@ -1,0 +1,137 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "search": "Search",
+    "filter": "Filter",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "close": "Close"
+  },
+  "navigation": {
+    "home": "Home",
+    "events": "Events",
+    "athletes": "Athletes",
+    "organizations": "Organizations",
+    "profile": "Profile",
+    "leaderboard": "Leaderboard",
+    "backoffice": "Backoffice",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "exercises": {
+    "title": "Exercises Library",
+    "subtitle": "Discover all the exercises used in calisthenics competitions with their scoring values.",
+    "filterLabel": "Filter by category:",
+    "all": "All",
+    "strength": "Strength",
+    "endurance": "Endurance",
+    "skill": "Skill",
+    "baseScore": "Base Score",
+    "modifiers": "Modifiers",
+    "noExercises": "No exercises found for the selected category."
+  },
+  "landing": {
+    "title": "Athleon – Where Calisthenics Champions Are Forged",
+    "subtitle": "Everything you need to run competitions, track excellence, and shape the future of athletes.",
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "featuresTitle": "Everything You Need to Run Competitions",
+    "features": {
+      "multiCompetition": {
+        "title": "Multi-Competition Management",
+        "description": "Host unlimited competitions with independent leaderboards, categories, and events. Perfect for gyms, federations, and organizations that want scale without complexity."
+      },
+      "realTimeScoring": {
+        "title": "Real-Time Scoring",
+        "description": "Enter scores instantly and watch leaderboards update live. Athletes, coaches, and spectators stay engaged every second of the competition."
+      },
+      "athleteManagement": {
+        "title": "Athlete Management",
+        "description": "Streamlined registration, smart category assignments, and complete athlete profiles. Athletes own their journey, organizers save time."
+      },
+      "analytics": {
+        "title": "Advanced Analytics",
+        "description": "Unlock insights with performance trends, athlete comparisons, and detailed competition reports. Turn raw data into actionable knowledge."
+      },
+      "multipleWods": {
+        "title": "Multiple WODs per Event",
+        "description": "Design complex formats with multiple workouts and scoring systems—from simple challenges to CrossFit Games-style competitions."
+      },
+      "roleBasedAccess": {
+        "title": "Role-Based Access",
+        "description": "Super admins, organizers, judges, and athletes each get the right level of access. Secure, organized, and built for collaboration."
+      }
+    },
+    "howItWorks": {
+      "title": "How It Works",
+      "step1": {
+        "title": "Create Your Competition",
+        "description": "Set up your event with dates, categories, and workouts in minutes."
+      },
+      "step2": {
+        "title": "Athletes Register",
+        "description": "Athletes sign up and select their categories through self-service registration."
+      },
+      "step3": {
+        "title": "Score & Track",
+        "description": "Enter scores as events happen and watch the leaderboard update live."
+      },
+      "step4": {
+        "title": "Celebrate Winners",
+        "description": "Final standings, performance analytics, and shareable results."
+      }
+    },
+    "cta": {
+      "title": "Ready to Transform Calisthenics?",
+      "subtitle": "Athleon is more than a competition platform—it's the ecosystem where calisthenics athletes are discovered, challenged, and transformed into champions."
+    }
+  },
+  "backoffice": {
+    "dashboard": "Dashboard",
+    "eventManagement": "Event Management",
+    "createEvent": "Create Event",
+    "editEvent": "Edit Event",
+    "publishEvent": "Publish Event",
+    "eventDetails": "Event Details",
+    "registeredAthletes": "Registered Athletes",
+    "scoringSystem": "Scoring System",
+    "categories": "Categories",
+    "wods": "WODs",
+    "schedule": "Schedule"
+  },
+  "athlete": {
+    "profile": "Athlete Profile",
+    "myEvents": "My Events",
+    "registerForEvent": "Register for Event",
+    "myScores": "My Scores",
+    "leaderboard": "Leaderboard",
+    "competitions": "Competitions",
+    "registration": "Registration"
+  },
+  "events": {
+    "title": "Events",
+    "published": "Published Events",
+    "upcoming": "Upcoming",
+    "ongoing": "Ongoing",
+    "completed": "Completed",
+    "register": "Register",
+    "viewDetails": "View Details"
+  },
+  "forms": {
+    "name": "Name",
+    "description": "Description",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "location": "Location",
+    "category": "Category",
+    "email": "Email",
+    "password": "Password"
+  }
+}

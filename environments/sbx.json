@@ -1,0 +1,54 @@
+{
+  "environment": "sbx",
+  "account": "123456789012",
+  "region": "us-east-2",
+  "domain": "sbx.athleon.fitness",
+
+  "cognito": {
+    "passwordPolicy": {
+      "minLength": 6,
+      "requireUppercase": false,
+      "requireLowercase": false,
+      "requireNumbers": false,
+      "requireSymbols": false
+    },
+    "mfaConfiguration": "OFF",
+    "emailVerification": false
+  },
+  "dynamodb": {
+    "billingMode": "PAY_PER_REQUEST",
+    "pointInTimeRecovery": false,
+    "deletionProtection": false
+  },
+  "lambda": {
+    "logRetention": 7,
+    "memorySize": 256,
+    "timeout": 30,
+    "environment": {
+      "LOG_LEVEL": "DEBUG",
+      "CORS_ORIGINS": "*"
+    }
+  },
+  "s3": {
+    "versioning": false,
+    "lifecycleRules": [
+      {
+        "id": "DeleteOldVersions",
+        "status": "Enabled",
+        "expiration": { "days": 30 }
+      }
+    ]
+  },
+  "monitoring": {
+    "enableXRay": true,
+    "enableDetailedMetrics": false,
+    "alarmNotifications": false
+  },
+  "frontend": {
+    "customDomain": false,
+    "caching": {
+      "defaultTtl": 300,
+      "maxTtl": 3600
+    }
+  }
+}

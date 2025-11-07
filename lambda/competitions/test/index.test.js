@@ -1,5 +1,5 @@
 const { handler } = require('../index');
-const { createApiEvent } = require('../../shared/test/helpers');
+const { createApiEvent } = require("/opt/nodejs/test/helpers")
 
 // Mock AWS SDK
 jest.mock('@aws-sdk/client-dynamodb');

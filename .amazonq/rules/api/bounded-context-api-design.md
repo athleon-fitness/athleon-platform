@@ -1,7 +1,7 @@
 # Bounded Context API Design
 
 ## Purpose
-Ensures API endpoints respect bounded context boundaries and prevent cross-domain violations in the ScorinGames platform.
+Ensures API endpoints respect bounded context boundaries and prevent cross-domain violations in the Athleon platform.
 
 ## Priority
 **Critical** - Must be followed without exception

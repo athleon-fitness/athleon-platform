@@ -1,5 +1,5 @@
 const { DynamoDBDocumentClient, QueryCommand, PutCommand, GetCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
-const logger = require('../shared/utils/logger');
+const logger = require('/opt/nodejs/utils/logger');
 
 const SCHEDULES_TABLE = process.env.SCHEDULES_TABLE;
 const HEATS_TABLE = process.env.HEATS_TABLE;

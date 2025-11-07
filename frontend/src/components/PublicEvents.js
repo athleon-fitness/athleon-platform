@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { API } from 'aws-amplify';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './common/LanguageSwitcher';
 
 function PublicEvents() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetchPublishedEvents();
@@ -31,9 +34,21 @@ function PublicEvents() {
 
   return (
     <div className="public-events">
+      <nav className="navbar">
+        <div className="logo" onClick={() => navigate('/')}>
+          <img src="/athleon-white-crop.PNG" alt="Athleon" className="logo-image" />
+          <span className="logo-text">Athleon</span>
+        </div>
+        <div className="nav-links">
+          <LanguageSwitcher />
+        </div>
+      </nav>
+
       <div className="hero">
-        <h1>Competition Events</h1>
-        <p>Browse our upcoming and active competitions</p>
+        <div className="hero-header">
+          <h1>{t('events.title')}</h1>
+        </div>
+        <p>{t('events.published')}</p>
       </div>
 
       {events.length === 0 ? (
@@ -75,19 +90,61 @@ function PublicEvents() {
         .public-events {
           min-height: 100vh;
           background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-          padding: 40px 20px;
+        }
+        .navbar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 15px 5%;
+          background: linear-gradient(135deg, #FF5722 0%, #6B7C93 100%);
+          position: sticky;
+          top: 0;
+          z-index: 100;
+        }
+        .logo {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+        .logo:hover {
+          transform: scale(1.05);
+        }
+        .logo-image {
+          width: 40px;
+          height: 40px;
+          border-radius: 8px;
+        }
+        .logo-text {
+          font-size: 24px;
+          font-weight: 700;
+          color: white;
+          letter-spacing: -0.5px;
+        }
+        .nav-links {
+          display: flex;
+          gap: 15px;
+          align-items: center;
         }
         .hero {
           text-align: center;
           margin-bottom: 50px;
         }
+        .hero-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          max-width: 1200px;
+          margin: 0 auto 20px auto;
+        }
         .hero h1 {
           font-size: 48px;
           font-weight: 700;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          background: linear-gradient(135deg, #FF5722 0%, #6B7C93 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          margin: 0 0 15px 0;
+          margin: 0;
         }
         .hero p {
           font-size: 20px;
@@ -111,15 +168,17 @@ function PublicEvents() {
         }
         .event-cube {
           background: white;
-          border-radius: 16px;
+          border-radius: 20px;
           overflow: hidden;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
+          border: 1px solid rgba(0,0,0,0.04);
         }
         .event-cube:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+          transform: translateY(-12px);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+          border-color: rgba(102, 126, 234, 0.2);
         }
         .event-image {
           width: 100%;

@@ -1,24 +1,35 @@
 import * as cdk from 'aws-cdk-lib';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import { Construct } from 'constructs';
 
 export interface NetworkStackProps  {
   stage: string;
   userPool: cognito.UserPool;
+  certificate?: acm.Certificate;
+  apiDomain?: string;
 }
 
 export class NetworkStack extends Construct {
   public readonly api: apigateway.RestApi;
   public readonly authorizer: apigateway.CognitoUserPoolsAuthorizer;
+  public readonly domainName?: apigateway.DomainName;
 
   constructor(scope: Construct, id: string, props: NetworkStackProps) {
     super(scope, id);
 
+    // Custom domain for API Gateway (if certificate provided)
+    this.domainName = props.certificate && props.apiDomain ? new apigateway.DomainName(this, 'ApiDomain', {
+      domainName: props.apiDomain,
+      certificate: props.certificate,
+      endpointType: apigateway.EndpointType.REGIONAL,
+    }) : undefined;
+
     // API Gateway
     this.api = new apigateway.RestApi(this, 'Api', {
-      restApiName: `scoringames-api-${props.stage}`,
-      description: 'ScorinGames API',
+      restApiName: `athleon-api-${props.stage}`,
+      description: 'Athleon API',
       deployOptions: {
         stageName: props.stage,
         tracingEnabled: true,
@@ -35,6 +46,15 @@ export class NetworkStack extends Construct {
       cognitoUserPools: [props.userPool],
       authorizerName: 'CognitoAuthorizer',
     });
+
+    // Map custom domain to API Gateway stage
+    if (this.domainName) {
+      new apigateway.BasePathMapping(this, 'BasePathMapping', {
+        domainName: this.domainName,
+        restApi: this.api,
+        stage: this.api.deploymentStage,
+      });
+    }
 
     // Add CORS headers to Gateway error responses
     this.api.addGatewayResponse('Unauthorized', {

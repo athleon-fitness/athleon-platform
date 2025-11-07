@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import LanguageSwitcher from './common/LanguageSwitcher';
 import EventManagement from './backoffice/EventManagement';
 import EventDetails from './backoffice/EventDetails';
 import EventEdit from './backoffice/EventEdit';
@@ -18,6 +20,7 @@ import { getOrganizerRole, ROLE_LABELS, hasPermission, PERMISSIONS } from '../ut
 function BackofficeLayout({ user, signOut }) {
   const location = useLocation();
   const [sidebarVisible, setSidebarVisible] = useState(true);
+  const { t } = useTranslation();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -93,11 +96,12 @@ function BackofficeLayout({ user, signOut }) {
           <div className="admin-info">
             <span className="admin-icon">👤</span>
             <div className="admin-text">
-              <h2>Scoring Games</h2>
+              <h2>Athleon</h2>
               <div className="user-info">
                 <span>{user?.attributes?.given_name}</span>
                 <span className="role-badge">{roleLabel}</span>
-                <button onClick={(e) => { e.stopPropagation(); signOut(); }} className="sign-out">Sign Out</button>
+                <LanguageSwitcher className="mb-2" />
+                <div onClick={(e) => { e.stopPropagation(); signOut(); }} className="logout-link">{t('navigation.logout')}</div>
               </div>
             </div>
           </div>
@@ -304,14 +308,17 @@ function BackofficeLayout({ user, signOut }) {
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
-        .sign-out {
-          background: #e74c3c;
-          color: white;
-          border: none;
-          padding: 4px 8px;
-          border-radius: 3px;
+        .logout-link {
+          color: #ff6b6b;
           font-size: 11px;
+          font-weight: 500;
           cursor: pointer;
+          transition: all 0.3s ease;
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+        .logout-link:hover {
+          color: #ff5252;
         }
         .nav-links {
           padding: 20px 0;

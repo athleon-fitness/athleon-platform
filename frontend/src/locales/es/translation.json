@@ -1,0 +1,137 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "close": "Cerrar"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "events": "Eventos",
+    "athletes": "Atletas",
+    "organizations": "Organizaciones",
+    "profile": "Perfil",
+    "leaderboard": "Clasificación",
+    "backoffice": "Administración",
+    "logout": "Cerrar Sesión",
+    "login": "Iniciar Sesión"
+  },
+  "exercises": {
+    "title": "💪 Biblioteca de Ejercicios",
+    "subtitle": "Descubre todos los ejercicios utilizados en competencias de calistenia con sus valores de puntuación.",
+    "filterLabel": "Filtrar por categoría:",
+    "all": "Todos",
+    "strength": "Fuerza",
+    "endurance": "Resistencia",
+    "skill": "Habilidad",
+    "baseScore": "Puntuación Base",
+    "modifiers": "Modificadores",
+    "noExercises": "No se encontraron ejercicios para la categoría seleccionada."
+  },
+  "landing": {
+    "title": "Athleon – Donde se Forjan los Campeones de Calistenia",
+    "subtitle": "Todo lo que necesitas para organizar competencias, rastrear la excelencia y moldear el futuro de los atletas.",
+    "getStarted": "Comenzar",
+    "learnMore": "Saber Más",
+    "featuresTitle": "Todo lo que Necesitas para Organizar Competencias",
+    "features": {
+      "multiCompetition": {
+        "title": "Gestión Multi-Competencia",
+        "description": "Organiza competencias ilimitadas con clasificaciones independientes, categorías y eventos. Perfecto para gimnasios, federaciones y organizaciones que buscan escala sin complejidad."
+      },
+      "realTimeScoring": {
+        "title": "Puntuación en Tiempo Real",
+        "description": "Ingresa puntuaciones al instante y observa las clasificaciones actualizarse en vivo. Atletas, entrenadores y espectadores se mantienen comprometidos cada segundo de la competencia."
+      },
+      "athleteManagement": {
+        "title": "Gestión de Atletas",
+        "description": "Registro optimizado, asignaciones inteligentes de categorías y perfiles completos de atletas. Los atletas son dueños de su camino, los organizadores ahorran tiempo."
+      },
+      "analytics": {
+        "title": "Análisis Avanzado",
+        "description": "Desbloquea insights con tendencias de rendimiento, comparaciones de atletas y reportes detallados de competencias. Convierte datos en bruto en conocimiento accionable."
+      },
+      "multipleWods": {
+        "title": "Múltiples WODs por Evento",
+        "description": "Diseña formatos complejos con múltiples entrenamientos y sistemas de puntuación—desde desafíos simples hasta competencias estilo CrossFit Games."
+      },
+      "roleBasedAccess": {
+        "title": "Acceso Basado en Roles",
+        "description": "Super administradores, organizadores, jueces y atletas obtienen el nivel de acceso adecuado. Seguro, organizado y construido para la colaboración."
+      }
+    },
+    "howItWorks": {
+      "title": "Cómo Funciona",
+      "step1": {
+        "title": "Crea tu Competencia",
+        "description": "Configura tu evento con fechas, categorías y entrenamientos en minutos."
+      },
+      "step2": {
+        "title": "Atletas se Registran",
+        "description": "Los atletas se inscriben y seleccionan sus categorías a través del registro autoservicio."
+      },
+      "step3": {
+        "title": "Puntúa y Rastrea",
+        "description": "Ingresa puntuaciones mientras ocurren los eventos y observa la clasificación actualizarse en vivo."
+      },
+      "step4": {
+        "title": "Celebra a los Ganadores",
+        "description": "Posiciones finales, análisis de rendimiento y resultados compartibles."
+      }
+    },
+    "cta": {
+      "title": "¿Listo para Transformar la Calistenia?",
+      "subtitle": "Athleon es más que una plataforma de competencias—es el ecosistema donde los atletas de calistenia son descubiertos, desafiados y transformados en campeones."
+    }
+  },
+  "backoffice": {
+    "dashboard": "Panel de Control",
+    "eventManagement": "Gestión de Eventos",
+    "createEvent": "Crear Evento",
+    "editEvent": "Editar Evento",
+    "publishEvent": "Publicar Evento",
+    "eventDetails": "Detalles del Evento",
+    "registeredAthletes": "Atletas Registrados",
+    "scoringSystem": "Sistema de Puntuación",
+    "categories": "Categorías",
+    "wods": "WODs",
+    "schedule": "Horario"
+  },
+  "athlete": {
+    "profile": "Perfil de Atleta",
+    "myEvents": "Mis Eventos",
+    "registerForEvent": "Registrarse al Evento",
+    "myScores": "Mis Puntuaciones",
+    "leaderboard": "Clasificación",
+    "competitions": "Competencias",
+    "registration": "Registro"
+  },
+  "events": {
+    "title": "Eventos",
+    "published": "Eventos Publicados",
+    "upcoming": "Próximos",
+    "ongoing": "En Curso",
+    "completed": "Completados",
+    "register": "Registrarse",
+    "viewDetails": "Ver Detalles"
+  },
+  "forms": {
+    "name": "Nombre",
+    "description": "Descripción",
+    "startDate": "Fecha de Inicio",
+    "endDate": "Fecha de Fin",
+    "location": "Ubicación",
+    "category": "Categoría",
+    "email": "Correo Electrónico",
+    "password": "Contraseña"
+  }
+}

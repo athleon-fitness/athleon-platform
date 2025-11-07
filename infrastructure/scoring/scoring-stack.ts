@@ -5,9 +5,12 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Construct } from 'constructs';
+import { AthleonSharedLayer } from '../shared/lambda-layer';
 
 export interface ScoringStackProps  {
-  stage: string;  eventBus: events.EventBus;
+  stage: string;
+  eventBus: events.EventBus;
+  sharedLayer: AthleonSharedLayer;
 }
 
 export class ScoringStack extends Construct {
@@ -74,6 +77,7 @@ export class ScoringStack extends Construct {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/scoring'),
+      layers: [props.sharedLayer.layer],
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: {

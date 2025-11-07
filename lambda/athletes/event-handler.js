@@ -1,6 +1,6 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, QueryCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
-const logger = require('../shared/utils/logger');
+const logger = require('/opt/nodejs/utils/logger');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);

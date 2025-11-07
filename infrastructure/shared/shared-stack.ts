@@ -3,6 +3,7 @@ import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
+import { AthleonSharedLayer } from './lambda-layer';
 
 export interface SharedStackProps {
   stage: string;
@@ -13,13 +14,14 @@ export class SharedStack extends Construct {
   public readonly userPoolClient: cognito.UserPoolClient;
   public readonly eventBus: events.EventBus;
   public readonly eventImagesBucket: s3.Bucket;
+  public readonly sharedLayer: AthleonSharedLayer;
 
   constructor(scope: Construct, id: string, props: SharedStackProps) {
     super(scope, id);
 
     // Cognito User Pool
     this.userPool = new cognito.UserPool(this, 'UserPool', {
-      userPoolName: `scoringames-${props.stage}`,
+      userPoolName: `athleon-${props.stage}`,
       selfSignUpEnabled: true,
       signInAliases: { email: true },
       autoVerify: { email: true },
@@ -52,12 +54,12 @@ export class SharedStack extends Construct {
 
     // Central EventBridge Bus for cross-domain events
     this.eventBus = new events.EventBus(this, 'CentralEventBus', {
-      eventBusName: `scoringames-central-${props.stage}`,
+      eventBusName: `athleon-central-${props.stage}`,
     });
 
     // S3 Bucket for event images
     this.eventImagesBucket = new s3.Bucket(this, 'EventImagesBucket', {
-      bucketName: `scoringames-event-images-${props.stage}`,
+      bucketName: `athleon-event-images-${props.stage}`,
       cors: [{
         allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT, s3.HttpMethods.POST],
         allowedOrigins: ['*'],
@@ -65,6 +67,11 @@ export class SharedStack extends Construct {
       }],
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
+    });
+
+    // Lambda Layer for shared utilities
+    this.sharedLayer = new AthleonSharedLayer(this, 'SharedLayer', {
+      stage: props.stage,
     });
 
     // Outputs

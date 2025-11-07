@@ -1,7 +1,7 @@
 # Authentication & Authorization Patterns
 
 ## User Roles
-- **Super Admin**: `admin@scoringames.com` - Platform-wide access
+- **Super Admin**: `admin@athleon.fitness` - Platform-wide access
 - **Organization Owner**: Full organization control, manage members, events
 - **Organization Admin**: Manage members and events
 - **Organization Member**: Create and edit events
@@ -10,7 +10,7 @@
 ## Authentication
 - Use Cognito User Pool for authentication
 - JWT tokens with custom attributes
-- Check super admin: `userEmail === 'admin@scoringames.com'`
+- Check super admin: `userEmail === 'admin@athleon.fitness'`
 
 ## Authorization Flow
 1. Check super admin status first

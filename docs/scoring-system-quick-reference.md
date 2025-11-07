@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-The ScorinGames platform now supports two scoring modes:
+The Athleon platform now supports two scoring modes:
 
 1. **Classic Mode**: Rank-based scoring (100, 99, 98...)
 2. **Advanced Mode**: Exercise-based scoring with quality ratings (EDS × EQS + TB)

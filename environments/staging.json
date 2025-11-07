@@ -1,0 +1,55 @@
+{
+  "environment": "staging",
+  "account": "234567890123",
+  "region": "us-east-2",
+  "domain": "staging.athleon.fitness",
+
+  "cognito": {
+    "passwordPolicy": {
+      "minLength": 8,
+      "requireUppercase": true,
+      "requireLowercase": true,
+      "requireNumbers": true,
+      "requireSymbols": false
+    },
+    "mfaConfiguration": "OPTIONAL",
+    "emailVerification": true
+  },
+  "dynamodb": {
+    "billingMode": "PAY_PER_REQUEST",
+    "pointInTimeRecovery": true,
+    "deletionProtection": false
+  },
+  "lambda": {
+    "logRetention": 14,
+    "memorySize": 512,
+    "timeout": 60,
+    "environment": {
+      "LOG_LEVEL": "INFO",
+      "CORS_ORIGINS": "https://staging.athleon.fitness"
+    }
+  },
+  "s3": {
+    "versioning": true,
+    "lifecycleRules": [
+      {
+        "id": "DeleteOldVersions",
+        "status": "Enabled",
+        "noncurrentVersionExpiration": { "days": 90 }
+      }
+    ]
+  },
+  "monitoring": {
+    "enableXRay": true,
+    "enableDetailedMetrics": true,
+    "alarmNotifications": true,
+    "notificationEmail": "alerts@athleon.fitness"
+  },
+  "frontend": {
+    "customDomain": true,
+    "caching": {
+      "defaultTtl": 3600,
+      "maxTtl": 86400
+    }
+  }
+}

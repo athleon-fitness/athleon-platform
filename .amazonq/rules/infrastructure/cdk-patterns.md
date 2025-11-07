@@ -1,7 +1,7 @@
 # CDK Infrastructure Patterns
 
 ## Purpose
-Ensures consistent and maintainable infrastructure deployment using AWS CDK best practices for the ScorinGames platform.
+Ensures consistent and maintainable infrastructure deployment using AWS CDK best practices for the Athleon platform.
 
 ## Priority
 **Critical** - Must be followed without exception

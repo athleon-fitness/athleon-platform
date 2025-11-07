@@ -1,7 +1,7 @@
 # Code Quality Standards
 
 ## Purpose
-Maintains high code quality and security standards while ensuring minimal, efficient implementations for the ScorinGames platform.
+Maintains high code quality and security standards while ensuring minimal, efficient implementations for the Athleon platform.
 
 ## Priority
 **Medium** - Important guidelines that shape behavior

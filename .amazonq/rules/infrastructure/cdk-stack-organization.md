@@ -34,7 +34,7 @@ infrastructure/
 ### Stack Naming Convention
 - Format: `{Domain}Stack` (e.g., `CompetitionsStack`, `OrganizationsStack`)
 - Shared stacks: `SharedStack`, `NetworkStack`
-- Main orchestrator: `ScorinGamesStack`
+- Main orchestrator: `AthleonStack`
 
 ### Stack Props Pattern
 Each domain stack receives:

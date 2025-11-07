@@ -1,8 +1,8 @@
-# ScorinGames Infrastructure
+# Athleon Infrastructure
 
 ## Architecture Overview
 
-This infrastructure follows **Domain-Driven Design (DDD)** principles with **serverless microservices** architecture using AWS CDK.
+This infrastructure follows **Domain-Driven Design (DDD)** principles with **serverless microservices** architecture using AWS CDK for the Athleon platform.
 
 ## Stack Organization
 

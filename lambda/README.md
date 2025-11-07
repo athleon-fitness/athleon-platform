@@ -1,8 +1,8 @@
-# Lambda Domain Packages
+# Athleon Lambda Domain Packages
 
 ## Structure
 
-Lambda code is organized into domain-specific packages following DDD bounded contexts:
+Lambda code is organized into domain-specific packages following DDD bounded contexts for the Athleon platform:
 
 ```
 lambda/

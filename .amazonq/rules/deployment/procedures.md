@@ -2,7 +2,7 @@
 
 ## Backend Deployment (CDK)
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon
 cdk deploy --profile labvel-dev --require-approval never
 ```
 

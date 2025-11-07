@@ -3,6 +3,10 @@ const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, UpdateComm
 const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge');
 const { calculateScore } = require('./calculator');
 
+// Import from Lambda Layer
+const { verifyToken, isSuperAdmin, checkOrganizationAccess } = require('/opt/nodejs/utils/auth');
+const logger = require('/opt/nodejs/utils/logger');
+
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
 const eventBridge = new EventBridgeClient({});
@@ -60,7 +64,7 @@ async function emitScoreEvent(eventType, scoreData) {
   try {
     await eventBridge.send(new PutEventsCommand({
       Entries: [{
-        Source: 'scoringames.scores',
+        Source: 'athleon.scores',
         DetailType: eventType,
         Detail: JSON.stringify(scoreData),
         EventBusName: 'default'

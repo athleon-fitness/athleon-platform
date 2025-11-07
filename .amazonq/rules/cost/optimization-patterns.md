@@ -1,7 +1,7 @@
 # Cost Optimization Patterns
 
 ## Purpose
-Maintains cost-effective AWS resource usage while ensuring performance and reliability for the ScorinGames platform, preventing unexpected billing spikes.
+Maintains cost-effective AWS resource usage while ensuring performance and reliability for the Athleon platform, preventing unexpected billing spikes.
 
 ## Priority
 **High** - Should be followed unless conflicting with a critical rule
