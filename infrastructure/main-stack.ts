@@ -34,7 +34,7 @@ export class AthleonStack extends cdk.Stack {
     // 7. Frontend Stack (create first to get certificate)
     const frontendStack = new FrontendStack(this, 'Frontend', {
       stage: props.stage,
-      domain: props.config.domain,
+      domain: props.config.frontend.customDomain ? props.config.domain : undefined,
       enableWaf: props.config.frontend?.waf?.enabled,
       rateLimiting: props.config.frontend?.waf?.rateLimiting,
     });
@@ -44,7 +44,7 @@ export class AthleonStack extends cdk.Stack {
       stage: props.stage,
       userPool: sharedStack.userPool,
       certificate: frontendStack.certificate,
-      apiDomain: props.config.domain ? `api.${props.config.domain}` : undefined,
+      apiDomain: props.config.frontend.customDomain ? `api.${props.config.domain}` : undefined,
     });
 
     // 3. Organizations (RBAC foundation)
