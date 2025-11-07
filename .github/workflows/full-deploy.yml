@@ -19,6 +19,8 @@ jobs:
     strategy:
       matrix:
         environment: [dev]
+    environment: ${{ matrix.environment }}  
+    
     steps:
       - uses: actions/checkout@v4
 
@@ -43,7 +45,7 @@ jobs:
           aws-region: us-east-1
           role-chaining: true
 
-          
+
       - name: Install CDK
         run: npm install -g aws-cdk
 
