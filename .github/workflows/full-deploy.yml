@@ -58,13 +58,16 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             frontend/package-lock.json
+            layers/athleon-shared/package-lock.json
           
 
       - name: Install CDK
         run: npm install -g aws-cdk
 
       - name: Install backend dependencies
-        run: npm ci --prefer-offline
+        run: |
+          npm ci --prefer-offline
+          npm run build:layer
 
       - name: Deploy CDK stack
         id: cdk-deploy

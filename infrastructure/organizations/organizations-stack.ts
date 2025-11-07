@@ -3,6 +3,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
+import { createBundledLambda } from '../shared/lambda-bundling';
 import { AthleonSharedLayer } from '../shared/lambda-layer';
 
 export interface OrganizationsStackProps {
@@ -61,13 +62,8 @@ export class OrganizationsStack extends Construct {
     });
 
     // Organizations Lambda
-    this.organizationsLambda = new lambda.Function(this, 'OrganizationsLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/organizations'),
+    this.organizationsLambda = createBundledLambda(this, 'OrganizationsLambda', 'organizations', {
       layers: [props.sharedLayer.layer],
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
       environment: {
         ORGANIZATIONS_TABLE: this.organizationsTable.tableName,
         ORGANIZATION_MEMBERS_TABLE: this.organizationMembersTable.tableName,

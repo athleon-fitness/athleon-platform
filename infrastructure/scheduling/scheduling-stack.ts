@@ -6,6 +6,7 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { Construct } from 'constructs';
+import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface SchedulingStackProps  {
   stage: string;  eventBus: events.EventBus;
@@ -51,12 +52,7 @@ export class SchedulingStack extends Construct {
     });
 
     // Scheduler Lambda (DDD)
-    this.schedulerLambda = new lambda.Function(this, 'SchedulerLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'ddd-handler.handler',
-      code: lambda.Code.fromAsset('lambda/scheduling'),
-      timeout: cdk.Duration.seconds(60),
-      memorySize: 512,
+    this.schedulerLambda = createBundledLambda(this, 'SchedulerLambda', 'scheduling', {
       environment: {
         SCHEDULES_TABLE: this.schedulesTable.tableName,
         HEATS_TABLE: this.heatsTable.tableName,
@@ -73,12 +69,7 @@ export class SchedulingStack extends Construct {
     props.eventBus.grantPutEventsTo(this.schedulerLambda);
 
     // Generate Schedule Lambda (Step Functions task)
-    const generateScheduleLambda = new lambda.Function(this, 'GenerateScheduleLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'generate.handler',
-      code: lambda.Code.fromAsset('lambda/scheduling'),
-      timeout: cdk.Duration.seconds(300),
-      memorySize: 1024,
+    const generateScheduleLambda = createBundledLambda(this, 'GenerateScheduleLambda', 'scheduling', {
       environment: {
         SCHEDULES_TABLE: this.schedulesTable.tableName,
       },
@@ -87,12 +78,7 @@ export class SchedulingStack extends Construct {
     this.schedulesTable.grantReadWriteData(generateScheduleLambda);
 
     // Public Schedules Lambda
-    const publicSchedulesLambda = new lambda.Function(this, 'PublicSchedulesLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'public.handler',
-      code: lambda.Code.fromAsset('lambda/scheduling'),
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
+    const publicSchedulesLambda = createBundledLambda(this, 'PublicSchedulesLambda', 'scheduling', {
       environment: {
         SCHEDULES_TABLE: this.schedulesTable.tableName,
       },

@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
+import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface CategoriesStackProps  {
   stage: string;  eventBus: events.EventBus;
@@ -33,12 +34,7 @@ export class CategoriesStack extends Construct {
     });
 
     // Categories Lambda
-    this.categoriesLambda = new lambda.Function(this, 'CategoriesLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/categories'),
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
+    this.categoriesLambda = createBundledLambda(this, 'CategoriesLambda', 'categories', {
       environment: {
         CATEGORIES_TABLE: this.categoriesTable.tableName,
         ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,

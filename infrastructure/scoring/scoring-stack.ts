@@ -6,6 +6,7 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { Construct } from 'constructs';
 import { AthleonSharedLayer } from '../shared/lambda-layer';
+import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface ScoringStackProps  {
   stage: string;

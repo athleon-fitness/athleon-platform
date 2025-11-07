@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
+import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface WodsStackProps  {
   stage: string;  eventBus: events.EventBus;
@@ -34,12 +35,7 @@ export class WodsStack extends Construct {
     });
 
     // WODs Lambda
-    this.wodsLambda = new lambda.Function(this, 'WodsLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/wods'),
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
+    this.wodsLambda = createBundledLambda(this, 'WodsLambda', 'wods', {
       environment: {
         WODS_TABLE: this.wodsTable.tableName,
         ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,

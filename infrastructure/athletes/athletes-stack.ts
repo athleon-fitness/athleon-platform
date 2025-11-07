@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
+import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface AthletesStackProps  {
   stage: string;  eventBus: events.EventBus;
@@ -45,12 +46,7 @@ export class AthletesStack extends Construct {
     });
 
     // Athletes Lambda
-    this.athletesLambda = new lambda.Function(this, 'AthletesLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/athletes'),
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
+    this.athletesLambda = createBundledLambda(this, 'AthletesLambda', 'athletes', {
       environment: {
         ATHLETES_TABLE: this.athletesTable.tableName,
         ATHLETE_EVENTS_TABLE: this.athleteEventsTable.tableName,

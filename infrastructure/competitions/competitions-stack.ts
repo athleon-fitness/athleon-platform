@@ -5,6 +5,7 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
+import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface CompetitionsStackProps  {
   stage: string;
@@ -51,12 +52,7 @@ export class CompetitionsStack extends Construct {
     });
 
     // Competitions Lambda
-    this.competitionsLambda = new lambda.Function(this, 'CompetitionsLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/competitions'),
-      timeout: cdk.Duration.seconds(30),
-      memorySize: 256,
+    this.competitionsLambda = createBundledLambda(this, 'CompetitionsLambda', 'competitions', {
       environment: {
         EVENTS_TABLE: this.eventsTable.tableName,
         EVENT_DAYS_TABLE: this.eventDaysTable.tableName,
