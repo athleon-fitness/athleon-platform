@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  # Local DynamoDB
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: athleon-dynamodb-local
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+
+  # LocalStack for EventBridge simulation
+  localstack:
+    image: localstack/localstack:latest
+    container_name: athleon-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=events,s3
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+    volumes:
+      - "./localstack:/tmp/localstack"
+
+  # API Gateway simulation
+  api-gateway:
+    build: ./api-gateway
+    container_name: athleon-api-gateway
+    ports:
+      - "3001:3001"
+    environment:
+      - DYNAMODB_ENDPOINT=http://dynamodb:8000
+      - EVENTBRIDGE_ENDPOINT=http://localstack:4566
+    depends_on:
+      - dynamodb
+      - localstack

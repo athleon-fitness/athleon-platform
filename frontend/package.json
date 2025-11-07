@@ -20,7 +20,12 @@
     "eject": "react-scripts eject"
   },
   "devDependencies": {
-    "react-scripts": "5.0.1"
+    "react-scripts": "^5.0.1",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0"
+  },
+  "overrides": {
+    "typescript": "^5.9.3"
   },
   "browserslist": {
     "production": [
