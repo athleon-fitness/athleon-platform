@@ -33,9 +33,4 @@ new AthleonStack(app, `Athleon-${environment}`, {
     account: config.account,
     region: config.region,
   },
-  tags: {
-    Environment: environment,
-    Project: 'Athleon',
-    ManagedBy: 'CDK',
-  },
-});
+} as any);
