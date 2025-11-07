@@ -35,16 +35,17 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.HUB_ACCOUNT_ID }}:role/GitHubActionsHubRole-prd  
           role-session-name: GitHubActions-${{ github.run_id }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
+          audience: sts.amazonaws.com
+          output-env-credentials: true
 
       - name: Assume Spoke Role
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ secrets[format('{0}_ACCOUNT_ID', matrix.environment)] }}:role/GitHubActionsSpokeDeploymentRole-${{ github.event.repository.default_branch == 'main' && 'prd' || 'dev' }}
           role-session-name: GitHubActions-Spoke-${{ matrix.environment }}-${{ github.run_id }}
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
           role-chaining: true
-
 
       - name: Install CDK
         run: npm install -g aws-cdk
