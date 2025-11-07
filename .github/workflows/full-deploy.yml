@@ -83,6 +83,7 @@ jobs:
         run: |
           npm run deploy
         env:
+          CI: true
           ENVIRONMENT: ${{ matrix.environment }}
 
       - name: Get stack outputs
