@@ -1,0 +1,16 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-development:
+    uses: ./.github/workflows/deploy-reusable.yml
+    with:
+      environment: development
+      account_id_secret: DEV_ACCOUNT_ID
+    secrets:
+      HUB_ACCOUNT_ID: ${{ secrets.HUB_ACCOUNT_ID }}
+      DEV_ACCOUNT_ID: ${{ secrets.DEV_ACCOUNT_ID }}

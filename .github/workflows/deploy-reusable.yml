@@ -1,9 +1,23 @@
-name: Full Athleon Deployment
+name: Reusable Deployment Workflow
 
 on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      account_id_secret:
+        required: true
+        type: string
+    secrets:
+      HUB_ACCOUNT_ID:
+        required: true
+      DEV_ACCOUNT_ID:
+        required: false
+      STG_ACCOUNT_ID:
+        required: false
+      PROD_ACCOUNT_ID:
+        required: false
 
 env:
   NODE_VERSION: '20'
@@ -16,15 +30,10 @@ permissions:
 jobs:
   deploy:
     runs-on: self-hosted
-    strategy:
-      matrix:
-        environment: [development]
-    environment: ${{ matrix.environment }}  
+    environment: ${{ inputs.environment }}
     
     steps:
       - uses: actions/checkout@v4
-
-      
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -34,19 +43,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           audience: sts.amazonaws.com
           output-env-credentials: true
-      - name: Set account ID
-        id: account
-        run: |
-          case "${{ matrix.environment }}" in
-            development) echo "account-id=${{ secrets.DEV_ACCOUNT_ID }}" >> $GITHUB_OUTPUT ;;
-            prod) echo "account-id=${{ secrets.PROD_ACCOUNT_ID }}" >> $GITHUB_OUTPUT ;;
-          esac
 
       - name: Assume Spoke Role
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ steps.account.outputs.account-id }}:role/GitHubActionsSpokeDeploymentRole-prd
-          role-session-name: GitHubActions-Spoke-${{ matrix.environment }}-${{ github.run_id }}
+          role-to-assume: arn:aws:iam::${{ secrets[inputs.account_id_secret] }}:role/GitHubActionsSpokeDeploymentRole-prd
+          role-session-name: GitHubActions-Spoke-${{ inputs.environment }}-${{ github.run_id }}
           aws-region: ${{ env.AWS_REGION }}
           role-chaining: true
 
@@ -64,32 +66,22 @@ jobs:
         run: npm install -g aws-cdk
 
       - name: Install backend dependencies
-        run: |
-          npm install --include=dev
-          
+        run: npm install --include=dev
 
       - name: Build layer
         run: npm run build:layer
 
-
-      #- name: Deploy CDK stack
-      #  id: cdk-deploy
-      #  run: |
-      #    cdk deploy Athleon-${{ matrix.environment }} \
-      #      --context environment=${{ matrix.environment }} \
-      #      --require-approval never
       - name: Deploy using existing script
         id: cdk-deploy
-        run: |
-          npm run deploy
+        run: npm run deploy
         env:
           CI: true
-          ENVIRONMENT: ${{ matrix.environment }}
+          ENVIRONMENT: ${{ inputs.environment }}
 
       - name: Get stack outputs
         id: outputs
         run: |
-          STACK_NAME="Athleon-${{ matrix.environment }}"
+          STACK_NAME="Athleon-${{ inputs.environment }}"
           API_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`ApiUrl`].OutputValue' --output text)
           echo "api-url=${API_URL%/}" >> $GITHUB_OUTPUT
           echo "user-pool-id=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`UserPoolId`].OutputValue' --output text)" >> $GITHUB_OUTPUT
@@ -102,7 +94,7 @@ jobs:
           cd frontend
           cat > src/aws-config.json << EOF
           {
-            "environment": "${{ matrix.environment }}",
+            "environment": "${{ inputs.environment }}",
             "apiUrl": "${{ steps.outputs.outputs.api-url }}",
             "userPoolId": "${{ steps.outputs.outputs.user-pool-id }}",
             "userPoolClientId": "${{ steps.outputs.outputs.user-pool-client-id }}",
@@ -114,7 +106,7 @@ jobs:
         run: |
           cd frontend
           npm ci
-          REACT_APP_ENVIRONMENT=${{ matrix.environment }} \
+          REACT_APP_ENVIRONMENT=${{ inputs.environment }} \
           REACT_APP_API_URL=${{ steps.outputs.outputs.api-url }} \
           REACT_APP_USER_POOL_ID=${{ steps.outputs.outputs.user-pool-id }} \
           REACT_APP_USER_POOL_CLIENT_ID=${{ steps.outputs.outputs.user-pool-client-id }} \

@@ -1,8 +1,8 @@
 {
   "environment": "staging",
-  "account": "234567890123",
+  "account": "904985504252",
   "region": "us-east-2",
-  "domain": "staging.athleon.fitness",
+  "domain": "stg.athleon.fitness",
 
   "cognito": {
     "passwordPolicy": {
@@ -26,7 +26,7 @@
     "timeout": 60,
     "environment": {
       "LOG_LEVEL": "INFO",
-      "CORS_ORIGINS": "https://staging.athleon.fitness"
+      "CORS_ORIGINS": "https://stg.athleon.fitness"
     }
   },
   "s3": {

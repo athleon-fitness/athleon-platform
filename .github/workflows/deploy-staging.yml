@@ -1,0 +1,19 @@
+name: Deploy to Staging
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Development"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    uses: ./.github/workflows/deploy-reusable.yml
+    with:
+      environment: staging
+      account_id_secret: STG_ACCOUNT_ID
+    secrets:
+      HUB_ACCOUNT_ID: ${{ secrets.HUB_ACCOUNT_ID }}
+      STG_ACCOUNT_ID: ${{ secrets.STG_ACCOUNT_ID }}

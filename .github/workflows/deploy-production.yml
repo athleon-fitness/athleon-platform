@@ -1,0 +1,16 @@
+name: Deploy to Production
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  deploy-production:
+    uses: ./.github/workflows/deploy-reusable.yml
+    with:
+      environment: production
+      account_id_secret: PROD_ACCOUNT_ID
+    secrets:
+      HUB_ACCOUNT_ID: ${{ secrets.HUB_ACCOUNT_ID }}
+      PROD_ACCOUNT_ID: ${{ secrets.PROD_ACCOUNT_ID }}
