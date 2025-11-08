@@ -71,6 +71,46 @@
     },
     "howItWorks": {
       "title": "How It Works",
+      "tabs": {
+        "organizers": "🏆 Event Organizers",
+        "athletes": "💪 Athletes"
+      },
+      "organizers": {
+        "step1": {
+          "title": "Create Organization",
+          "description": "Set up your gym or organization profile and invite team members with different roles"
+        },
+        "step2": {
+          "title": "Design Competition",
+          "description": "Create events, add WODs, set categories, and configure scoring systems"
+        },
+        "step3": {
+          "title": "Publish & Manage",
+          "description": "Publish your event for athlete registration and manage participants in real-time"
+        },
+        "step4": {
+          "title": "Track Results",
+          "description": "Record scores, generate leaderboards, and analyze competition performance"
+        }
+      },
+      "athletes": {
+        "step1": {
+          "title": "Browse Events",
+          "description": "Discover competitions in your area and view event details, WODs, and categories"
+        },
+        "step2": {
+          "title": "Register & Prepare",
+          "description": "Sign up for events in your category and prepare for the competition workouts"
+        },
+        "step3": {
+          "title": "Compete",
+          "description": "Participate in the competition and have your scores recorded by judges"
+        },
+        "step4": {
+          "title": "View Results",
+          "description": "Check live leaderboards, track your performance, and celebrate achievements"
+        }
+      },
       "step1": {
         "title": "Create Your Competition",
         "description": "Set up your event with dates, categories, and workouts in minutes."

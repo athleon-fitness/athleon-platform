@@ -71,6 +71,46 @@
     },
     "howItWorks": {
       "title": "Cómo Funciona",
+      "tabs": {
+        "organizers": "🏆 Organizadores de Eventos",
+        "athletes": "💪 Atletas"
+      },
+      "organizers": {
+        "step1": {
+          "title": "Crear Organización",
+          "description": "Configura el perfil de tu gimnasio u organización e invita miembros del equipo con diferentes roles"
+        },
+        "step2": {
+          "title": "Diseñar Competencia",
+          "description": "Crea eventos, agrega WODs, establece categorías y configura sistemas de puntuación"
+        },
+        "step3": {
+          "title": "Publicar y Gestionar",
+          "description": "Publica tu evento para el registro de atletas y gestiona participantes en tiempo real"
+        },
+        "step4": {
+          "title": "Seguir Resultados",
+          "description": "Registra puntuaciones, genera clasificaciones y analiza el rendimiento de la competencia"
+        }
+      },
+      "athletes": {
+        "step1": {
+          "title": "Explorar Eventos",
+          "description": "Descubre competencias en tu área y ve detalles del evento, WODs y categorías"
+        },
+        "step2": {
+          "title": "Registrarse y Prepararse",
+          "description": "Inscríbete en eventos de tu categoría y prepárate para los entrenamientos de competencia"
+        },
+        "step3": {
+          "title": "Competir",
+          "description": "Participa en la competencia y haz que los jueces registren tus puntuaciones"
+        },
+        "step4": {
+          "title": "Ver Resultados",
+          "description": "Consulta clasificaciones en vivo, rastrea tu rendimiento y celebra logros"
+        }
+      },
       "step1": {
         "title": "Crea tu Competencia",
         "description": "Configura tu evento con fechas, categorías y entrenamientos en minutos."

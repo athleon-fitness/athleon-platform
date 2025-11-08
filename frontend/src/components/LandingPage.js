@@ -7,6 +7,7 @@ function LandingPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('organizers');
   
   const handleGetStarted = () => {
     navigate('/login');
@@ -113,28 +114,76 @@ function LandingPage() {
       {/* How It Works */}
       <section className="how-it-works">
         <h2 className="section-title">{t('landing.howItWorks.title')}</h2>
-        <div className="steps">
-          <div className="step">
-            <div className="step-number">1</div>
-            <h3>{t('landing.howItWorks.step1.title')}</h3>
-            <p>{t('landing.howItWorks.step1.description')}</p>
-          </div>
-          <div className="step">
-            <div className="step-number">2</div>
-            <h3>{t('landing.howItWorks.step2.title')}</h3>
-            <p>{t('landing.howItWorks.step2.description')}</p>
-          </div>
-          <div className="step">
-            <div className="step-number">3</div>
-            <h3>{t('landing.howItWorks.step3.title')}</h3>
-            <p>{t('landing.howItWorks.step3.description')}</p>
-          </div>
-          <div className="step">
-            <div className="step-number">4</div>
-            <h3>{t('landing.howItWorks.step4.title')}</h3>
-            <p>{t('landing.howItWorks.step4.description')}</p>
+        
+        {/* User Type Tabs */}
+        <div className="user-tabs">
+          <div className="tab-buttons">
+            <button 
+              className={`tab-button ${activeTab === 'organizers' ? 'active' : ''}`}
+              onClick={() => setActiveTab('organizers')}
+            >
+              {t('landing.howItWorks.tabs.organizers')}
+            </button>
+            <button 
+              className={`tab-button ${activeTab === 'athletes' ? 'active' : ''}`}
+              onClick={() => setActiveTab('athletes')}
+            >
+              {t('landing.howItWorks.tabs.athletes')}
+            </button>
           </div>
         </div>
+
+        {/* Organizers Workflow */}
+        {activeTab === 'organizers' && (
+          <div className="steps">
+            <div className="step">
+              <div className="step-number">1</div>
+              <h3>{t('landing.howItWorks.organizers.step1.title')}</h3>
+              <p>{t('landing.howItWorks.organizers.step1.description')}</p>
+            </div>
+            <div className="step">
+              <div className="step-number">2</div>
+              <h3>{t('landing.howItWorks.organizers.step2.title')}</h3>
+              <p>{t('landing.howItWorks.organizers.step2.description')}</p>
+            </div>
+            <div className="step">
+              <div className="step-number">3</div>
+              <h3>{t('landing.howItWorks.organizers.step3.title')}</h3>
+              <p>{t('landing.howItWorks.organizers.step3.description')}</p>
+            </div>
+            <div className="step">
+              <div className="step-number">4</div>
+              <h3>{t('landing.howItWorks.organizers.step4.title')}</h3>
+              <p>{t('landing.howItWorks.organizers.step4.description')}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Athletes Workflow */}
+        {activeTab === 'athletes' && (
+          <div className="steps">
+            <div className="step">
+              <div className="step-number">1</div>
+              <h3>{t('landing.howItWorks.athletes.step1.title')}</h3>
+              <p>{t('landing.howItWorks.athletes.step1.description')}</p>
+            </div>
+            <div className="step">
+              <div className="step-number">2</div>
+              <h3>{t('landing.howItWorks.athletes.step2.title')}</h3>
+              <p>{t('landing.howItWorks.athletes.step2.description')}</p>
+            </div>
+            <div className="step">
+              <div className="step-number">3</div>
+              <h3>{t('landing.howItWorks.athletes.step3.title')}</h3>
+              <p>{t('landing.howItWorks.athletes.step3.description')}</p>
+            </div>
+            <div className="step">
+              <div className="step-number">4</div>
+              <h3>{t('landing.howItWorks.athletes.step4.title')}</h3>
+              <p>{t('landing.howItWorks.athletes.step4.description')}</p>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* CTA Section */}
@@ -510,6 +559,41 @@ function LandingPage() {
           background: white;
         }
 
+        .user-tabs {
+          margin-bottom: 60px;
+        }
+
+        .tab-buttons {
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+          margin-bottom: 40px;
+        }
+
+        .tab-button {
+          background: rgba(184, 115, 51, 0.1);
+          color: #B87333;
+          border: 2px solid rgba(184, 115, 51, 0.2);
+          padding: 12px 24px;
+          border-radius: 25px;
+          cursor: pointer;
+          font-size: 16px;
+          font-weight: 600;
+          transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+          background: rgba(184, 115, 51, 0.2);
+          border-color: rgba(184, 115, 51, 0.4);
+        }
+
+        .tab-button.active {
+          background: linear-gradient(135deg, #B87333 0%, #FF5722 100%);
+          color: white;
+          border-color: transparent;
+          box-shadow: 0 4px 15px rgba(184, 115, 51, 0.3);
+        }
+
         .steps {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -685,6 +769,17 @@ function LandingPage() {
 
           .steps {
             grid-template-columns: 1fr;
+          }
+
+          .tab-buttons {
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+          }
+
+          .tab-button {
+            width: 200px;
+            text-align: center;
           }
         }
 

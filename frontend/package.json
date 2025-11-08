@@ -17,7 +17,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy:s3": "aws s3 sync build/ s3://scoringames-frontend-development --delete --profile labvel-dev",
+    "invalidate:cloudfront": "aws cloudfront create-invalidation --distribution-id E1W3VWMRM7GPNN --paths '/*' --profile labvel-dev"
   },
   "devDependencies": {
     "react-scripts": "^5.0.1",

@@ -59,12 +59,47 @@ export class FrontendStack extends Construct {
       autoDeleteObjects: false,
     });
 
+    // Dynamic CSP policy based on environment
+    const apiDomain = props.domain ? `https://api.${props.domain}` : `https://api.${props.stage}.athleon.fitness`;
+    const cognitoRegion = process.env.CDK_DEFAULT_REGION || 'us-east-2';
+    
+    const cspPolicy = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https:",
+      "font-src 'self' data:",
+      `connect-src 'self' ${apiDomain} https://cognito-idp.${cognitoRegion}.amazonaws.com`,
+      "frame-ancestors 'none'"
+    ].join('; ');
+
+    // Security headers policy
+    const securityHeadersPolicy = new cloudfront.ResponseHeadersPolicy(this, 'SecurityHeaders', {
+      responseHeadersPolicyName: `athleon-security-headers-${props.stage}`,
+      securityHeadersBehavior: {
+        contentSecurityPolicy: {
+          contentSecurityPolicy: cspPolicy,
+          override: true,
+        },
+        contentTypeOptions: { override: true },
+        frameOptions: { frameOption: cloudfront.HeadersFrameOption.DENY, override: true },
+        referrerPolicy: { referrerPolicy: cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN, override: true },
+        strictTransportSecurity: {
+          accessControlMaxAge: cdk.Duration.seconds(31536000),
+          includeSubdomains: true,
+          preload: true,
+          override: true,
+        },
+      },
+    });
+
     // CloudFront distribution
     this.distribution = new cloudfront.Distribution(this, 'Distribution', {
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(this.bucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        responseHeadersPolicy: securityHeadersPolicy,
       },
       domainNames: props.domain ? [props.domain] : undefined,
       certificate: this.cloudfrontCertificate,
