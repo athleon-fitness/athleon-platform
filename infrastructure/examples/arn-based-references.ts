@@ -15,7 +15,7 @@ export class SharedStackWithArns extends cdk.Stack {
     super(scope, id, props);
 
     const eventBus = new events.EventBus(this, 'EventBus', {
-      eventBusName: 'scoringames-central',
+      eventBusName: 'athleon-central',
     });
 
     // Export ARNs
@@ -24,7 +24,7 @@ export class SharedStackWithArns extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'EventBusArn', {
       value: this.eventBusArn,
-      exportName: 'ScorinGames-EventBusArn',
+      exportName: 'Athleon-EventBusArn',
     });
   }
 }

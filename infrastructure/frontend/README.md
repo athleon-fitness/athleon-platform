@@ -1,7 +1,7 @@
 # Frontend Stack
 
 ## Overview
-CDK stack for ScorinGames React frontend hosting using S3 + CloudFront.
+CDK stack for Athleon React frontend hosting using S3 + CloudFront.
 
 ## Resources
 
@@ -19,8 +19,8 @@ CDK stack for ScorinGames React frontend hosting using S3 + CloudFront.
 
 ### 1. Deploy Infrastructure
 ```bash
-cd /home/labvel/projects/scoringames
-cdk deploy ScorinGames/Frontend --profile labvel-dev
+cd /home/labvel/projects/athleon/web_app_athleon
+cdk deploy Athleon/Frontend --profile labvel-dev
 ```
 
 ### 2. Deploy Frontend Code
@@ -31,7 +31,7 @@ cdk deploy ScorinGames/Frontend --profile labvel-dev
 # Manual
 cd frontend
 npm run build
-aws s3 sync build/ s3://scoringames-frontend-dev --delete --profile labvel-dev
+aws s3 sync build/ s3://athleon-frontend-dev --delete --profile labvel-dev
 aws cloudfront create-invalidation --distribution-id <ID> --paths "/*" --profile labvel-dev
 ```
 
@@ -48,9 +48,9 @@ aws cloudfront create-invalidation --distribution-id <ID> --paths "/*" --profile
 Update `frontend/src/aws-config.js` with stack outputs:
 ```javascript
 const config = {
-  apiUrl: '<ApiUrl from ScorinGames stack>',
-  userPoolId: '<UserPoolId from ScorinGames stack>',
-  userPoolClientId: '<UserPoolClientId from ScorinGames stack>',
+  apiUrl: '<ApiUrl from Athleon stack>',
+  userPoolId: '<UserPoolId from Athleon stack>',
+  userPoolClientId: '<UserPoolClientId from Athleon stack>',
   region: 'us-east-2'
 };
 ```
@@ -61,7 +61,7 @@ If you have existing S3 bucket and CloudFront:
 
 1. **Import existing resources** (optional):
    ```bash
-   cdk import ScorinGames/Frontend
+   cdk import Athleon/Frontend
    ```
 
 2. **Or create new resources**:

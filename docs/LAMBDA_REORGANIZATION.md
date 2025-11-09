@@ -264,14 +264,14 @@ All packages installed successfully with `npm install`.
 
 ### Deploy All Stacks
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 cdk deploy --all --profile labvel-dev
 ```
 
 ### Deploy Single Domain
 ```bash
-cdk deploy ScorinGames/Competitions --profile labvel-dev
-cdk deploy ScorinGames/Scoring --profile labvel-dev
+cdk deploy Athleon/Competitions --profile labvel-dev
+cdk deploy Athleon/Scoring --profile labvel-dev
 ```
 
 ## Verification

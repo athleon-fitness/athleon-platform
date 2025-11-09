@@ -77,7 +77,7 @@ infrastructure/
 #### Event-Driven Architecture
 Each domain has:
 - **Domain Event Bus**: For domain-specific events (e.g., `competitions-domain-dev`)
-- **Central Event Bus**: For cross-domain event aggregation (`scoringames-central-dev`)
+- **Central Event Bus**: For cross-domain event aggregation (`athleon-central-dev`)
 
 **Cross-Domain Event Routing:**
 ```
@@ -223,16 +223,16 @@ lambda/
 
 ### Deploy All (First Time)
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 cdk deploy --all --profile labvel-dev
 ```
 
 ### Deploy Single Stack
 ```bash
-cdk deploy ScorinGames/Shared --profile labvel-dev
-cdk deploy ScorinGames/Network --profile labvel-dev
-cdk deploy ScorinGames/Organizations --profile labvel-dev
-cdk deploy ScorinGames/Competitions --profile labvel-dev
+cdk deploy Athleon/Shared --profile labvel-dev
+cdk deploy Athleon/Network --profile labvel-dev
+cdk deploy Athleon/Organizations --profile labvel-dev
+cdk deploy Athleon/Competitions --profile labvel-dev
 ```
 
 ### Destroy All

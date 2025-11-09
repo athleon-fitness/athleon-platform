@@ -18,7 +18,7 @@
 
 ### 2. Super Admin Email Updated
 
-**Old:** `admin@scoringames.com`  
+**Old:** `admin@athleon.com`  
 **New:** `admin@athleon.fitness`
 
 #### Files Updated:
@@ -37,7 +37,7 @@
 To populate the database with new categories:
 
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 AWS_PROFILE=labvel-dev node scripts/seed-data.js
 ```
 

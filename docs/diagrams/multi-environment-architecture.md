@@ -48,7 +48,7 @@
 │  │  ┌─────────────────┐    ┌─────────────────────────────────────────┐    │   │
 │  │  │   S3 Bucket     │    │        CloudFront Distribution          │    │   │
 │  │  │                 │    │                                         │    │   │
-│  │  │ scoringames-    │◄───┤  Domain: dev.athleon.fitness            │    │   │
+│  │  │ athleon-    │◄───┤  Domain: dev.athleon.fitness            │    │   │
 │  │  │ frontend-dev    │    │  Certificate: ACM Certificate           │    │   │
 │  │  │                 │    │  Origin: S3 Bucket (OAC)                │    │   │
 │  │  │ React SPA       │    │  Caching: 5min (dev settings)           │    │   │
@@ -106,7 +106,7 @@
 │  │  ┌─────────────────┐    ┌─────────────────────────────────────────┐    │   │
 │  │  │   S3 Bucket     │    │        CloudFront Distribution          │    │   │
 │  │  │                 │    │                                         │    │   │
-│  │  │ scoringames-    │◄───┤  Domain: staging.athleon.fitness        │    │   │
+│  │  │ athleon-    │◄───┤  Domain: staging.athleon.fitness        │    │   │
 │  │  │ frontend-staging│    │  Certificate: ACM Certificate           │    │   │
 │  │  │                 │    │  Origin: S3 Bucket (OAC)                │    │   │
 │  │  │ React SPA       │    │  Caching: 1hr (staging settings)        │    │   │
@@ -164,7 +164,7 @@
 │  │  ┌─────────────────┐    ┌─────────────────────────────────────────┐    │   │
 │  │  │   S3 Bucket     │    │        CloudFront Distribution          │    │   │
 │  │  │                 │    │                                         │    │   │
-│  │  │ scoringames-    │◄───┤  Domain: athleon.fitness                │    │   │
+│  │  │ athleon-    │◄───┤  Domain: athleon.fitness                │    │   │
 │  │  │ frontend-prod   │    │  Certificate: ACM Certificate           │    │   │
 │  │  │                 │    │  Origin: S3 Bucket (OAC)                │    │   │
 │  │  │ React SPA       │    │  Caching: 24hr (prod settings)          │    │   │

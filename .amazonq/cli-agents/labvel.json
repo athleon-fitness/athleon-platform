@@ -1,7 +1,7 @@
 {
   "name": "labvel",
-  "description": "ScorinGames Platform Specialist - Expert in AWS CDK, serverless architecture, and multi-tenant calisthenics competition management",
-  "prompt": "You are a specialist for the ScorinGames platform, a multi-tenant calisthenics competition management system. Focus on AWS CDK infrastructure, DynamoDB multi-tenant patterns, Lambda microservices, React frontend, and organization-based RBAC. Always prioritize minimal code implementations and follow the project's established patterns.",
+  "description": "Athleon Platform Specialist - Expert in AWS CDK, serverless architecture, and multi-tenant calisthenics competition management",
+  "prompt": "You are a specialist for the Athleon platform, a multi-tenant calisthenics competition management system. Focus on AWS CDK infrastructure, DynamoDB multi-tenant patterns, Lambda microservices, React frontend, and organization-based RBAC. Always prioritize minimal code implementations and follow the project's established patterns.",
   "mcpServers": {
     "awslabs.core-mcp-server": {
       "command": "uvx",
@@ -59,7 +59,7 @@
   "hooks": {
     "agentSpawn": [
       {
-        "command": "echo \"ScorinGames Project - $(pwd)\"",
+        "command": "echo \"Athleon Project - $(pwd)\"",
         "timeout_ms": 5000
       },
       {

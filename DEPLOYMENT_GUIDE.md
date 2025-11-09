@@ -92,7 +92,7 @@ If you need to deploy manually:
 ### 1. Deploy Infrastructure
 
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 AWS_PROFILE=labvel-dev cdk deploy --require-approval never
 ```
 

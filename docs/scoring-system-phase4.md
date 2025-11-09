@@ -10,7 +10,7 @@
 **Event Details:**
 ```javascript
 {
-  Source: 'scoringames.scores',
+  Source: 'athleon.scores',
   DetailType: 'ScoreCalculated',
   Detail: {
     scoreId: 'score-1234567890',
@@ -158,7 +158,7 @@ Score Submitted → EventBridge → Calculator Lambda
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
 │                    EventBridge                               │
-│  Source: scoringames.scores                                  │
+│  Source: athleon.scores                                  │
 │  DetailType: ScoreCalculated                                 │
 └─────────────────────────────────────────────────────────────┘
                             ↓
@@ -238,7 +238,7 @@ const leaderboardCalculator = new EventbridgeToLambda(this, 'LeaderboardCalculat
   },
   eventRuleProps: {
     eventPattern: {
-      source: ['scoringames.scores'],
+      source: ['athleon.scores'],
       detailType: ['ScoreCalculated'],
     },
   },
@@ -374,7 +374,7 @@ aws logs filter-log-events \
 
 ```bash
 # Backend
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 cdk deploy --profile labvel-dev --require-approval never
 
 # Verify deployment

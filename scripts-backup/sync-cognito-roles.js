@@ -7,7 +7,7 @@ const ddbClient = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(ddbClient);
 
 const USER_POOL_ID = 'us-east-2_KUxqDApCY';
-const USER_ROLES_TABLE = 'ScorinGames-AuthorizationUserRolesTable77A8EE09-SNJ5J983JW50';
+const USER_ROLES_TABLE = 'Athleon-AuthorizationUserRolesTable77A8EE09-SNJ5J983JW50';
 
 // Cognito to RBAC role mapping
 const ROLE_MAPPING = {

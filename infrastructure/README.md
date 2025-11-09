@@ -132,10 +132,10 @@ cdk deploy --all --profile labvel-dev
 
 ### Deploy Single Stack
 ```bash
-cdk deploy ScorinGames/Shared --profile labvel-dev
-cdk deploy ScorinGames/Network --profile labvel-dev
-cdk deploy ScorinGames/Organizations --profile labvel-dev
-cdk deploy ScorinGames/Competitions --profile labvel-dev
+cdk deploy Athleon/Shared --profile labvel-dev
+cdk deploy Athleon/Network --profile labvel-dev
+cdk deploy Athleon/Organizations --profile labvel-dev
+cdk deploy Athleon/Competitions --profile labvel-dev
 ```
 
 ### Destroy All Stacks

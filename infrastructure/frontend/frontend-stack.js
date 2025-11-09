@@ -11,7 +11,7 @@ class FrontendStack extends constructs_1.Construct {
         super(scope, id);
         // S3 bucket for static website
         this.bucket = new s3.Bucket(this, 'WebsiteBucket', {
-            bucketName: `scoringames-frontend-${props.stage}`,
+            bucketName: `athleon-frontend-${props.stage}`,
             websiteIndexDocument: 'index.html',
             websiteErrorDocument: 'index.html',
             publicReadAccess: false,

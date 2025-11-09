@@ -14,7 +14,7 @@ const dynamodb = DynamoDBDocumentClient.from(client);
 
 // Get table names from environment or use defaults
 const CATEGORIES_TABLE = process.env.CATEGORIES_TABLE || 'Athleon-development-CategoriesCategoriesTable6441F570-1V9G9DGFJKMKI';
-const WODS_TABLE = process.env.WODS_TABLE || 'ScorinGames-WodsWodsTableC84CB78B-7UBMQVHUZ6WR';
+const WODS_TABLE = process.env.WODS_TABLE || 'Athleon-WodsWodsTableC84CB78B-7UBMQVHUZ6WR';
 
 const initialCategories = [
   // Men's Categories

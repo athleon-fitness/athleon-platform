@@ -4,8 +4,8 @@ const { DynamoDBDocumentClient, ScanCommand, DeleteCommand, QueryCommand } = req
 const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const EVENTS_TABLE = 'ScorinGames-CompetitionsEventsTable5FF68F4B-14FLK0VZGOYSQ';
-const ORGANIZATION_EVENTS_TABLE = 'ScorinGames-OrganizationsOrganizationEventsTable7597D5EB-744A9V11WAGL';
+const EVENTS_TABLE = 'Athleon-CompetitionsEventsTable5FF68F4B-14FLK0VZGOYSQ';
+const ORGANIZATION_EVENTS_TABLE = 'Athleon-OrganizationsOrganizationEventsTable7597D5EB-744A9V11WAGL';
 
 async function cleanupDuplicateEvents() {
   console.log('🔍 Scanning for duplicate events...');

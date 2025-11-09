@@ -401,7 +401,8 @@ function BackofficeLayout({ user, signOut }) {
           }
           .sidebar-container.hidden {
             transform: translateX(-100%);
-            width: 0;
+            width: 80vw;
+            max-width: 280px;
           }
           .backoffice-content {
             margin-left: 0;
@@ -411,6 +412,9 @@ function BackofficeLayout({ user, signOut }) {
             background: #f8f9fa;
             overflow-x: hidden;
             position: relative;
+            z-index: 1;
+          }
+          .backoffice-content.sidebar-open {
             z-index: 1;
           }
           .sidebar-toggle {
@@ -440,6 +444,7 @@ function BackofficeLayout({ user, signOut }) {
             height: 100vh;
             background: rgba(0,0,0,0.5);
             z-index: 999;
+            display: block;
           }
         }
         @media (min-width: 769px) {

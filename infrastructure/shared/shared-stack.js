@@ -11,7 +11,7 @@ class SharedStack extends constructs_1.Construct {
         super(scope, id);
         // Cognito User Pool
         this.userPool = new cognito.UserPool(this, 'UserPool', {
-            userPoolName: `scoringames-${props.stage}`,
+            userPoolName: `athleon-${props.stage}`,
             selfSignUpEnabled: true,
             signInAliases: { email: true },
             autoVerify: { email: true },
@@ -42,11 +42,11 @@ class SharedStack extends constructs_1.Construct {
         });
         // Central EventBridge Bus for cross-domain events
         this.eventBus = new events.EventBus(this, 'CentralEventBus', {
-            eventBusName: `scoringames-central-${props.stage}`,
+            eventBusName: `athleon-central-${props.stage}`,
         });
         // S3 Bucket for event images
         this.eventImagesBucket = new s3.Bucket(this, 'EventImagesBucket', {
-            bucketName: `scoringames-event-images-${props.stage}`,
+            bucketName: `athleon-event-images-${props.stage}`,
             cors: [{
                     allowedMethods: [s3.HttpMethods.GET, s3.HttpMethods.PUT, s3.HttpMethods.POST],
                     allowedOrigins: ['*'],

@@ -403,7 +403,7 @@ The system migrated from individual organizers to multi-organization teams:
 
 ### Backend (CDK)
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 cdk deploy --profile labvel-dev
 ```
 

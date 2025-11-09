@@ -1,7 +1,7 @@
 {
   "name": "scoringames-e2e-tests",
   "version": "1.0.0",
-  "description": "End-to-end tests for ScorinGames platform",
+  "description": "End-to-end tests for Athleon platform",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",

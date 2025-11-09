@@ -130,7 +130,7 @@ export class ScoringStack extends Construct {
     new events.Rule(this, 'ScoreCalculatedRule', {
       eventBus: this.scoringEventBus,
       eventPattern: {
-        source: ['scoringames.scores'],
+        source: ['athleon.scores'],
         detailType: ['ScoreCalculated'],
       },
       targets: [new targets.LambdaFunction(calculatorLambda)],

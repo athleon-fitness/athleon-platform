@@ -12,7 +12,7 @@ test.describe('Public Events', () => {
     await page.goto('/');
     
     // Should see events without login
-    await expect(page.locator('h1')).toContainText(['Events', 'Competitions', 'ScorinGames']);
+    await expect(page.locator('h1')).toContainText(['Events', 'Competitions', 'Athleon']);
     
     // Check if events are loaded
     await page.waitForSelector('[data-testid="event-card"], [data-testid="no-events"]', { timeout: 10000 });

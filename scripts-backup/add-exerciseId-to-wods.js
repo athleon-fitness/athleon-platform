@@ -4,8 +4,8 @@ const { DynamoDBDocumentClient, ScanCommand, UpdateCommand } = require('@aws-sdk
 const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const WODS_TABLE = 'ScorinGames-WodsWodsTableC84CB78B-1FQWYB636JK8C';
-const EXERCISE_LIBRARY_TABLE = 'ScorinGames-ScoringExerciseLibraryTable4BA87342-DK3OFRYGRUJ6';
+const WODS_TABLE = 'Athleon-WodsWodsTableC84CB78B-1FQWYB636JK8C';
+const EXERCISE_LIBRARY_TABLE = 'Athleon-ScoringExerciseLibraryTable4BA87342-DK3OFRYGRUJ6';
 
 async function addExerciseIdToWods() {
   console.log('Adding exerciseId to all WOD movements...\n');

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Successfully implemented a complete event-driven architecture for the ScorinGames platform, replacing direct database access with EventBridge-based communication between microservices.
+Successfully implemented a complete event-driven architecture for the Athleon platform, replacing direct database access with EventBridge-based communication between microservices.
 
 ## Architecture Components
 

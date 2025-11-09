@@ -5,7 +5,7 @@
 ### Demo Accounts
 
 **Super Admin:**
-- **Admin** - admin@scoringames.com / (your password)
+- **Admin** - admin@athleon.com / (your password)
   - Can see ALL events across all organizers
   - Full system access
   - Bypasses multi-tenant filters
@@ -138,7 +138,7 @@ To reset and recreate demo data:
 ```bash
 # 1. Delete existing demo users (optional)
 # 2. Run seed script
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 AWS_PROFILE=labvel-dev node scripts/seed-demo-data.js
 ```
 

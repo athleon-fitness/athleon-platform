@@ -306,3 +306,60 @@
     margin-bottom: 12px;
   }
 }
+/* Mobile breakpoints for 320px minimum viewport */
+@media (max-width: 480px) {
+  .organization-management {
+    padding: 12px;
+  }
+  
+  .organization-management .page-header {
+    padding: 12px;
+  }
+  
+  .organization-card {
+    padding: 16px;
+  }
+  
+  .members-section,
+  .events-section {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 320px) {
+  .organization-management {
+    padding: 8px;
+  }
+  
+  .organization-management .page-header {
+    padding: 8px;
+  }
+  
+  .organization-card {
+    padding: 12px;
+  }
+  
+  .members-section,
+  .events-section {
+    padding: 12px;
+  }
+  
+  .organizations-grid {
+    gap: 8px;
+  }
+  
+  .btn,
+  .btn-primary,
+  .btn-secondary {
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .form-group input,
+  .form-group select {
+    font-size: 14px;
+    padding: 8px;
+  }
+}

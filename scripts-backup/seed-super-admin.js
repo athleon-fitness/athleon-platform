@@ -5,9 +5,9 @@ const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
 // Actual table names from deployment
-const ROLES_TABLE = 'ScorinGames-AuthorizationRolesTable118AC625-L8SNGAZNULK8';
-const PERMISSIONS_TABLE = 'ScorinGames-AuthorizationPermissionsTable79EDEB0E-1LQMVKEQ20WAQ';
-const USER_ROLES_TABLE = 'ScorinGames-AuthorizationUserRolesTable77A8EE09-SNJ5J983JW50';
+const ROLES_TABLE = 'Athleon-AuthorizationRolesTable118AC625-L8SNGAZNULK8';
+const PERMISSIONS_TABLE = 'Athleon-AuthorizationPermissionsTable79EDEB0E-1LQMVKEQ20WAQ';
+const USER_ROLES_TABLE = 'Athleon-AuthorizationUserRolesTable77A8EE09-SNJ5J983JW50';
 
 async function seedSuperAdmin() {
   try {

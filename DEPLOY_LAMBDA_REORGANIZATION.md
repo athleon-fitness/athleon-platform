@@ -12,7 +12,7 @@
 
 ### 1. Verify CDK Synth
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 cdk synth --profile labvel-dev
 ```
 
@@ -27,15 +27,15 @@ Or deploy stacks individually:
 
 ```bash
 # Deploy in order
-cdk deploy ScorinGames/Shared --profile labvel-dev
-cdk deploy ScorinGames/Network --profile labvel-dev
-cdk deploy ScorinGames/Organizations --profile labvel-dev
-cdk deploy ScorinGames/Competitions --profile labvel-dev
-cdk deploy ScorinGames/Athletes --profile labvel-dev
-cdk deploy ScorinGames/Scoring --profile labvel-dev
-cdk deploy ScorinGames/Scheduling --profile labvel-dev
-cdk deploy ScorinGames/Categories --profile labvel-dev
-cdk deploy ScorinGames/WODs --profile labvel-dev
+cdk deploy Athleon/Shared --profile labvel-dev
+cdk deploy Athleon/Network --profile labvel-dev
+cdk deploy Athleon/Organizations --profile labvel-dev
+cdk deploy Athleon/Competitions --profile labvel-dev
+cdk deploy Athleon/Athletes --profile labvel-dev
+cdk deploy Athleon/Scoring --profile labvel-dev
+cdk deploy Athleon/Scheduling --profile labvel-dev
+cdk deploy Athleon/Categories --profile labvel-dev
+cdk deploy Athleon/WODs --profile labvel-dev
 ```
 
 ### 3. Verify Deployment
@@ -43,7 +43,7 @@ cdk deploy ScorinGames/WODs --profile labvel-dev
 #### Check Lambda Functions
 ```bash
 aws lambda list-functions --profile labvel-dev --region us-east-2 \
-  --query 'Functions[?contains(FunctionName, `ScorinGames`)].FunctionName'
+  --query 'Functions[?contains(FunctionName, `Athleon`)].FunctionName'
 ```
 
 #### Test API Endpoints
@@ -70,12 +70,12 @@ curl https://4vv0cl30sf.execute-api.us-east-2.amazonaws.com/prod/public/events
 #### Check CloudWatch Logs
 ```bash
 # View recent logs for competitions
-aws logs tail /aws/lambda/ScorinGames-CompetitionsLambda-xxx \
+aws logs tail /aws/lambda/Athleon-CompetitionsLambda-xxx \
   --follow --profile labvel-dev
 
 # Check for errors
 aws logs filter-log-events \
-  --log-group-name /aws/lambda/ScorinGames-CompetitionsLambda-xxx \
+  --log-group-name /aws/lambda/Athleon-CompetitionsLambda-xxx \
   --filter-pattern "ERROR" \
   --profile labvel-dev
 ```
@@ -173,7 +173,7 @@ Once deployment is stable:
 
 ```bash
 # Remove root lambda package.json and node_modules
-cd /home/labvel/projects/scoringames/lambda
+cd /home/labvel/projects/athleon/web_app_athleon/lambda
 rm package.json package-lock.json
 rm -rf node_modules
 

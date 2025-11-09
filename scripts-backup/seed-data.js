@@ -13,8 +13,8 @@ const client = new DynamoDBClient(clientConfig);
 const dynamodb = DynamoDBDocumentClient.from(client);
 
 // Get table names from environment or use defaults
-const CATEGORIES_TABLE = process.env.CATEGORIES_TABLE || 'ScorinGames-CategoriesCategoriesTable6441F570-1SPJLAEBJ8R5E';
-const WODS_TABLE = process.env.WODS_TABLE || 'ScorinGames-WodsWodsTableC84CB78B-1FQWYB636JK8C';
+const CATEGORIES_TABLE = process.env.CATEGORIES_TABLE || 'Athleon-CategoriesCategoriesTable6441F570-1SPJLAEBJ8R5E';
+const WODS_TABLE = process.env.WODS_TABLE || 'Athleon-WodsWodsTableC84CB78B-1FQWYB636JK8C';
 
 const initialCategories = [
   // Men's Categories

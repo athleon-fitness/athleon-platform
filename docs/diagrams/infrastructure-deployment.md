@@ -97,7 +97,7 @@
 │  │  │                                                                 │   │   │
 │  │  │  competitions-domain-{stage} ──┐                                │   │   │
 │  │  │  organizations-domain-{stage} ──┤                                │   │   │
-│  │  │  athletes-domain-{stage} ───────┼→ scoringames-central-{stage}  │   │   │
+│  │  │  athletes-domain-{stage} ───────┼→ athleon-central-{stage}  │   │   │
 │  │  │  scoring-domain-{stage} ────────┤                                │   │   │
 │  │  │  scheduling-domain-{stage} ─────┘                                │   │   │
 │  │  │                                                                 │   │   │

@@ -5,7 +5,7 @@
  * 
  * Seeds the database with current production-like data for development and testing.
  * 
- * Note: Table names below are from the old ScorinGames deployment.
+ * Note: Table names below are from the old Athleon deployment.
  * When redeployed with Athleon stack name, these will change to Athleon-* prefixes.
  */
 
@@ -17,14 +17,14 @@ const ddb = DynamoDBDocumentClient.from(client);
 
 // Get table names from environment or use discovered names
 const TABLES = {
-  ORGANIZATIONS: 'ScorinGames-OrganizationsOrganizationsTableECC8F9CE-3MTY5XXIRLV0',
-  ORGANIZATION_MEMBERS: 'ScorinGames-OrganizationsOrganizationMembersTable46313781-14LJLNYLY8PEZ',
-  ORGANIZATION_EVENTS: 'ScorinGames-OrganizationsOrganizationEventsTable7597D5EB-KQ606XH74LLD',
-  EVENTS: 'ScorinGames-CompetitionsEventsTable5FF68F4B-19W3OK2X2HX7D',
-  ATHLETES: 'ScorinGames-AthletesAthletesTable83BA454D-1N1IH76W4RQ9P',
-  CATEGORIES: 'ScorinGames-CategoriesCategoriesTable6441F570-U0RM4NSYM5YO',
-  WODS: 'ScorinGames-WodsWodsTableC84CB78B-7UBMQVHUZ6WR',
-  EXERCISES: 'ScorinGames-ScoringExerciseLibraryTable4BA87342-19F9WI8DI32SD'
+  ORGANIZATIONS: 'Athleon-OrganizationsOrganizationsTableECC8F9CE-3MTY5XXIRLV0',
+  ORGANIZATION_MEMBERS: 'Athleon-OrganizationsOrganizationMembersTable46313781-14LJLNYLY8PEZ',
+  ORGANIZATION_EVENTS: 'Athleon-OrganizationsOrganizationEventsTable7597D5EB-KQ606XH74LLD',
+  EVENTS: 'Athleon-CompetitionsEventsTable5FF68F4B-19W3OK2X2HX7D',
+  ATHLETES: 'Athleon-AthletesAthletesTable83BA454D-1N1IH76W4RQ9P',
+  CATEGORIES: 'Athleon-CategoriesCategoriesTable6441F570-U0RM4NSYM5YO',
+  WODS: 'Athleon-WodsWodsTableC84CB78B-7UBMQVHUZ6WR',
+  EXERCISES: 'Athleon-ScoringExerciseLibraryTable4BA87342-19F9WI8DI32SD'
 };
 
 async function seedData() {

@@ -1,5 +1,8 @@
 /* Athleon Forge - Global Styles */
 
+/* Import mobile responsiveness */
+@import './styles/mobile.css';
+
 :root {
   /* Colors */
   --color-steel-gray: #6B7C93;

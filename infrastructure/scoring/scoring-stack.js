@@ -100,7 +100,7 @@ class ScoringStack extends constructs_1.Construct {
         new events.Rule(this, 'ScoreCalculatedRule', {
             eventBus: this.scoringEventBus,
             eventPattern: {
-                source: ['scoringames.scores'],
+                source: ['athleon.scores'],
                 detailType: ['ScoreCalculated'],
             },
             targets: [new targets.LambdaFunction(calculatorLambda)],

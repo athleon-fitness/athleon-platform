@@ -50,7 +50,7 @@ export class FrontendStack extends Construct {
 
     // S3 bucket for static website
     this.bucket = new s3.Bucket(this, 'WebsiteBucket', {
-      bucketName: `scoringames-frontend-${props.stage}`,
+      bucketName: `athleon-frontend-${props.stage}`,
       websiteIndexDocument: 'index.html',
       websiteErrorDocument: 'index.html',
       publicReadAccess: false,

@@ -124,7 +124,7 @@ layers: [props.sharedLayer.layer],
 
 ### **1. Deploy Layer**
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 cdk deploy Athleon --profile labvel-dev
 ```
 

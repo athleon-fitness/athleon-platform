@@ -1,14 +1,14 @@
 # Frontend Stack - Implementation Complete ✅
 
 ## Overview
-Created CDK stack for ScorinGames React frontend hosting using S3 + CloudFront.
+Created CDK stack for Athleon React frontend hosting using S3 + CloudFront.
 
 ## What Was Created
 
 ### 1. Frontend Stack (`infrastructure/frontend/frontend-stack.ts`)
 
 **Resources:**
-- **S3 Bucket**: `scoringames-frontend-{stage}`
+- **S3 Bucket**: `athleon-frontend-{stage}`
   - Private bucket with CloudFront access
   - SPA routing (404/403 → index.html)
   - Retained on stack deletion
@@ -45,8 +45,8 @@ Automated deployment script that:
 
 ```bash
 # 1. Deploy infrastructure
-cd /home/labvel/projects/scoringames
-cdk deploy ScorinGames/Frontend --profile labvel-dev
+cd /home/labvel/projects/athleon/web_app_athleon
+cdk deploy Athleon/Frontend --profile labvel-dev
 
 # 2. Note the outputs (bucket name, distribution ID, URL)
 
@@ -63,7 +63,7 @@ cdk deploy ScorinGames/Frontend --profile labvel-dev
 # Manual
 cd frontend
 npm run build
-aws s3 sync build/ s3://scoringames-frontend-dev --delete --profile labvel-dev
+aws s3 sync build/ s3://athleon-frontend-dev --delete --profile labvel-dev
 aws cloudfront create-invalidation --distribution-id <ID> --paths "/*" --profile labvel-dev
 ```
 
@@ -121,14 +121,14 @@ aws cloudfront create-invalidation --distribution-id E1MZ3OMBI2NDM3 --paths "/*"
 
 ### Option 2: Import Existing Resources
 ```bash
-cdk import ScorinGames/Frontend --profile labvel-dev
+cdk import Athleon/Frontend --profile labvel-dev
 # Follow prompts to import existing S3 and CloudFront
 ```
 
 ### Option 3: Create New Resources
 ```bash
 # Deploy new stack
-cdk deploy ScorinGames/Frontend --profile labvel-dev
+cdk deploy Athleon/Frontend --profile labvel-dev
 
 # Update DNS to point to new CloudFront
 # Delete old resources when ready
@@ -151,7 +151,7 @@ const config = {
 Get values from stack outputs:
 ```bash
 aws cloudformation describe-stacks \
-  --stack-name ScorinGames \
+  --stack-name Athleon \
   --query 'Stacks[0].Outputs' \
   --profile labvel-dev
 ```
@@ -215,7 +215,7 @@ aws cloudfront create-invalidation \
 
 ## Next Steps
 
-1. **Deploy Infrastructure**: `cdk deploy ScorinGames/Frontend`
+1. **Deploy Infrastructure**: `cdk deploy Athleon/Frontend`
 2. **Deploy Frontend**: `./scripts/deploy-frontend.sh`
 3. **Configure DNS**: Point custom domain to CloudFront (optional)
 4. **Set up CI/CD**: Automate frontend deployments (optional)

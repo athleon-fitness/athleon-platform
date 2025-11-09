@@ -8,8 +8,8 @@ class NetworkStack extends constructs_1.Construct {
         super(scope, id);
         // API Gateway
         this.api = new apigateway.RestApi(this, 'Api', {
-            restApiName: `scoringames-api-${props.stage}`,
-            description: 'ScorinGames API',
+            restApiName: `athleon-api-${props.stage}`,
+            description: 'Athleon API',
             deployOptions: {
                 stageName: props.stage,
                 tracingEnabled: true,

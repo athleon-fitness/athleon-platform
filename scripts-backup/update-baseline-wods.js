@@ -4,7 +4,7 @@ const { DynamoDBDocumentClient, UpdateCommand } = require('@aws-sdk/lib-dynamodb
 const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const WODS_TABLE = 'ScorinGames-WodsWodsTableC84CB78B-1FQWYB636JK8C';
+const WODS_TABLE = 'Athleon-WodsWodsTableC84CB78B-1FQWYB636JK8C';
 
 const wodUpdates = [
   {

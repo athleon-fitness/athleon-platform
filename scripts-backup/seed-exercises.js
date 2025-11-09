@@ -4,7 +4,7 @@ const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const EXERCISE_LIBRARY_TABLE = 'ScorinGames-ScoringExerciseLibraryTable4BA87342-DK3OFRYGRUJ6';
+const EXERCISE_LIBRARY_TABLE = 'Athleon-ScoringExerciseLibraryTable4BA87342-DK3OFRYGRUJ6';
 
 const exercises = [
   {

@@ -6,7 +6,7 @@ const cdk = require("aws-cdk-lib");
 const main_stack_1 = require("../infrastructure/main-stack");
 const app = new cdk.App();
 const stage = app.node.tryGetContext('stage') || 'dev';
-new main_stack_1.ScorinGamesStack(app, 'ScorinGames', {
+new main_stack_1.AthleonStack(app, 'Athleon', {
     stage,
     env: {
         account: process.env.CDK_DEFAULT_ACCOUNT,

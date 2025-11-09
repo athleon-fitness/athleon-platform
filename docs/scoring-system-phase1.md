@@ -230,7 +230,7 @@ curl -X POST \
 ## Deployment
 
 ```bash
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 cdk deploy --profile labvel-dev --require-approval never
 
 # Seed exercise library

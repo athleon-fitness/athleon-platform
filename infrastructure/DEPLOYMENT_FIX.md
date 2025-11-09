@@ -67,7 +67,7 @@ organizations.addMethod('ANY',
 ## Independent Deployment
 ```bash
 # Deploy single domain
-cdk deploy ScorinGames/Organizations --profile labvel-dev
+cdk deploy Athleon/Organizations --profile labvel-dev
 
 # Deploy all
 cdk deploy --all --profile labvel-dev

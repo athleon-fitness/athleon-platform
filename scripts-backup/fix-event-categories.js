@@ -4,7 +4,7 @@ const { DynamoDBDocumentClient, ScanCommand, PutCommand, QueryCommand } = requir
 const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const CATEGORIES_TABLE = 'ScorinGames-CategoriesCategoriesTable6441F570-1SPJLAEBJ8R5E';
+const CATEGORIES_TABLE = 'Athleon-CategoriesCategoriesTable6441F570-1SPJLAEBJ8R5E';
 
 async function fixEventCategories() {
   console.log('🔧 Fixing event categories with missing names...');

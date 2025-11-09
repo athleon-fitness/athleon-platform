@@ -293,7 +293,7 @@ curl -X POST \
 
 ```bash
 # Backend
-cd /home/labvel/projects/scoringames
+cd /home/labvel/projects/athleon/web_app_athleon
 cdk deploy --profile labvel-dev --require-approval never
 
 # Frontend (when ready to integrate components)

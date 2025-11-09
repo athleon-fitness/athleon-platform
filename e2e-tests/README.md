@@ -1,6 +1,6 @@
-# ScorinGames E2E Tests
+# Athleon E2E Tests
 
-End-to-end tests for the ScorinGames platform using Playwright.
+End-to-end tests for the Athleon platform using Playwright.
 
 ## Setup
 

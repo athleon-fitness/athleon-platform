@@ -5,8 +5,8 @@ const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
 // Get table names from environment or use defaults
-const ROLES_TABLE = process.env.ROLES_TABLE || 'ScorinGames-AuthorizationRolesTable';
-const PERMISSIONS_TABLE = process.env.PERMISSIONS_TABLE || 'ScorinGames-AuthorizationPermissionsTable';
+const ROLES_TABLE = process.env.ROLES_TABLE || 'Athleon-AuthorizationRolesTable';
+const PERMISSIONS_TABLE = process.env.PERMISSIONS_TABLE || 'Athleon-AuthorizationPermissionsTable';
 
 const roles = [
   {

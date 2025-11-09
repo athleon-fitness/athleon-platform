@@ -1,7 +1,7 @@
-# ScorinGames Deployment - SUCCESS ✅
+# Athleon Deployment - SUCCESS ✅
 
 **Date**: 2025-10-23
-**Stack**: ScorinGames (DDD-organized single stack)
+**Stack**: Athleon (DDD-organized single stack)
 **Region**: us-east-2
 **Profile**: labvel-dev
 
@@ -22,19 +22,19 @@
 - **Region**: `us-east-2`
 
 #### Frontend
-- **S3 Bucket**: `scoringames-frontend-dev`
+- **S3 Bucket**: `athleon-frontend-dev`
 - **CloudFront Distribution**: `E2X3GQOVMGX147`
 - **Frontend URL**: `https://d37ft5nmaneiht.cloudfront.net`
 - **Invalidation ID**: `I9M2WS5J7ERX1AFN47UIYZ8R7K`
 
 #### EventBridge
-- **Central Event Bus**: `scoringames-central-dev`
+- **Central Event Bus**: `athleon-central-dev`
 
 ## Architecture
 
 ### Domain Organization
 ```
-ScorinGames Stack
+Athleon Stack
 ├── Shared (Cognito, EventBridge, S3)
 ├── Network (API Gateway)
 ├── Organizations (RBAC)
@@ -71,7 +71,7 @@ lambda/
 ### Deployment Steps
 1. ✅ Created `.env` with API URL and Cognito config
 2. ✅ Built React app (`npm run build`)
-3. ✅ Uploaded to S3 (`scoringames-frontend-dev`)
+3. ✅ Uploaded to S3 (`athleon-frontend-dev`)
 4. ✅ Invalidated CloudFront cache
 
 ## Testing
@@ -82,7 +82,7 @@ lambda/
 https://d37ft5nmaneiht.cloudfront.net
 
 # S3 Website URL (if enabled)
-http://scoringames-frontend-dev.s3-website.us-east-2.amazonaws.com
+http://athleon-frontend-dev.s3-website.us-east-2.amazonaws.com
 ```
 
 ### API Testing
@@ -132,7 +132,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 ### 2. Configure DNS (Optional)
 ```bash
 # Point custom domain to CloudFront
-# Example: app.scoringames.com → d37ft5nmaneiht.cloudfront.net
+# Example: app.athleon.com → d37ft5nmaneiht.cloudfront.net
 ```
 
 ### 3. Set Up CI/CD (Optional)
@@ -142,7 +142,7 @@ curl -H "Authorization: Bearer $TOKEN" \
   run: |
     cd frontend
     npm run build
-    aws s3 sync build/ s3://scoringames-frontend-dev --delete
+    aws s3 sync build/ s3://athleon-frontend-dev --delete
     aws cloudfront create-invalidation --distribution-id E2X3GQOVMGX147 --paths "/*"
 ```
 
@@ -157,10 +157,10 @@ curl -H "Authorization: Bearer $TOKEN" \
 If issues arise:
 ```bash
 # Destroy stack
-cdk destroy ScorinGames --profile labvel-dev
+cdk destroy Athleon --profile labvel-dev
 
 # Redeploy
-cdk deploy ScorinGames --profile labvel-dev
+cdk deploy Athleon --profile labvel-dev
 ```
 
 ## Cost Estimate
@@ -206,4 +206,4 @@ For issues or questions:
 
 **Deployment Status**: ✅ **COMPLETE AND OPERATIONAL**
 
-The ScorinGames platform is now live with DDD-compliant architecture, domain-organized Lambda packages, and a fully deployed frontend! 🚀
+The Athleon platform is now live with DDD-compliant architecture, domain-organized Lambda packages, and a fully deployed frontend! 🚀

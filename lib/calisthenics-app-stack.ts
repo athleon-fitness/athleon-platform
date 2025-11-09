@@ -910,7 +910,7 @@ export class CalisthenicsAppStack extends cdk.Stack {
       },
       eventRuleProps: {
         eventPattern: {
-          source: ['scoringames.scores'],
+          source: ['athleon.scores'],
           detailType: ['ScoreCalculated'],
         },
       },

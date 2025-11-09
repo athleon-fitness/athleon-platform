@@ -171,7 +171,7 @@ GET /competitions?organizationId=org-123
 ### Test Accounts
 - **organizer1@demo.com** → "organizer1's Organization"
 - **organizer2@demo.com** → "organizer2's Organization"
-- **admin@scoringames.com** → Super admin (sees all)
+- **admin@athleon.com** → Super admin (sees all)
 
 ### Test Scenarios
 1. Login as organizer1, verify only their organization visible

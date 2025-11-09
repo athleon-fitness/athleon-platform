@@ -158,7 +158,7 @@ The system supports major timezones with automatic UTC conversion:
 ## 🌐 Access Information
 
 - **Website**: https://d3kk8mbc9jbt3x.cloudfront.net
-- **Login**: admin@scoringames.com / Admin123!
+- **Login**: admin@athleon.com / Admin123!
 - **Location**: Backoffice → Events → Event Details → Competition Scheduler
 
 ## 🎯 Key Benefits

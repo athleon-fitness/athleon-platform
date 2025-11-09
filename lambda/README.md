@@ -120,7 +120,7 @@ const lambda = new lambda.Function(this, 'CompetitionsLambda', {
 2. Update domain's `package.json` if new dependencies needed
 3. Run `npm install` in domain directory
 4. Update CDK stack to reference new handler
-5. Deploy: `cdk deploy ScorinGames/{DomainStack}`
+5. Deploy: `cdk deploy Athleon/{DomainStack}`
 
 ### Installing Dependencies
 ```bash

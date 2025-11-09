@@ -34,7 +34,7 @@ h1 {
 .categories-grid,
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
 
@@ -980,4 +980,84 @@ tbody tr:last-child td {
 
 .wods-list::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+/* Mobile breakpoints for 320px minimum viewport */
+@media (max-width: 480px) {
+  .leaderboard,
+  .score-entry,
+  .wod-management,
+  .category-management {
+    padding: 10px;
+  }
+  
+  .wod-card,
+  .category-card,
+  .event-card {
+    padding: 16px;
+  }
+  
+  .page-header {
+    padding: 15px;
+  }
+  
+  .btn,
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 320px) {
+  .leaderboard,
+  .score-entry,
+  .wod-management,
+  .category-management {
+    padding: 8px;
+  }
+  
+  .wods-grid,
+  .categories-grid,
+  .events-grid {
+    gap: 8px;
+  }
+  
+  .wod-card,
+  .category-card,
+  .event-card {
+    padding: 12px;
+  }
+  
+  .page-header {
+    padding: 12px;
+  }
+  
+  .btn,
+  .btn-primary,
+  .btn-secondary {
+    padding: 8px 12px;
+    font-size: 13px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 14px;
+    padding: 8px;
+  }
+  
+  .modal-content {
+    padding: 12px;
+    margin: 8px;
+  }
+  
+  table {
+    font-size: 12px;
+  }
+  
+  th, td {
+    padding: 6px 4px;
+  }
 }

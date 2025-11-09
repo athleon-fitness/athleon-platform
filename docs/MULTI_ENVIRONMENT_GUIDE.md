@@ -144,13 +144,13 @@ Development:
 - Stack: Athleon-development
 - UserPool: athleon-development
 - EventBus: athleon-central-development
-- S3: scoringames-frontend-development
+- S3: athleon-frontend-development
 
 Production:
 - Stack: Athleon-production  
 - UserPool: athleon-production
 - EventBus: athleon-central-production
-- S3: scoringames-frontend-production
+- S3: athleon-frontend-production
 ```
 
 ## Deployment Workflows

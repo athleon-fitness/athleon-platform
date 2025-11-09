@@ -1,4 +1,4 @@
-# Cross-Stack References in ScorinGames
+# Cross-Stack References in Athleon
 
 ## Current Implementation (✅ Recommended)
 
@@ -140,7 +140,7 @@ Outputs:
   EventBusArn:
     Value: !GetAtt EventBus.Arn
     Export:
-      Name: ScorinGames-Shared-EventBusArn
+      Name: Athleon-Shared-EventBusArn
 
 # CompetitionsStack
 Resources:
@@ -149,7 +149,7 @@ Resources:
       Environment:
         Variables:
           EVENT_BUS_ARN:
-            Fn::ImportValue: ScorinGames-Shared-EventBusArn
+            Fn::ImportValue: Athleon-Shared-EventBusArn
 ```
 
 ## Alternative Pattern (❌ Not Recommended)
@@ -202,18 +202,18 @@ Other Domain Stacks (depend on OrganizationsStack)
 
 ```bash
 # Synthesize to see CloudFormation
-cdk synth ScorinGames/Shared
-cdk synth ScorinGames/Competitions
+cdk synth Athleon/Shared
+cdk synth Athleon/Competitions
 
 # Check for exports/imports
 cdk synth | grep -A 5 "Exports:"
 cdk synth | grep -A 5 "Fn::ImportValue"
 
 # Deploy in order
-cdk deploy ScorinGames/Shared
-cdk deploy ScorinGames/Network
-cdk deploy ScorinGames/Organizations
-cdk deploy ScorinGames/Competitions
+cdk deploy Athleon/Shared
+cdk deploy Athleon/Network
+cdk deploy Athleon/Organizations
+cdk deploy Athleon/Competitions
 ```
 
 ## Summary
