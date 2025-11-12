@@ -1,0 +1,244 @@
+import React, { useState, useEffect } from 'react';
+import { API } from 'aws-amplify';
+
+/**
+ * CategorySelector Component
+ * Allows selecting categories for an event
+ */
+const CategorySelector = ({ selectedCategories = [], onChange }) => {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setLoading(true);
+      const response = await API.get('CalisthenicsAPI', '/categories');
+      setCategories(response || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggle = (categoryId) => {
+    if (selectedCategories.includes(categoryId)) {
+      onChange(selectedCategories.filter(id => id !== categoryId));
+    } else {
+      onChange([...selectedCategories, categoryId]);
+    }
+  };
+
+  if (loading) {
+    return <div className="loading">Loading categories...</div>;
+  }
+
+  if (categories.length === 0) {
+    return (
+      <div className="empty-state">
+        <p>No categories available</p>
+        <small>Create categories first to assign them to events</small>
+      </div>
+    );
+  }
+
+  return (
+    <div className="category-selector">
+      <p className="description">Select the categories available for this event</p>
+      
+      <div className="categories-grid">
+        {categories.map(category => {
+          const isSelected = selectedCategories.includes(category.categoryId);
+          
+          return (
+            <label 
+              key={category.categoryId} 
+              className={`category-card ${isSelected ? 'selected' : ''}`}
+            >
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={() => handleToggle(category.categoryId)}
+                className="category-checkbox"
+                aria-label={`Select ${category.name}`}
+              />
+              
+              <div className="category-content">
+                <div className="category-header">
+                  <h5>{category.name}</h5>
+                  {isSelected && (
+                    <span className="check-icon" aria-hidden="true">✓</span>
+                  )}
+                </div>
+                
+                {category.description && (
+                  <p className="category-description">{category.description}</p>
+                )}
+                
+                <div className="category-meta">
+                  {category.gender && (
+                    <span className="meta-tag">
+                      <span aria-hidden="true">👤</span> {category.gender}
+                    </span>
+                  )}
+                  {category.minAge && category.maxAge && (
+                    <span className="meta-tag">
+                      <span aria-hidden="true">🎂</span> {category.minAge}-{category.maxAge} years
+                    </span>
+                  )}
+                  {category.minAge && !category.maxAge && (
+                    <span className="meta-tag">
+                      <span aria-hidden="true">🎂</span> {category.minAge}+ years
+                    </span>
+                  )}
+                  {!category.minAge && category.maxAge && (
+                    <span className="meta-tag">
+                      <span aria-hidden="true">🎂</span> Under {category.maxAge} years
+                    </span>
+                  )}
+                </div>
+              </div>
+            </label>
+          );
+        })}
+      </div>
+
+      <style jsx>{`
+        .category-selector {
+          width: 100%;
+        }
+        
+        .description {
+          margin: 0 0 16px 0;
+          color: #6c757d;
+          font-size: 14px;
+        }
+        
+        .categories-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 16px;
+        }
+        
+        .category-card {
+          position: relative;
+          padding: 16px;
+          border: 2px solid #e9ecef;
+          border-radius: 8px;
+          background: white;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: block;
+        }
+        
+        .category-card:hover {
+          border-color: #007bff;
+          box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+        }
+        
+        .category-card.selected {
+          border-color: #007bff;
+          background: #f0f7ff;
+        }
+        
+        .category-checkbox {
+          position: absolute;
+          opacity: 0;
+          pointer-events: none;
+        }
+        
+        .category-content {
+          width: 100%;
+        }
+        
+        .category-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+        
+        .category-header h5 {
+          margin: 0;
+          font-size: 16px;
+          color: #2c3e50;
+          font-weight: 600;
+        }
+        
+        .check-icon {
+          width: 24px;
+          height: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #007bff;
+          color: white;
+          border-radius: 50%;
+          font-size: 14px;
+          font-weight: bold;
+        }
+        
+        .category-description {
+          margin: 0 0 12px 0;
+          font-size: 13px;
+          color: #6c757d;
+          line-height: 1.4;
+        }
+        
+        .category-meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        
+        .meta-tag {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 4px 8px;
+          background: #f8f9fa;
+          border-radius: 4px;
+          font-size: 12px;
+          color: #495057;
+        }
+        
+        .loading {
+          text-align: center;
+          padding: 40px;
+          color: #6c757d;
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 40px 20px;
+          color: #6c757d;
+          background: #f8f9fa;
+          border-radius: 8px;
+          border: 2px dashed #dee2e6;
+        }
+        
+        .empty-state p {
+          margin: 0 0 4px 0;
+        }
+        
+        .empty-state small {
+          font-size: 12px;
+          color: #adb5bd;
+        }
+        
+        @media (max-width: 768px) {
+          .categories-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default CategorySelector;

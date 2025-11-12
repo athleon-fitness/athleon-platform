@@ -1,0 +1,240 @@
+/* Global Mobile Styles - 320px Minimum Viewport Support */
+
+/* Mobile navigation fixes */
+@media (max-width: 768px) {
+  .backoffice {
+    position: relative;
+    overflow-x: hidden;
+  }
+  
+  .sidebar-container {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000 !important;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .sidebar-container:not(.hidden) {
+    transform: translateX(0) !important;
+  }
+  
+  .backoffice-content {
+    position: relative;
+    z-index: 1 !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    padding-top: 60px !important;
+  }
+  
+  .mobile-overlay {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 999 !important;
+    display: block;
+  }
+  
+  .sidebar-toggle {
+    position: fixed !important;
+    top: 15px;
+    left: 15px;
+    z-index: 1002 !important;
+  }
+}
+
+/* Base mobile styles for all components */
+@media (max-width: 480px) {
+  /* Container adjustments */
+  .container,
+  .main-content,
+  .page-content {
+    padding: 10px;
+    margin: 0;
+  }
+  
+  /* Button adjustments */
+  .btn,
+  .button,
+  button {
+    padding: 10px 16px;
+    font-size: 14px;
+    min-height: 44px; /* Touch target size */
+  }
+  
+  /* Form elements */
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 10px;
+    min-height: 44px;
+  }
+  
+  /* Modal adjustments */
+  .modal,
+  .modal-content {
+    margin: 10px;
+    padding: 16px;
+    width: calc(100% - 20px);
+  }
+  
+  /* Table adjustments */
+  table {
+    font-size: 13px;
+  }
+  
+  th, td {
+    padding: 8px 4px;
+  }
+}
+
+/* Extra small screens - 320px minimum */
+@media (max-width: 320px) {
+  /* Ultra-compact layout */
+  .container,
+  .main-content,
+  .page-content {
+    padding: 8px;
+  }
+  
+  /* Buttons stack vertically */
+  .btn,
+  .button,
+  button {
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  /* Form elements */
+  input,
+  select,
+  textarea {
+    font-size: 14px;
+    padding: 8px;
+  }
+  
+  /* Modal adjustments */
+  .modal,
+  .modal-content {
+    margin: 5px;
+    padding: 12px;
+    width: calc(100% - 10px);
+  }
+  
+  /* Grid layouts force single column */
+  .grid,
+  .events-grid,
+  .wods-grid,
+  .categories-grid,
+  .athletes-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+  
+  /* Card adjustments */
+  .card,
+  .event-card,
+  .wod-card,
+  .category-card,
+  .athlete-card {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  /* Typography adjustments */
+  h1 { font-size: 20px; }
+  h2 { font-size: 18px; }
+  h3 { font-size: 16px; }
+  h4 { font-size: 14px; }
+  
+  /* Table adjustments */
+  table {
+    font-size: 12px;
+  }
+  
+  th, td {
+    padding: 6px 2px;
+  }
+  
+  /* Navigation adjustments */
+  .nav-links a {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  
+  /* Form row adjustments */
+  .form-row,
+  .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+  
+  /* Page header adjustments */
+  .page-header {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  /* Selection panels */
+  .selection-panel,
+  .filters {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+    padding: 8px;
+  }
+}
+
+/* Ensure touch targets are accessible */
+@media (max-width: 480px) {
+  /* Minimum touch target size */
+  button,
+  .btn,
+  a,
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Increase spacing between interactive elements */
+  .form-group {
+    margin-bottom: 16px;
+  }
+  
+  /* Ensure text is readable */
+  body,
+  .main-content {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+}
+
+/* Prevent horizontal scroll */
+@media (max-width: 320px) {
+  * {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Ensure images don't overflow */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Prevent text overflow */
+  .text-overflow {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
