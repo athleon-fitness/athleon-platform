@@ -1,0 +1,34 @@
+{
+  "flags": {
+    "newScoringSystem": {
+      "enabled": false
+    },
+    "advancedScheduler": {
+      "enabled": false
+    },
+    "realTimeLeaderboard": {
+      "enabled": true
+    },
+    "betaFeatures": {
+      "enabled": false
+    },
+    "organizationAnalytics": {
+      "enabled": false
+    },
+    "mobileApp": {
+      "enabled": false
+    }
+  },
+  "values": {
+    "maxConcurrentUsers": {
+      "value": 10000
+    },
+    "scoringTimeout": {
+      "value": 120
+    },
+    "leaderboardRefreshInterval": {
+      "value": 30
+    }
+  },
+  "version": "1"
+}

@@ -1,0 +1,24 @@
+{
+  "flags": {
+    "newScoringSystem": {
+      "enabled": true
+    },
+    "advancedScheduler": {
+      "enabled": true
+    },
+    "realTimeLeaderboard": {
+      "enabled": true
+    },
+    "betaFeatures": {
+      "enabled": true
+    },
+    "organizationAnalytics": {
+      "enabled": true
+    },
+    "mobileApp": {
+      "enabled": false
+    }
+  },
+  "values": {},
+  "version": "1"
+}
