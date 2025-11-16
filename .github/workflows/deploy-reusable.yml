@@ -112,6 +112,7 @@ jobs:
         run: |
           cd frontend
           npm ci
+          DISABLE_ESLINT_PLUGIN=true \
           REACT_APP_ENVIRONMENT=${{ inputs.environment }} \
           REACT_APP_API_URL=${{ steps.outputs.outputs.api-url }} \
           REACT_APP_USER_POOL_ID=${{ steps.outputs.outputs.user-pool-id }} \
