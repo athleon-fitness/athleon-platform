@@ -1,5 +1,7 @@
 
 
+import React from 'react';
+
 /**
  * Error Boundary Component
  * Catches JavaScript errors anywhere in the child component tree
