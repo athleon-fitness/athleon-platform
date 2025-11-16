@@ -20,7 +20,7 @@ on:
         required: false
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
   AWS_REGION: us-east-2
 
 permissions:
