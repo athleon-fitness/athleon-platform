@@ -31,7 +31,7 @@ console.log('🔧 Amplify Configuration:', {
   userPoolId: amplifyConfig.Auth.Cognito.userPoolId,
   apiEndpoint: amplifyConfig.API.REST.CalisthenicsAPI.endpoint,
   hasUserPoolClientId: !!amplifyConfig.Auth.Cognito.userPoolClientId,
-  env: process.env.REACT_APP_ENV
+  env: import.meta.env.VITE_ENV || import.meta.env.REACT_APP_ENV || import.meta.env.MODE
 });
 
 try {
@@ -214,7 +214,12 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <Router>
+        <Router
+          future={{
+            v7_startTransition: true,
+            v7_relativeSplatPath: true
+          }}
+        >
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
@@ -230,7 +235,7 @@ function App() {
             </Routes>
           </Suspense>
         </Router>
-        {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </ErrorBoundary>
   );
