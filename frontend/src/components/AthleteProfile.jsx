@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { _useNavigate } from 'react-router-dom';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 import AthleteLeaderboard from './AthleteLeaderboard';

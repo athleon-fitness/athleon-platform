@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 
 function EventEdit() {
   const { eventId } = useParams();
@@ -45,7 +46,7 @@ function EventEdit() {
       console.log('Event Categories:', eventCategories);
       
       // Convert ISO dates to datetime-local format
-      const formatDateForInput = (isoDate) => {
+      const _formatDateForInput = (isoDate) => {
         if (!isoDate) return '';
         return new Date(isoDate).toISOString().slice(0, 16);
       };
@@ -53,14 +54,14 @@ function EventEdit() {
       setFormData({
         name: eventData.name || '',
         description: eventData.description || '',
-        startDate: formatDateForInclient.put(eventData.startDate),
-        endDate: formatDateForInclient.put(eventData.endDate),
+        startDate: formatDateForInput.put(eventData.startDate),
+        endDate: formatDateForInput.put(eventData.endDate),
         location: eventData.location || '',
         status: eventData.status || 'upcoming',
         published: eventData.published || false,
         publicLeaderboard: eventData.publicLeaderboard || false,
         maxParticipants: eventData.maxParticipants || null,
-        registrationDeadline: formatDateForInclient.put(eventData.registrationDeadline),
+        registrationDeadline: formatDateForInput.put(eventData.registrationDeadline),
         workouts: eventWods,
         categories: eventCategories
       });

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 
 function GeneralLeaderboard() {
   const [events, setEvents] = useState([]);

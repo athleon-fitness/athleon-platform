@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 
 function ScoringSystemManager({ eventId }) {
   const [scoringSystems, setScoringSystems] = useState([]);
@@ -14,7 +16,8 @@ function ScoringSystemManager({ eventId }) {
     }
   });
 
-  useEffect(() => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
     fetchScoringSystems();
     fetchExercises();
   }, [eventId]);

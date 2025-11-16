@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import { useParams, useNavigate } from 'react-router-dom';
 
 function ScoreEntry({ user: _user }) {

@@ -11,10 +11,10 @@ function AthleteLeaderboard({ userProfile }) {
   const [athletes, setAthletes] = useState([]);
   const [allScores, setAllScores] = useState([]);
   const [wods, setWods] = useState([]);
-  const [, setExpandedCards] = useState({});
+  const [, _setExpandedCards] = useState({});
   const [leaderboardType] = useState('general');
-  const [, setPublishedSchedules] = useState([]);
-  const [selectedSchedule] = useState(null);
+  const [, _setPublishedSchedules] = useState([]);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -159,7 +159,7 @@ function AthleteLeaderboard({ userProfile }) {
       fetchLeaderboard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEvent, leaderboardType, selectedSchedule]);
+  }, [selectedEvent, leaderboardType, _selectedSchedule]);
 
   useEffect(() => {
     if (allScores.length > 0) {

@@ -16,7 +16,8 @@ function UserSetup({ user, signOut }) {
   const [alias, setAlias] = useState('');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
     checkUserSetup();
   }, [user]);
 

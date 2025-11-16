@@ -19,6 +19,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
 
   useEffect(() => {
     fetchSavedSchedules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   const fetchSavedSchedules = async () => {
@@ -58,7 +59,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
     }
     
     try {
-      await API.client.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
+      await client.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
       fetchSavedSchedules(); // Refresh the list
     } catch (error) {
       console.error('Error deleting schedule:', error);

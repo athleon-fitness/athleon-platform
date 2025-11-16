@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getCurrentUser, fetchAuthSession, signUp } from 'aws-amplify/auth';
+import { _getCurrentUser, _fetchAuthSession, signUp } from 'aws-amplify/auth';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
 

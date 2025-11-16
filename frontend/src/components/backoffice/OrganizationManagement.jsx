@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useParams, useNavigate } from 'react-router-dom';

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import { useOrganization } from '../../contexts/OrganizationContext';
 
 function ScoreManagement() {
@@ -18,6 +19,7 @@ function ScoreManagement() {
     if (selectedEvent) {
       fetchScores();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEvent]);
 
   const fetchEvents = async () => {

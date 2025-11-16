@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 
 function AthleteEventDetails() {
   const { eventId } = useParams();
@@ -19,6 +20,7 @@ function AthleteEventDetails() {
 
   useEffect(() => {
     fetchEventData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   useEffect(() => {

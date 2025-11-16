@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import { useOrganization } from '../../contexts/OrganizationContext';
 import ScoreBreakdown from '../athlete/ScoreBreakdown';
 import LoadingSpinner from '../common/Loading/LoadingSpinner';

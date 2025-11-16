@@ -14,7 +14,7 @@ function ScoreEntry({ user }) {
   const [categories, setCategories] = useState([]);
   
   // Score entry modes - Enhanced with schedule-based tournament layout
-  const [entryMode, setEntryMode] = useState('wod'); // 'wod' or 'schedule'
+  const [entryMode, _setEntryMode] = useState('wod'); // 'wod' or 'schedule'
   const [publishedSchedules, setPublishedSchedules] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [scheduledSessions, setScheduledSessions] = useState([]);
@@ -35,7 +35,7 @@ function ScoreEntry({ user }) {
   const [message, setMessage] = useState('');
 
   const userRole = user?.attributes?.['custom:role'] || 'athlete';
-  const organizerId = user?.attributes?.sub;
+  const _organizerId = user?.attributes?.sub;
 
   useEffect(() => {
     fetchEvents();
@@ -334,7 +334,7 @@ function ScoreEntry({ user }) {
     return grouped;
   };
 
-  const handleSessionSelection = (session) => {
+  const _handleSessionSelection = (session) => {
     setSelectedSession(session);
     // Auto-populate fields based on session
     setScoreData(prev => ({

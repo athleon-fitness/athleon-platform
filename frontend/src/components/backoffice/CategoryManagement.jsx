@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import './Backoffice.css';
 
 function CategoryManagement() {
@@ -27,7 +29,8 @@ function CategoryManagement() {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+useEffect(() => {
     applyFilters();
   }, [categories, filterGender, filterType]);
 

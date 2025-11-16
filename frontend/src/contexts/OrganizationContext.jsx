@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import { generateClient } from 'aws-amplify/api';
-import { getCurrentUser, fetchAuthSession, signUp } from 'aws-amplify/auth';
+import { getCurrentUser, _fetchAuthSession, _signUp } from 'aws-amplify/auth';
 
 const client = generateClient();
 const OrganizationContext = createContext();

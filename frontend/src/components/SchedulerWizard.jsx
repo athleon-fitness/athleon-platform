@@ -46,6 +46,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
   useEffect(() => {
     loadEventData();
     loadSchedules();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   const loadEventData = async () => {
@@ -263,7 +264,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
     if (!window.confirm('Are you sure you want to delete this schedule?')) return;
     
     try {
-      await API.client.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
+      await client.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
       if (currentSchedule?.scheduleId === scheduleId) {
         setCurrentSchedule(null);
       }
