@@ -33,10 +33,29 @@ exports.handler = async (event) => {
   try {
     const method = event.httpMethod;
     const path = event.path;
+    const body = event.body ? JSON.parse(event.body) : {};
     
     // Extract eventId from path
     const pathParts = path.split('/').filter(p => p);
     const eventId = pathParts[1]; // /scheduler/{eventId}
+
+    console.log('DDD Handler Debug:', { method, path, eventId, pathParts });
+
+    // POST /scheduler/{eventId} - Generate schedule (delegate to index.handler)
+    if (method === 'POST' && eventId) {
+      // Import the full scheduler implementation
+      const { CompetitionScheduler } = require('./index');
+      const scheduler = new CompetitionScheduler(ddb);
+      
+      console.log('Generating schedule for event:', eventId);
+      const schedule = await scheduler.generateSchedule(eventId, body);
+      
+      return {
+        statusCode: 201,
+        headers,
+        body: JSON.stringify(schedule)
+      };
+    }
 
     // GET /scheduler/{eventId} - Get schedules for event
     if (method === 'GET' && eventId) {
@@ -67,15 +86,20 @@ exports.handler = async (event) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({ message: 'Scheduler service', eventId })
+      body: JSON.stringify({ message: 'Scheduler service', eventId, method })
     };
 
   } catch (error) {
     console.error('Scheduler error:', error);
+    console.error('Error stack:', error.stack);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ message: 'Internal server error' })
+      body: JSON.stringify({ 
+        message: 'Internal server error',
+        error: error.message,
+        stack: error.stack
+      })
     };
   }
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API } from 'aws-amplify';
 import { useParams, useNavigate } from 'react-router-dom';
 
-function ScoreEntry({ user }) {
+function ScoreEntry({ user: _user }) {
   const { eventId } = useParams();
   const navigate = useNavigate();
   const [events, setEvents] = useState([]);
@@ -514,9 +514,16 @@ function ScoreEntry({ user }) {
                         {selectedWod.timeLimit && <div><strong>Time Cap:</strong> ⏱️ {selectedWod.timeLimit}</div>}
                         <div style={{marginTop: '8px'}}><strong>Movements:</strong></div>
                         <ul style={{margin: '5px 0', paddingLeft: '20px'}}>
-                          {selectedWod.movements?.map((m, i) => (
-                            <li key={i}>{m.reps} {m.exercise} {m.weight && `(${m.weight})`}</li>
-                          ))}
+                          {selectedWod.movements?.map((m, i) => {
+                            const reps = typeof m.reps === 'object' ? JSON.stringify(m.reps) : m.reps;
+                            const exercise = typeof m.exercise === 'object' ? JSON.stringify(m.exercise) : m.exercise;
+                            const weight = typeof m.weight === 'object' ? JSON.stringify(m.weight) : m.weight;
+                            return (
+                              <li key={i}>
+                                {reps} {exercise} {weight && `(${weight})`}
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     </div>

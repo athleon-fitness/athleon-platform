@@ -41,7 +41,7 @@ export const useUpdateAthleteProfile = () => {
         return await API.post('CalisthenicsAPI', '/athletes', { body: data });
       }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, _variables) => {
       // Invalidate and refetch profile
       queryClient.invalidateQueries(['athleteProfile']);
     }

@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Amplify, Auth } from 'aws-amplify';
-import { Authenticator, useAuthenticator } from '@aws-amplify/ui-react';
+import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { OrganizationProvider } from './contexts/OrganizationContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -119,46 +119,48 @@ function AuthPage() {
       components={{
         SignUp: {
           FormFields() {
-            const { validationErrors } = useAuthenticator();
             return (
               <>
                 <Authenticator.SignUp.FormFields />
                 <div style={{ marginTop: '20px' }}>
-                  <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600' }}>
-                    I am a
-                  </label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <label style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      padding: '15px',
-                      border: '2px solid #e2e8f0',
+                  <fieldset style={{ border: 'none', padding: 0, margin: 0 }}>
+                    <legend style={{ display: 'block', marginBottom: '10px', fontWeight: '600' }}>
+                      I am a
+                    </legend>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <label htmlFor="role-athlete" style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        padding: '15px',
+                        border: '2px solid #e2e8f0',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}>
+                        <input 
+                          id="role-athlete"
+                          type="radio" 
+                          name="custom:role" 
+                          value="athlete"
+                          defaultChecked
+                          style={{ marginRight: '10px' }}
+                        />
+                        <div>
+                          <div style={{ fontWeight: '600' }}>Athlete</div>
+                          <div style={{ fontSize: '14px', color: '#718096' }}>Compete in events</div>
+                        </div>
+                      </label>
+                      <label htmlFor="role-organizer" style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        padding: '15px',
+                        border: '2px solid #e2e8f0',
                       borderRadius: '8px',
                       cursor: 'pointer',
                       transition: 'all 0.2s'
                     }}>
                       <input 
-                        type="radio" 
-                        name="custom:role" 
-                        value="athlete"
-                        defaultChecked
-                        style={{ marginRight: '10px' }}
-                      />
-                      <div>
-                        <div style={{ fontWeight: '600' }}>Athlete</div>
-                        <div style={{ fontSize: '14px', color: '#718096' }}>Compete in events</div>
-                      </div>
-                    </label>
-                    <label style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      padding: '15px',
-                      border: '2px solid #e2e8f0',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}>
-                      <input 
+                        id="role-organizer"
                         type="radio" 
                         name="custom:role" 
                         value="organizer"
@@ -170,6 +172,7 @@ function AuthPage() {
                       </div>
                     </label>
                   </div>
+                  </fieldset>
                 </div>
               </>
             );

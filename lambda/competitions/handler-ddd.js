@@ -8,6 +8,12 @@ const DynamoEventRepository = require('./infrastructure/repositories/DynamoEvent
 const EventPublisher = require('./infrastructure/EventPublisher');
 const EventApplicationService = require('./application/EventApplicationService');
 const logger = require('./logger');
+const { 
+  createResponse, 
+  createOptionsResponse, 
+  createErrorResponse,
+  getCorsHeaders 
+} = require('/opt/nodejs/utils/http-headers');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);
@@ -16,12 +22,9 @@ const EVENTS_TABLE = process.env.EVENTS_TABLE;
 const ORGANIZATION_EVENTS_TABLE = process.env.ORGANIZATION_EVENTS_TABLE;
 const EVENT_BUS_NAME = process.env.EVENT_BUS_NAME || 'default';
 
-const headers = {
-  'Content-Type': 'application/json',
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
-};
+// Use global CORS headers
+const headers = getCorsHeaders();
+
 
 // Initialize services (reused across warm Lambda invocations)
 let eventService;
@@ -47,7 +50,7 @@ exports.handler = async (event) => {
 
   // Handle preflight OPTIONS requests
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return createOptionsResponse();
   }
 
   try {
@@ -85,11 +88,7 @@ exports.handler = async (event) => {
     // GET /public/events - Get all published events
     if (path === '/public/events' && method === 'GET') {
       const events = await service.getPublishedEvents();
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(events.map(e => e.toObject()))
-      };
+      return createResponse(200, events.map(e => e.toObject()));
     }
 
     // GET /public/events/{eventId} - Get single published event
@@ -98,18 +97,11 @@ exports.handler = async (event) => {
       const event = await service.getEvent(publicEventId);
       
       if (!event || !event.published) {
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ message: 'Event not found or not published' })
-        };
+        return createErrorResponse,
+  getCorsHeaders(404, 'Event not found or not published');
       }
       
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(event.toObject())
-      };
+      return createResponse(200, event.toObject());
     }
 
     // ===== AUTHENTICATED ENDPOINTS =====
@@ -144,7 +136,62 @@ exports.handler = async (event) => {
 
     // POST /competitions - Create new event
     if (path === '' && method === 'POST') {
-      const newEvent = await service.createEvent(requestBody, userId);
+      const { categories, wods, ...eventData } = requestBody;
+      
+      const newEvent = await service.createEvent(eventData, userId);
+      
+      // Save categories to CATEGORIES_TABLE (DDD violation but necessary for functionality)
+      if (categories && Array.isArray(categories) && categories.length > 0) {
+        const CATEGORIES_TABLE = process.env.CATEGORIES_TABLE;
+        if (CATEGORIES_TABLE) {
+          const { PutCommand } = require('@aws-sdk/lib-dynamodb');
+          
+          for (const category of categories) {
+            if (typeof category === 'object' && category.categoryId) {
+              await ddb.send(new PutCommand({
+                TableName: CATEGORIES_TABLE,
+                Item: {
+                  eventId: newEvent.eventId,
+                  categoryId: category.categoryId,
+                  name: category.name,
+                  description: category.description || '',
+                  gender: category.gender || null,
+                  minAge: category.minAge || null,
+                  maxAge: category.maxAge || null,
+                  maxParticipants: category.maxParticipants || null,
+                  createdAt: new Date().toISOString()
+                }
+              }));
+            }
+          }
+        }
+      }
+      
+      // Save WODs to WODS_TABLE (DDD violation but necessary for functionality)
+      if (wods && Array.isArray(wods) && wods.length > 0) {
+        const WODS_TABLE = process.env.WODS_TABLE;
+        if (WODS_TABLE) {
+          const { PutCommand } = require('@aws-sdk/lib-dynamodb');
+          
+          for (const wod of wods) {
+            if (typeof wod === 'object' && wod.wodId) {
+              await ddb.send(new PutCommand({
+                TableName: WODS_TABLE,
+                Item: {
+                  eventId: newEvent.eventId,
+                  wodId: wod.wodId,
+                  name: wod.name,
+                  description: wod.description || '',
+                  format: wod.format || '',
+                  timeLimit: wod.timeLimit || null,
+                  movements: wod.movements || [],
+                  createdAt: new Date().toISOString()
+                }
+              }));
+            }
+          }
+        }
+      }
       return {
         statusCode: 201,
         headers,
@@ -229,6 +276,57 @@ exports.handler = async (event) => {
         headers,
         body: ''
       };
+    }
+
+    // POST /competitions/{eventId}/upload-url - Generate S3 upload URL
+    if (eventId && pathParts[1] === 'upload-url' && method === 'POST') {
+      const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+      const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+      
+      const s3Client = new S3Client({});
+      const EVENT_IMAGES_BUCKET = process.env.EVENT_IMAGES_BUCKET;
+      
+      if (!EVENT_IMAGES_BUCKET) {
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ message: 'Event images bucket not configured' })
+        };
+      }
+      
+      const { fileName, fileType } = requestBody;
+      if (!fileName || !fileType) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({ message: 'fileName and fileType are required' })
+        };
+      }
+      
+      const key = `events/${eventId}/${fileName}`;
+      const command = new PutObjectCommand({
+        Bucket: EVENT_IMAGES_BUCKET,
+        Key: key,
+        ContentType: fileType
+      });
+      
+      try {
+        const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+        const imageUrl = `https://${EVENT_IMAGES_BUCKET}.s3.amazonaws.com/${key}`;
+        
+        return {
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({ uploadUrl, imageUrl })
+        };
+      } catch (error) {
+        logger.error('Error generating upload URL', { error: error.message, eventId });
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({ message: 'Failed to generate upload URL' })
+        };
+      }
     }
 
     // Route not found

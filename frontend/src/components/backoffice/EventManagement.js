@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { API, Storage } from 'aws-amplify';
+import { API } from 'aws-amplify';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import OrganizationSelector from './OrganizationSelector';
@@ -30,7 +30,7 @@ function EventManagement() {
   });
 
   const [imageFile, setImageFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [_uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [wodSearch, setWodSearch] = useState('');
   const [wodFilter, setWodFilter] = useState('all');
@@ -72,43 +72,29 @@ function EventManagement() {
     try {
       const response = await API.get('CalisthenicsAPI', `/competitions?organizationId=${selectedOrganization.organizationId}`);
       
-      // Get events with WODs data and detailed athlete/category information
-      const eventsWithData = await Promise.all(response.map(async (event) => {
-        // Use WODs from event record if available (same as EventDetails)
+      // Process events with basic data only - no additional API calls
+      const eventsWithData = response.map(event => {
+        // Use WODs from event record if available
         const eventWods = event.wods || event.workouts || [];
         
-        // Fetch athletes and categories for detailed participant info (same as EventDetails)
-        let athletes = [];
-        let categories = [];
-        
-        try {
-          athletes = await API.get('CalisthenicsAPI', `/athletes?eventId=${event.eventId}`) || [];
-        } catch (error) {
-          console.warn(`Could not fetch athletes for event ${event.eventId}:`, error.response?.status, error.message);
-        }
-        
-        // Get categories from event record or fetch them
+        // Use categories from event record if available
         const eventCategories = event.categories || [];
-        if (eventCategories.length > 0) {
-          categories = eventCategories;
-        } else {
-          try {
-            categories = await API.get('CalisthenicsAPI', `/categories?eventId=${event.eventId}`) || [];
-          } catch (error) {
-            console.warn(`Could not fetch categories for event ${event.eventId}:`, error.response?.status, error.message);
-          }
-        }
+        
+        // Use registered count from backend if available, otherwise use athletes array length
+        const registeredCount = event.registeredCount !== undefined 
+          ? event.registeredCount 
+          : (event.athletes?.length || 0);
         
         return { 
           ...event, 
           workouts: eventWods,
           wods: eventWods,
           wodCount: eventWods.length,
-          athletes,
-          categories,
-          athleteCount: athletes.length
+          categories: eventCategories,
+          athleteCount: registeredCount,
+          registeredCount
         };
-      }));
+      });
       
       setEvents(eventsWithData);
     } catch (error) {
@@ -190,20 +176,32 @@ function EventManagement() {
     }
   };
 
-  const handleImageUpload = async (file) => {
+  const handleImageUpload = async (file, eventId) => {
     if (!file) return null;
     
     try {
       setUploading(true);
-      const fileName = `events/${Date.now()}-${file.name}`;
+      const fileName = `${Date.now()}-${file.name}`;
       
-      // Upload to S3 via API
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('fileName', fileName);
+      // Step 1: Get presigned URL
+      const urlResponse = await API.post('CalisthenicsAPI', `/competitions/${eventId}/upload-url`, {
+        body: { fileName, fileType: file.type }
+      });
       
-      const response = await API.post('CalisthenicsAPI', '/upload-image', { body: formData });
-      return response.imageUrl;
+      // Step 2: Upload directly to S3 using presigned URL
+      const uploadResponse = await fetch(urlResponse.uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type
+        }
+      });
+      
+      if (!uploadResponse.ok) {
+        throw new Error('Failed to upload to S3');
+      }
+      
+      return urlResponse.imageUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
       alert('Failed to upload image');
@@ -226,24 +224,33 @@ function EventManagement() {
     setIsSubmitting(true);
     try {
       let imageUrl = formData.imageUrl;
+      let eventResponse;
       
-      // Upload image if file is selected
-      if (imageFile) {
-        imageUrl = await handleImageUpload(imageFile);
-        if (!imageUrl) return; // Upload failed
-      }
-
+      // Create or update event first
       const eventData = { 
         ...formData, 
-        imageUrl,
+        imageUrl: imageUrl || '', // Temporary, will update if image uploaded
         organizationId: selectedOrganization.organizationId 
       };
       
       if (editingEvent) {
         await API.put('CalisthenicsAPI', `/competitions/${editingEvent.eventId}`, { body: eventData });
+        eventResponse = { eventId: editingEvent.eventId };
       } else {
-        await API.post('CalisthenicsAPI', '/competitions', { body: eventData });
+        eventResponse = await API.post('CalisthenicsAPI', '/competitions', { body: eventData });
       }
+      
+      // Upload image if file is selected (now we have eventId)
+      if (imageFile && eventResponse.eventId) {
+        imageUrl = await handleImageUpload(imageFile, eventResponse.eventId);
+        if (imageUrl) {
+          // Update event with image URL
+          await API.put('CalisthenicsAPI', `/competitions/${eventResponse.eventId}`, { 
+            body: { imageUrl } 
+          });
+        }
+      }
+      
       setShowEditPage(false);
       setEditingEvent(null);
       setFormData({ 
@@ -278,7 +285,7 @@ function EventManagement() {
     }
   };
 
-  const handleAddWod = () => {
+  const _handleAddWod = () => {
     setWodFormData({
       name: '',
       format: 'AMRAP',
@@ -322,7 +329,7 @@ function EventManagement() {
     }));
   };
 
-  const removeWod = (wodId) => {
+  const _removeWod = (wodId) => {
     setFormData(prev => ({
       ...prev,
       workouts: prev.workouts.filter(wod => wod.wodId !== wodId)
@@ -593,7 +600,7 @@ function EventManagement() {
                 className="file-input"
               />
               <small className="field-hint">
-                Upload a banner image for your event (optional)
+                Upload a banner image for your event (optional). Recommended: 1920x400px or similar wide aspect ratio (16:3 or wider)
               </small>
             </div>
           </div>
@@ -842,7 +849,7 @@ function EventManagement() {
               </div>
             </div>
             
-            {/* Participant Information (same as EventDetails) */}
+            {/* Participant Information - Simplified for list view */}
             <div className="participant-info">
               <div className="max-participants">
                 <span className="label">Max Participants:</span>
@@ -850,13 +857,15 @@ function EventManagement() {
                   {event.maxParticipants ? (
                     <span className="quota-info">
                       <span className="total-quota">{event.maxParticipants}</span>
-                      <span className="quota-separator"> | </span>
-                      <span className="available-quota">
-                        {event.maxParticipants - (event.athletes?.length || 0)} available
-                      </span>
-                      <span className="quota-percentage">
-                        ({Math.round(((event.athletes?.length || 0) / event.maxParticipants) * 100)}% full)
-                      </span>
+                      {event.registeredCount !== undefined && (
+                        <>
+                          <span className="quota-separator"> | </span>
+                          <span className="registered-count">{event.registeredCount} registered</span>
+                          <span className="quota-percentage">
+                            ({Math.round((event.registeredCount / event.maxParticipants) * 100)}% full)
+                          </span>
+                        </>
+                      )}
                     </span>
                   ) : (
                     'Unlimited'
@@ -867,32 +876,14 @@ function EventManagement() {
               {event.categories && event.categories.length > 0 && (
                 <div className="categories-info">
                   <span className="label">Categories:</span>
-                  <div className="categories-with-quotas">
+                  <div className="categories-list">
                     {event.categories
                       .filter(category => typeof category === 'object' && category.categoryId)
-                      .map(category => {
-                        const categoryAthletes = (event.athletes || []).filter(a => a.categoryId === category.categoryId);
-                        const categoryCount = categoryAthletes.length;
-                        const maxQuota = category.maxParticipants || null;
-                        
-                        return (
-                          <div key={category.categoryId} className="category-quota-item">
-                            <span className="category-name">{category.name || category.categoryId}</span>
-                            <span className="category-quota">
-                              <span className="registered-count">{categoryCount}</span>
-                              {maxQuota && (
-                                <>
-                                  <span className="quota-separator"> / </span>
-                                  <span className="max-quota">{maxQuota}</span>
-                                  <span className="available-spots">
-                                    ({maxQuota - categoryCount} spots)
-                                  </span>
-                                </>
-                              )}
-                            </span>
-                          </div>
-                        );
-                      })}
+                      .map(category => (
+                        <span key={category.categoryId} className="category-badge">
+                          {category.name || category.categoryId}
+                        </span>
+                      ))}
                   </div>
                 </div>
               )}

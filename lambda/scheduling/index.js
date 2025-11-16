@@ -13,6 +13,36 @@ class CompetitionScheduler {
   }
 
   // Generate detailed schedule with precise timing
+  async requestEventDataViaEventBridge(eventId) {
+    const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge');
+    const eventBridge = new EventBridgeClient({ region: process.env.AWS_REGION });
+    
+    const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Request event data via EventBridge
+    await eventBridge.send(new PutEventsCommand({
+      Entries: [{
+        Source: 'scheduling.domain',
+        DetailType: 'EventDataRequested',
+        Detail: JSON.stringify({ eventId, requestId }),
+        EventBusName: process.env.CENTRAL_EVENT_BUS
+      }]
+    }));
+    
+    // For now, fallback to direct read until event response handling is implemented
+    // TODO: Replace with proper event response handling
+    const EVENTS_TABLE = process.env.EVENTS_TABLE;
+    if (EVENTS_TABLE) {
+      const { Item: eventData } = await this.dynamodb.send(new GetCommand({
+        TableName: EVENTS_TABLE,
+        Key: { eventId }
+      }));
+      return eventData;
+    }
+    
+    throw new Error('Event data not available - EventBridge response handling not yet implemented');
+  }
+
   async generateSchedule(eventId, config) {
     logger.info('=== SCHEDULER START ===', { eventId, configKeys: Object.keys(config || {}) });
     
@@ -64,11 +94,7 @@ class CompetitionScheduler {
       logger.info('No event days found, attempting to auto-generate from event dates');
       
       try {
-        const EVENTS_TABLE = process.env.EVENTS_TABLE;
-        const { Item: eventData } = await this.dynamodb.send(new GetCommand({
-          TableName: EVENTS_TABLE,
-          Key: { eventId }
-        }));
+        const eventData = await this.requestEventDataViaEventBridge(eventId);
         
         if (eventData && eventData.startDate && eventData.endDate) {
           const startDate = new Date(eventData.startDate);

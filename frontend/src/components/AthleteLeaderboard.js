@@ -13,8 +13,8 @@ function AthleteLeaderboard({ userProfile }) {
   const [expandedCards, setExpandedCards] = useState({});
   
   // New tournament-related state
-  const [leaderboardType, setLeaderboardType] = useState('general'); // 'general', 'tournament', 'combined'
-  const [publishedSchedules, setPublishedSchedules] = useState([]);
+  const [leaderboardType, _setLeaderboardType] = useState('general'); // 'general', 'tournament', 'combined'
+  const [_publishedSchedules, setPublishedSchedules] = useState([]);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
 
   useEffect(() => {
@@ -25,30 +25,7 @@ function AthleteLeaderboard({ userProfile }) {
     if (userProfile?.categoryId && !selectedCategory) {
       setSelectedCategory(userProfile.categoryId);
     }
-  }, [userProfile]);
-
-  useEffect(() => {
-    if (selectedEvent) {
-      fetchEventScores();
-      fetchEventWods();
-      fetchPublishedSchedules(); // New: Load tournament schedules
-      
-      // Auto-refresh every 5 seconds, but only when tab is visible
-      const interval = setInterval(() => {
-        if (!document.hidden) {
-          fetchEventScores();
-        }
-      }, 5000);
-      
-      return () => clearInterval(interval);
-    }
-  }, [selectedEvent]);
-
-  useEffect(() => {
-    if (allScores.length > 0) {
-      calculateLeaderboard();
-    }
-  }, [selectedCategory, athletes, allScores]);
+  }, [userProfile, selectedCategory]);
 
   const fetchData = async () => {
     try {
@@ -123,7 +100,17 @@ function AthleteLeaderboard({ userProfile }) {
       fetchEventWods();
       fetchPublishedSchedules();
       fetchLeaderboard(); // New: Fetch appropriate leaderboard
+      
+      // Auto-refresh every 5 seconds, but only when tab is visible
+      const interval = setInterval(() => {
+        if (!document.hidden) {
+          fetchEventScores();
+        }
+      }, 5000);
+      
+      return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEvent, leaderboardType, selectedSchedule]);
 
   const fetchEventScores = async () => {
@@ -145,6 +132,13 @@ function AthleteLeaderboard({ userProfile }) {
       setWods([]);
     }
   };
+
+  useEffect(() => {
+    if (allScores.length > 0) {
+      calculateLeaderboard();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, athletes, allScores]);
 
   const calculateLeaderboard = () => {
     if (!selectedCategory || allScores.length === 0) {
@@ -249,8 +243,9 @@ function AthleteLeaderboard({ userProfile }) {
     <div className="athlete-leaderboard">
       <div className="leaderboard-controls">
         <div className="control-group">
-          <label>Event:</label>
+          <label htmlFor="event-select">Event:</label>
           <select 
+            id="event-select"
             value={selectedEvent?.eventId || ''} 
             onChange={(e) => {
               const event = events.find(ev => ev.eventId === e.target.value);
@@ -267,8 +262,9 @@ function AthleteLeaderboard({ userProfile }) {
         </div>
 
         <div className="control-group">
-          <label>Category:</label>
+          <label htmlFor="category-select">Category:</label>
           <select 
+            id="category-select"
             value={selectedCategory} 
             onChange={(e) => setSelectedCategory(e.target.value)}
           >

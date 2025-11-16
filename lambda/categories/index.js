@@ -22,7 +22,13 @@ async function checkCategoryAccess(userId, userEmail, action, eventId = null) {
     return { authorized: true, role: 'user' };
   }
 
-  // For event-specific categories, check organization membership
+  // For event-specific categories READ access, allow any authenticated user
+  // (Athletes need to see categories to register and view event details)
+  if (action === 'read' && eventId && eventId !== 'global') {
+    return { authorized: true, role: 'athlete' };
+  }
+
+  // For write operations, check organization membership
   if (eventId && eventId !== 'global') {
     try {
       // Get event's organization

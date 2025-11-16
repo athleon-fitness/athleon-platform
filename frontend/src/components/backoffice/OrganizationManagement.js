@@ -3,7 +3,7 @@ import { API } from 'aws-amplify';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useParams, useNavigate } from 'react-router-dom';
-import OrganizationSelector from './OrganizationSelector';
+
 import LoadingSpinner from '../common/Loading/LoadingSpinner';
 import './OrganizationManagement.css';
 
@@ -34,6 +34,7 @@ function OrganizationManagement() {
       const org = organizations.find(o => o.organizationId === organizationId);
       if (org && (!selectedOrganization || selectedOrganization.organizationId !== organizationId)) {
         selectOrganization(org);
+        setShowCreateModal(false); // Close modal when navigating to org details
       }
     }
   }, [organizationId, organizations, selectedOrganization, selectOrganization]);
@@ -45,7 +46,8 @@ function OrganizationManagement() {
     selectedOrganization,
     isOwnerOrAdmin,
     organizationsCount: organizations.length,
-    organizations: organizations
+    organizations: organizations,
+    showCreateModal
   });
 
   useEffect(() => {
@@ -165,12 +167,17 @@ function OrganizationManagement() {
     }
   };
 
+  const handleOpenCreateModal = () => {
+    console.log('Opening create modal');
+    setShowCreateModal(true);
+  };
+
   if (!selectedOrganization || (isSuperAdmin && selectedOrganization.organizationId === 'all')) {
     return (
       <div className="organization-management">
         <div className="page-header">
           <h2>Organization Management</h2>
-          <button onClick={() => setShowCreateModal(true)} className="btn-create-org btn-primary">
+          <button onClick={handleOpenCreateModal} className="btn-create-org btn-primary">
             + New Organization
           </button>
         </div>
@@ -204,7 +211,10 @@ function OrganizationManagement() {
                 <div 
                   key={org.organizationId} 
                   className="organization-card" 
-                  onClick={() => navigate(`/backoffice/organization/${org.organizationId}`)}
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    navigate(`/backoffice/organization/${org.organizationId}`);
+                  }}
                   style={{
                     border: '1px solid #e0e0e0',
                     borderRadius: '8px',
@@ -259,6 +269,34 @@ function OrganizationManagement() {
           </div>
         ) : (
           <p>Please select an organization to manage.</p>
+        )}
+
+        {showCreateModal && (
+          <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <h2>Create Organization</h2>
+              <form onSubmit={handleCreateOrganization}>
+                <input
+                  type="text"
+                  placeholder="Organization Name"
+                  value={newOrgName}
+                  onChange={(e) => setNewOrgName(e.target.value)}
+                  required
+                />
+                <textarea
+                  placeholder="Description (optional)"
+                  value={newOrgDescription}
+                  onChange={(e) => setNewOrgDescription(e.target.value)}
+                />
+                <div className="modal-actions">
+                  <button type="submit" className="btn-primary">Create</button>
+                  <button type="button" onClick={() => setShowCreateModal(false)} className="btn-secondary">
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </div>
     );

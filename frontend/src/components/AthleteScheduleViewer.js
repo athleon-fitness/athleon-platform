@@ -94,8 +94,9 @@ const AthleteScheduleViewer = ({ eventId }) => {
     <div className="athlete-schedule-viewer">
       {schedules.length > 1 && (
         <div className="schedule-selector-card">
-          <label>📋 Select Schedule:</label>
+          <label htmlFor="schedule-select">📋 Select Schedule:</label>
           <select 
+            id="schedule-select"
             value={selectedSchedule?.scheduleId || ''} 
             onChange={(e) => {
               const schedule = schedules.find(s => s.scheduleId === e.target.value);

@@ -35,6 +35,14 @@ function CategorySelection({ onCategorySelect, selectedCategoryId }) {
             key={category.categoryId}
             className={`category-card ${selectedCategoryId === category.categoryId ? 'selected' : ''}`}
             onClick={() => onCategorySelect(category.categoryId)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onCategorySelect(category.categoryId);
+              }
+            }}
+            role="button"
+            tabIndex={0}
           >
             <h4>{category.name}</h4>
             <div className="category-details">

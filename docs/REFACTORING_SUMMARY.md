@@ -13,23 +13,33 @@ lib/
 └── calisthenics-app-stack.ts  (2000+ lines, all resources)
 ```
 
-#### After (Bounded Contexts)
+#### After (Bounded Contexts) ✅ COMPLETE
 ```
 infrastructure/
 ├── shared/
 │   ├── shared-stack.ts          # Cognito, EventBridge, S3
-│   └── network-stack.ts         # API Gateway, Authorizer
+│   ├── network-stack.ts         # API Gateway, Authorizer
+│   ├── lambda-layer.ts          # Shared utilities layer
+│   └── event-routing.ts         # Cross-domain events
 ├── organizations/
-│   └── organizations-stack.ts   # Organizations domain
+│   └── organizations-stack.ts   # Organizations domain ✅
 ├── competitions/
-│   └── competitions-stack.ts    # Competitions domain
-├── athletes/                     # TODO
-├── scoring/                      # TODO
-├── scheduling/                   # TODO
-├── categories/                   # TODO
-├── wods/                        # TODO
-├── main-stack.ts                # Orchestrator
-└── README.md                    # Documentation
+│   └── competitions-stack.ts    # Competitions domain ✅
+├── athletes/
+│   └── athletes-stack.ts        # Athletes domain ✅
+├── scoring/
+│   └── scoring-stack.ts         # Scoring domain ✅
+├── scheduling/
+│   └── scheduling-stack.ts      # Scheduling domain ✅
+├── categories/
+│   └── categories-stack.ts      # Categories domain ✅
+├── wods/
+│   └── wods-stack.ts           # WODs domain ✅
+├── authorization/
+│   └── authorization-stack.ts   # Legacy auth ✅
+├── frontend/
+│   └── frontend-stack.ts        # S3 + CloudFront ✅
+└── main-stack.ts                # Orchestrator ✅
 ```
 
 ### 2. Bounded Context Isolation
@@ -159,46 +169,35 @@ props.eventImagesBucket.grantPut(competitionsLambda);
 
 ## Migration Path
 
-### Phase 1: Infrastructure (COMPLETED)
+### Phase 1: Infrastructure (COMPLETED ✅)
 - ✅ Create shared infrastructure stacks
 - ✅ Create Organizations stack (RBAC foundation)
 - ✅ Create Competitions stack
+- ✅ Create Athletes stack
+- ✅ Create Scoring stack
+- ✅ Create Scheduling stack
+- ✅ Create Categories stack
+- ✅ Create WODs stack
+- ✅ Create Authorization stack
+- ✅ Create Frontend stack
 - ✅ Update Amazon Q rules
 
-### Phase 2: Remaining Domains (TODO)
-- [ ] Create Athletes stack
-- [ ] Create Scoring stack
-- [ ] Create Scheduling stack
-- [ ] Create Categories stack
-- [ ] Create WODs stack
+### Phase 2: Lambda Code Organization (PARTIAL)
+- ✅ Created domain package directories
+- ✅ Moved Lambda handlers to domain packages
+- ✅ Updated CDK stacks to reference domain packages
+- 🔄 Lambda layer migration (infrastructure exists, usage incomplete)
 
-### Phase 3: Lambda Code Organization (TODO)
-```
-lambda/
-├── shared/
-│   ├── utils/
-│   └── events/
-├── competitions/
-│   ├── src/
-│   │   ├── handlers/
-│   │   ├── domain/
-│   │   └── infrastructure/
-│   └── package.json
-├── athletes/
-│   ├── src/
-│   └── package.json
-└── ...
-```
+### Phase 3: EventBridge Integration (PARTIAL)
+- ✅ Domain event buses created
+- ✅ Event routing infrastructure
+- 🔄 Domain event publishers (scoring implemented, others pending)
+- 🔄 Cross-domain event handlers
 
-### Phase 4: EventBridge Integration (TODO)
-- Implement domain event publishers
-- Create event handlers per domain
-- Remove direct cross-domain table access
-
-### Phase 5: Testing & CI/CD (TODO)
-- Unit tests per domain
-- Integration tests per stack
-- CI/CD pipelines per domain
+### Phase 4: Security Implementation (CRITICAL GAPS)
+- ❌ WODs service RBAC authorization
+- ❌ Categories service organization validation
+- 🔄 Scores service role-based validation
 
 ## Amazon Q Rules Updated
 

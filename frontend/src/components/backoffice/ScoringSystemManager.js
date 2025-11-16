@@ -3,7 +3,7 @@ import { API } from 'aws-amplify';
 
 function ScoringSystemManager({ eventId }) {
   const [scoringSystems, setScoringSystems] = useState([]);
-  const [exercises, setExercises] = useState([]);
+  const [_exercises, setExercises] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',

@@ -48,6 +48,7 @@ export class CategoriesStack extends Construct {
         ORGANIZATION_MEMBERS_TABLE: props.organizationMembersTable.tableName,
         DOMAIN_EVENT_BUS: this.categoriesEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
+        CORS_ORIGINS: props.config.lambda.environment.CORS_ORIGINS || '*',
         ...props.config.lambda.environment,
       },
     });

@@ -57,13 +57,17 @@ Database consistency and referential integrity rules
 - Event management with proper RBAC and deletion protection
 - Organization-based access control for competitions
 - Public event access for athletes
+- Complete CDK stack architecture with all bounded contexts
+- Lambda domain organization with proper package structure
+- EventBridge infrastructure for cross-domain communication
 
 ### 🔄 Partially Implemented  
 - User authentication with JWT tokens (caching issues)
 - Legacy event support for super admin access
 - Basic score submission validation
+- Lambda layer migration (infrastructure exists, usage incomplete)
 
-### ❌ Not Implemented
+### ❌ Critical Security Gaps
 - WOD service authorization and cascade deletion
 - Category service organization validation
 - Comprehensive audit logging and monitoring

@@ -168,7 +168,30 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
   const generateSchedule = async () => {
     setLoading(true);
     try {
-      const scheduleConfig = { ...config, ...eventData };
+      // Refresh event data before generating schedule
+      console.log('🔄 Refreshing event data before schedule generation...');
+      
+      // Re-fetch event data to get latest days
+      const [eventResponse, athletes, days] = await Promise.all([
+        API.get('CalisthenicsAPI', `/competitions/${eventId}`),
+        API.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`).catch(() => []),
+        API.get('CalisthenicsAPI', `/competitions/${eventId}/days`).catch(() => [])
+      ]);
+      
+      console.log('🔄 Fresh data loaded:', { 
+        days: days?.length || 0,
+        athletes: athletes?.length || 0 
+      });
+      
+      // Use fresh data for schedule generation
+      const freshEventData = {
+        wods: eventData.wods, // Keep existing WODs
+        categories: eventData.categories, // Keep existing categories
+        athletes: athletes || [],
+        days: days || []
+      };
+      
+      const scheduleConfig = { ...config, ...freshEventData };
       const response = await API.post('CalisthenicsAPI', `/scheduler/${eventId}`, {
         body: scheduleConfig
       });
@@ -873,7 +896,7 @@ const Step4WodAssignment = ({ config, setConfig, eventData }) => {
   );
 };
 
-const Step5Review = ({ config, eventData, onGenerate, loading }) => (
+const Step5Review = ({ config, eventData, onGenerate: _onGenerate, loading: _loading }) => (
   <div className="step-content">
     <h3>Review Configuration</h3>
     <p>Please review your schedule configuration before generating:</p>
@@ -938,7 +961,7 @@ const Step5Review = ({ config, eventData, onGenerate, loading }) => (
 
 const Step6ScheduleManagement = ({ 
   schedules, currentSchedule, eventData, onSave, onPublish, onUnpublish, 
-  onDelete, onLoad, saving, publishing, tournamentState, setTournamentState 
+  onDelete, onLoad, saving, publishing, tournamentState: _tournamentState, setTournamentState: _setTournamentState 
 }) => (
   <div className="step-content">
     <h3>Schedule Management</h3>
@@ -1134,7 +1157,7 @@ const Step6ScheduleManagement = ({
   </div>
 );
 
-const DayScheduleView = ({ day, competitionMode, timezone, eventData }) => (
+const DayScheduleView = ({ day, competitionMode: _competitionMode, timezone: _timezone, eventData: _eventData }) => (
   <div className="day-schedule">
     <h5>Day {day.dayId}</h5>
     <p>Duration: {day.totalDuration?.toFixed(1)} hours</p>
@@ -1166,7 +1189,7 @@ const DayScheduleView = ({ day, competitionMode, timezone, eventData }) => (
 
           {session.competitionMode === 'VERSUS' && session.matches && (
             <div className="versus-display">
-              {session.matches.map((match, idx) => (
+              {session.matches.map((match, _idx) => (
                 <div key={match.matchId} className="versus-match-card">
                   <div className="versus-athletes">
                     <div className="athlete-card athlete-1">

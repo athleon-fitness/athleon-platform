@@ -154,7 +154,7 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
         organizationId 
       };
       
-      const { success } = await safeAsync(
+      const { success: _success } = await safeAsync(
         () => event 
           ? API.put('CalisthenicsAPI', `/competitions/${event.eventId}`, { body: eventData })
           : API.post('CalisthenicsAPI', '/competitions', { body: eventData }),
@@ -330,7 +330,7 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
             aria-describedby="image-hint"
           />
           <small id="image-hint" className="field-hint">
-            Upload a banner image for your event (optional)
+            Upload a banner image for your event (optional). Recommended: 1920x400px or similar wide aspect ratio (16:3 or wider)
           </small>
           {uploading && <p className="uploading-text">Uploading image...</p>}
         </div>

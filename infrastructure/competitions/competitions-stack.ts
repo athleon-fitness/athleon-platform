@@ -14,14 +14,17 @@ export interface CompetitionsStackProps  {
   organizationEventsTable: dynamodb.Table;
   organizationMembersTable: dynamodb.Table;
   scoringSystemsTable: dynamodb.Table;
+  categoriesTable?: dynamodb.Table;
+  wodsTable?: dynamodb.Table;
+  athleteEventsTable?: dynamodb.Table;
+  cloudfrontDomain?: string;
 }
 
 export class CompetitionsStack extends Construct {
   public readonly eventsTable: dynamodb.Table;
   public readonly eventDaysTable: dynamodb.Table;
   public readonly competitionsEventBus: events.EventBus;
-  public readonly competitionsLambda: lambda.Function;
-  public readonly competitionsDddLambda: lambda.Function; // New DDD handler
+  public readonly competitionsDddLambda: lambda.Function; // DDD handler
 
   constructor(scope: Construct, id: string, props: CompetitionsStackProps) {
     super(scope, id);
@@ -52,22 +55,7 @@ export class CompetitionsStack extends Construct {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    // Legacy Competitions Lambda (to be deprecated)
-    this.competitionsLambda = createBundledLambda(this, 'CompetitionsLambda', 'competitions', {
-      handler: 'index.handler',
-      environment: {
-        EVENTS_TABLE: this.eventsTable.tableName,
-        EVENT_DAYS_TABLE: this.eventDaysTable.tableName,
-        EVENT_IMAGES_BUCKET: props.eventImagesBucket.bucketName,
-        ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,
-        ORGANIZATION_MEMBERS_TABLE: props.organizationMembersTable.tableName,
-        SCORING_SYSTEMS_TABLE: props.scoringSystemsTable.tableName,
-        DOMAIN_EVENT_BUS: this.competitionsEventBus.eventBusName,
-        CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
-      },
-    });
-
-    // New DDD-Aligned Competitions Lambda
+    // DDD-Aligned Competitions Lambda
     this.competitionsDddLambda = createBundledLambda(this, 'CompetitionsDddLambda', 'competitions', {
       handler: 'handler-ddd.handler',
       timeout: cdk.Duration.seconds(30),
@@ -76,23 +64,17 @@ export class CompetitionsStack extends Construct {
         EVENTS_TABLE: this.eventsTable.tableName,
         EVENT_DAYS_TABLE: this.eventDaysTable.tableName,
         EVENT_IMAGES_BUCKET: props.eventImagesBucket.bucketName,
+        CLOUDFRONT_DOMAIN: props.cloudfrontDomain || '',
         ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,
         ORGANIZATION_MEMBERS_TABLE: props.organizationMembersTable.tableName,
         SCORING_SYSTEMS_TABLE: props.scoringSystemsTable.tableName,
+        CATEGORIES_TABLE: props.categoriesTable?.tableName || '',
+        WODS_TABLE: props.wodsTable?.tableName || '',
+        ATHLETES_TABLE: props.athleteEventsTable?.tableName || '',
         EVENT_BUS_NAME: this.competitionsEventBus.eventBusName, // DDD handler uses this name
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
       },
     });
-
-    // Grant permissions to legacy Lambda
-    this.eventsTable.grantReadWriteData(this.competitionsLambda);
-    this.eventDaysTable.grantReadWriteData(this.competitionsLambda);
-    props.eventImagesBucket.grantPut(this.competitionsLambda);
-    props.organizationEventsTable.grantReadWriteData(this.competitionsLambda);
-    props.organizationMembersTable.grantReadData(this.competitionsLambda);
-    props.scoringSystemsTable.grantReadData(this.competitionsLambda);
-    this.competitionsEventBus.grantPutEventsTo(this.competitionsLambda);
-    props.eventBus.grantPutEventsTo(this.competitionsLambda);
 
     // Grant permissions to DDD Lambda
     this.eventsTable.grantReadWriteData(this.competitionsDddLambda);
@@ -101,6 +83,9 @@ export class CompetitionsStack extends Construct {
     props.organizationEventsTable.grantReadWriteData(this.competitionsDddLambda);
     props.organizationMembersTable.grantReadData(this.competitionsDddLambda);
     props.scoringSystemsTable.grantReadData(this.competitionsDddLambda);
+    if (props.categoriesTable) props.categoriesTable.grantReadData(this.competitionsDddLambda);
+    if (props.wodsTable) props.wodsTable.grantReadData(this.competitionsDddLambda);
+    if (props.athleteEventsTable) props.athleteEventsTable.grantReadData(this.competitionsDddLambda);
     this.competitionsEventBus.grantPutEventsTo(this.competitionsDddLambda);
     props.eventBus.grantPutEventsTo(this.competitionsDddLambda);
 

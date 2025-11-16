@@ -156,6 +156,58 @@ aws lambda invoke --function-name AthleonScoresLambda --payload '{}' response.js
 - [ ] Test all Lambda functions
 - [ ] Deploy and verify
 
+## 📊 **Benefits**
+
+### **Before Refactor**
+- ❌ **8 duplicated shared folders** (one per domain)
+- ❌ **Different auth implementations** causing inconsistency
+- ❌ **Larger deployment packages** (shared code in each Lambda)
+- ❌ **Maintenance overhead** (update 8 places for changes)
+
+### **After Refactor**
+- ✅ **Single source of truth** for shared utilities
+- ✅ **Consistent auth implementation** across all domains
+- ✅ **Smaller Lambda packages** (shared code in layer)
+- ✅ **Easier maintenance** (update once, deploy everywhere)
+- ✅ **Faster cold starts** (layer cached by AWS)
+- ✅ **Version control** for shared utilities
+
+## 🚀 **Deployment**
+
+### **1. Deploy Layer**
+```bash
+cd /home/labvel/projects/athleon/web_app_athleon
+cdk deploy Athleon --profile labvel-dev
+```
+
+### **2. Verify Layer**
+```bash
+aws lambda list-layers --profile labvel-dev --region us-east-2
+```
+
+### **3. Test Lambda Functions**
+```bash
+# Test that functions can import from layer
+aws lambda invoke --function-name AthleonScoresLambda --payload '{}' response.json --profile labvel-dev
+```
+
+## 📋 **Migration Checklist**
+
+### **Completed**
+- ✅ Created unified Lambda layer structure
+- ✅ Implemented unified auth utilities
+- ✅ Updated CDK shared stack with layer
+- ✅ Updated scoring stack to use layer
+- ✅ Updated scoring Lambda to import from layer
+- ✅ Created cleanup script for duplicated folders
+
+### **TODO**
+- [ ] Update all remaining domain stacks to use layer
+- [ ] Update all Lambda functions to import from layer
+- [ ] Remove duplicated shared folders
+- [ ] Test all Lambda functions
+- [ ] Deploy and verify
+
 ## 🔧 **Layer Contents**
 
 ### **auth.js**

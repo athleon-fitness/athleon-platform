@@ -5,6 +5,7 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 
 export interface FrontendStackProps {
@@ -12,6 +13,7 @@ export interface FrontendStackProps {
   domain?: string;
   enableWaf?: boolean;
   rateLimiting?: number;
+  eventImagesBucket: s3.Bucket;
 }
 
 export class FrontendStack extends Construct {
@@ -62,6 +64,7 @@ export class FrontendStack extends Construct {
     // Dynamic CSP policy based on environment
     const apiDomain = props.domain ? `https://api.${props.domain}` : `https://api.${props.stage}.athleon.fitness`;
     const cognitoRegion = process.env.CDK_DEFAULT_REGION || 'us-east-2';
+    const s3BucketDomain = `https://athleon-event-images-${props.stage}.s3.${cognitoRegion}.amazonaws.com`;
     
     const cspPolicy = [
       "default-src 'self'",
@@ -70,7 +73,7 @@ export class FrontendStack extends Construct {
       "img-src 'self' data: https:",
       "media-src 'self' data:",
       "font-src 'self' data:",
-      `connect-src 'self' ${apiDomain} https://cognito-idp.${cognitoRegion}.amazonaws.com`,
+      `connect-src 'self' ${apiDomain} https://cognito-idp.${cognitoRegion}.amazonaws.com ${s3BucketDomain}`,
       "frame-ancestors 'none'"
     ].join('; ');
 
@@ -102,6 +105,27 @@ export class FrontendStack extends Construct {
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         responseHeadersPolicy: securityHeadersPolicy,
       },
+      additionalBehaviors: {
+        '/images/*': {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(props.eventImagesBucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          functionAssociations: [{
+            function: new cloudfront.Function(this, 'ImagePathRewriteFunction', {
+              functionName: `athleon-image-path-rewrite-${props.stage}`,
+              code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  // Remove /images prefix from the URI
+  request.uri = request.uri.replace(/^\\/images\\//, '/');
+  return request;
+}
+              `),
+            }),
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          }],
+        },
+      },
       domainNames: props.domain ? [props.domain] : undefined,
       certificate: this.cloudfrontCertificate,
       defaultRootObject: 'index.html',
@@ -120,6 +144,18 @@ export class FrontendStack extends Construct {
         },
       ],
     });
+
+    // Grant CloudFront access to event images bucket
+    props.eventImagesBucket.addToResourcePolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: [props.eventImagesBucket.arnForObjects('*')],
+      principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
+      conditions: {
+        StringEquals: {
+          'AWS:SourceArn': `arn:aws:cloudfront::${cdk.Stack.of(this).account}:distribution/${this.distribution.distributionId}`,
+        },
+      },
+    }));
 
     // Create Route 53 A Record for custom domain
     if (props.domain && this.hostedZone) {

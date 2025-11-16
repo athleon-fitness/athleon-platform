@@ -70,6 +70,7 @@ export class AthleonStack extends cdk.Stack {
       domain: props.config.frontend.customDomain ? props.config.domain : undefined,
       enableWaf: props.config.frontend?.waf?.enabled,
       rateLimiting: props.config.frontend?.waf?.rateLimiting,
+      eventImagesBucket: sharedStack.eventImagesBucket,
     });
 
     // 2. Network Infrastructure (use certificate from frontend)
@@ -108,26 +109,6 @@ export class AthleonStack extends cdk.Stack {
       sharedLayer: sharedStack.sharedLayer,
     });
 
-    const competitionsStack = new CompetitionsStack(this, 'Competitions', {
-      stage: props.stage,
-      eventBus: sharedStack.eventBus,
-      eventImagesBucket: sharedStack.eventImagesBucket,
-      organizationEventsTable: organizationsStack.organizationEventsTable,
-      organizationMembersTable: organizationsStack.organizationMembersTable,
-      scoringSystemsTable: scoringStack.scoringSystemsTable,
-    });
-
-    const athletesStack = new AthletesStack(this, 'Athletes', {
-      stage: props.stage,
-      eventBus: sharedStack.eventBus,
-    });
-
-    const schedulingStack = new SchedulingStack(this, 'Scheduling', {
-      stage: props.stage,
-      eventBus: sharedStack.eventBus,
-      sharedLayer: sharedStack.sharedLayer.layer,
-    });
-
     const categoriesStack = new CategoriesStack(this, 'Categories', {
       stage: props.stage,
       config: props.config,
@@ -147,6 +128,30 @@ export class AthleonStack extends cdk.Stack {
       scoresTable: scoringStack.scoresTable,
     });
 
+    const athletesStack = new AthletesStack(this, 'Athletes', {
+      stage: props.stage,
+      eventBus: sharedStack.eventBus,
+    });
+
+    const competitionsStack = new CompetitionsStack(this, 'Competitions', {
+      stage: props.stage,
+      eventBus: sharedStack.eventBus,
+      eventImagesBucket: sharedStack.eventImagesBucket,
+      organizationEventsTable: organizationsStack.organizationEventsTable,
+      organizationMembersTable: organizationsStack.organizationMembersTable,
+      scoringSystemsTable: scoringStack.scoringSystemsTable,
+      categoriesTable: categoriesStack.categoriesTable,
+      wodsTable: wodsStack.wodsTable,
+      athleteEventsTable: athletesStack.athleteEventsTable,
+      cloudfrontDomain: `https://${props.config.domain || frontendStack.distribution.distributionDomainName}`,
+    });
+
+    const schedulingStack = new SchedulingStack(this, 'Scheduling', {
+      stage: props.stage,
+      eventBus: sharedStack.eventBus,
+      sharedLayer: sharedStack.sharedLayer.layer,
+    });
+
     // Analytics Domain (event-driven)
     const analyticsStack = new AnalyticsStack(this, 'Analytics', {
       stage: props.stage,
@@ -164,13 +169,14 @@ export class AthleonStack extends cdk.Stack {
     });
 
     // 5. API Routing (wire Lambdas to API Gateway)
-    // Competitions - Legacy Handler (to be deprecated)
+
+    // Competitions - DDD Handler
     const competitions = networkStack.api.root.addResource('competitions');
-    competitions.addMethod('ANY', new apigateway.LambdaIntegration(competitionsStack.competitionsLambda), {
+    competitions.addMethod('ANY', new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda), {
       authorizer: networkStack.authorizer,
     });
     competitions.addResource('{proxy+}').addMethod('ANY', 
-      new apigateway.LambdaIntegration(competitionsStack.competitionsLambda), 
+      new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda), 
       { authorizer: networkStack.authorizer }
     );
 
@@ -186,20 +192,20 @@ export class AthleonStack extends cdk.Stack {
 
     // Events (alias for competitions for backward compatibility)
     const events = networkStack.api.root.addResource('events');
-    events.addMethod('ANY', new apigateway.LambdaIntegration(competitionsStack.competitionsLambda), {
+    events.addMethod('ANY', new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda), {
       authorizer: networkStack.authorizer,
     });
     events.addResource('{proxy+}').addMethod('ANY', 
-      new apigateway.LambdaIntegration(competitionsStack.competitionsLambda), 
+      new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda), 
       { authorizer: networkStack.authorizer }
     );
 
     // Public events
     const publicRoot = networkStack.api.root.addResource('public');
     const publicEvents = publicRoot.addResource('events');
-    publicEvents.addMethod('GET', new apigateway.LambdaIntegration(competitionsStack.competitionsLambda));
+    publicEvents.addMethod('GET', new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda));
     publicEvents.addResource('{proxy+}').addMethod('GET', 
-      new apigateway.LambdaIntegration(competitionsStack.competitionsLambda)
+      new apigateway.LambdaIntegration(competitionsStack.competitionsDddLambda)
     );
 
     // Public Exercises

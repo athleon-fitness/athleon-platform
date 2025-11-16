@@ -15,7 +15,7 @@ import './EventManagement.css';
  * Main component for managing events - now much smaller and cleaner!
  */
 function EventManagement() {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const { selectedOrganization } = useOrganization();
   const { showNotification } = useNotification();
   

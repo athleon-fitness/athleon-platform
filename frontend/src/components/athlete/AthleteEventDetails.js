@@ -42,12 +42,40 @@ function AthleteEventDetails() {
           API.get('CalisthenicsAPI', '/athletes')
         ]);
 
-        setCategories(categoriesRes);
-        setWods(wodsRes);
+        // Use dual approach: combine event record data with separate table data
+        const eventCategories = eventRes.categories || [];
+        const validEventCategories = eventCategories.filter(category => 
+          typeof category === 'object' && 
+          category !== null && 
+          category.categoryId && 
+          category.name
+        );
+        
+        const eventWods = eventRes.wods || eventRes.workouts || [];
+        
+        // Combine and deduplicate
+        const allCategories = [...validEventCategories, ...(categoriesRes || [])];
+        const uniqueCategories = allCategories.reduce((acc, cat) => {
+          if (!acc.find(c => c.categoryId === cat.categoryId)) {
+            acc.push(cat);
+          }
+          return acc;
+        }, []);
+        
+        const allWods = [...eventWods, ...(wodsRes || [])];
+        const uniqueWods = allWods.reduce((acc, wod) => {
+          if (!acc.find(w => w.wodId === wod.wodId)) {
+            acc.push(wod);
+          }
+          return acc;
+        }, []);
+
+        setCategories(uniqueCategories);
+        setWods(uniqueWods);
         setAthletes(athletesRes);
         setIsAuthenticated(true);
         
-        if (categoriesRes.length > 0) setSelectedCategory(categoriesRes[0].categoryId);
+        if (uniqueCategories.length > 0) setSelectedCategory(uniqueCategories[0].categoryId);
       } catch (authError) {
         console.log('User not authenticated, fetching public data');
         setIsAuthenticated(false);
@@ -59,10 +87,38 @@ function AthleteEventDetails() {
             API.get('CalisthenicsAPI', `/public/wods?eventId=${eventId}`)
           ]);
           
-          setCategories(publicCategoriesRes);
-          setWods(publicWodsRes);
+          // Use dual approach for public data too
+          const eventCategories = eventRes.categories || [];
+          const validEventCategories = eventCategories.filter(category => 
+            typeof category === 'object' && 
+            category !== null && 
+            category.categoryId && 
+            category.name
+          );
           
-          if (publicCategoriesRes.length > 0) setSelectedCategory(publicCategoriesRes[0].categoryId);
+          const eventWods = eventRes.wods || eventRes.workouts || [];
+          
+          // Combine and deduplicate
+          const allCategories = [...validEventCategories, ...(publicCategoriesRes || [])];
+          const uniqueCategories = allCategories.reduce((acc, cat) => {
+            if (!acc.find(c => c.categoryId === cat.categoryId)) {
+              acc.push(cat);
+            }
+            return acc;
+          }, []);
+          
+          const allWods = [...eventWods, ...(publicWodsRes || [])];
+          const uniqueWods = allWods.reduce((acc, wod) => {
+            if (!acc.find(w => w.wodId === wod.wodId)) {
+              acc.push(wod);
+            }
+            return acc;
+          }, []);
+          
+          setCategories(uniqueCategories);
+          setWods(uniqueWods);
+          
+          if (uniqueCategories.length > 0) setSelectedCategory(uniqueCategories[0].categoryId);
           
           // Fetch public scores if event is active or completed
           if (eventRes.status === 'active' || eventRes.status === 'completed') {

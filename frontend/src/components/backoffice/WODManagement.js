@@ -361,7 +361,7 @@ function WODManagement() {
     let totalEDS = 0;
     const breakdown = [];
     
-    wod.movements.forEach((movement, idx) => {
+    wod.movements.forEach((movement, _idx) => {
       
       // Match by exerciseId first, then by name (case-insensitive)
       const exercise = exercises.find(e => 

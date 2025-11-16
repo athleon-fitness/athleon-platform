@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API } from 'aws-amplify';
-import { normalizeCategoryIds, isCategorySelected } from '../../../utils/categoryHelpers';
+import { isCategorySelected } from '../../../utils/categoryHelpers';
 
 /**
  * CategorySelector Component

@@ -157,7 +157,7 @@ function GeneralLeaderboard() {
     return athletes.find(athlete => athlete.athleteId === athleteId);
   };
 
-  const getWorkoutName = (workoutId) => {
+  const _getWorkoutName = (workoutId) => {
     const workout = selectedEvent?.workouts?.find(w => w.wodId === workoutId);
     return workout?.name || `WOD ${workoutId}`;
   };

@@ -330,10 +330,18 @@ export class CalisthenicsAppStack extends cdk.Stack {
       resources: [userPool.userPoolArn]
     }));
 
+    // Shared Lambda Layer for utilities
+    const sharedLayer = new lambda.LayerVersion(this, 'AthleonSharedLayer', {
+      layerVersionName: 'athleon-shared-dev',
+      code: lambda.Code.fromAsset('layers/athleon-shared'),
+      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X, lambda.Runtime.NODEJS_20_X],
+      description: 'Shared utilities for Athleon Lambda functions',
+    });
+
     // Competitions service - Handles competitions and public events endpoints
     const competitionsLambda = new lambda.Function(this, 'CompetitionsLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
+      handler: 'handler-ddd.handler',
       code: lambda.Code.fromAsset('lambda/competitions'),
       memorySize: 256,
       timeout: cdk.Duration.seconds(30),
@@ -344,6 +352,9 @@ export class CalisthenicsAppStack extends cdk.Stack {
         ORGANIZATION_EVENTS_TABLE: organizationEventsTable.tableName,
         ORGANIZATION_MEMBERS_TABLE: organizationMembersTable.tableName,
         EVENT_IMAGES_BUCKET: eventImagesBucket.bucketName,
+        CATEGORIES_TABLE: categoriesTable.tableName,
+        WODS_TABLE: wodsTable.tableName,
+        EVENT_BUS_NAME: eventBus.eventBusName,
       },
     });
     eventsTable.grantReadWriteData(competitionsLambda);
@@ -466,6 +477,7 @@ export class CalisthenicsAppStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/categories'),
+      layers: [sharedLayer],
       memorySize: 256,
       timeout: cdk.Duration.seconds(30),
       description: 'Categories service - v5 with RBAC authorization',
@@ -722,7 +734,7 @@ export class CalisthenicsAppStack extends cdk.Stack {
     // DDD Scheduler Lambda (separate from Step Functions scheduler)
     const dddSchedulerLambda = new lambda.Function(this, 'DDDSchedulerLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'ddd-handler.handler',
+      handler: 'index.handler',
       code: lambda.Code.fromAsset('lambda/scheduling'),
       memorySize: 256,
       timeout: cdk.Duration.seconds(30),

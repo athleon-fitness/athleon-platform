@@ -27,6 +27,14 @@ async function checkWodAccess(userId, userEmail, action, wodId = null, eventId =
     return decision;
   }
 
+  // For event-specific WODs READ access, allow any authenticated user
+  // (Athletes need to see WODs to view event details and register)
+  if (action === 'read' && eventId && eventId !== 'template') {
+    const decision = { authorized: true, role: 'athlete' };
+    logger.info('Authorization decision:', { userId, userEmail, action, decision, wodId, eventId });
+    return decision;
+  }
+
   // For write operations, check WOD ownership and restrictions
   if (action === 'update' || action === 'delete') {
     try {

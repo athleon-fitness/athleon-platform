@@ -15,7 +15,7 @@ function EventDetails() {
   const [scheduleWods, setScheduleWods] = useState({});
 
   const [event, setEvent] = useState(null);
-  const [eventDays, setEventDays] = useState([]);
+  const [_eventDays, setEventDays] = useState([]);
   const [wods, setWods] = useState([]);
   const [categories, setCategories] = useState([]);
   const [athletes, setAthletes] = useState([]);
@@ -25,6 +25,7 @@ function EventDetails() {
   const [wodFormatFilter, setWodFormatFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
 
   // Global advanced scoring system
   const globalScoringSystem = {
@@ -105,22 +106,9 @@ function EventDetails() {
       
       setWods(uniqueWods);
 
-      // Use categories from event record if available
-      const eventCategories = response.categories || [];
-      if (eventCategories.length > 0) {
-        // Filter to only get objects (not strings) and valid category objects
-        const validCategories = eventCategories.filter(category => 
-          typeof category === 'object' && 
-          category !== null && 
-          category.categoryId && 
-          category.name
-        );
-        setCategories(validCategories);
-      } else {
-        // Fallback to fetching categories linked to event
-        const linkedCategories = await API.get('CalisthenicsAPI', `/categories?eventId=${eventId}`);
-        setCategories(linkedCategories || []);
-      }
+      // Fetch categories for this event (proper DDD approach)
+      const categoriesResponse = await API.get('CalisthenicsAPI', `/categories?eventId=${eventId}`);
+      setCategories(categoriesResponse || []);
     } catch (error) {
       console.error('Error fetching event:', error);
     }
@@ -282,7 +270,7 @@ function EventDetails() {
     return grouped;
   };
 
-  const getAthleteName = (athleteId) => {
+  const _getAthleteName = (athleteId) => {
     const athlete = scheduleAthletes[athleteId];
     if (athlete?.firstName && athlete?.lastName) {
       return `${athlete.firstName} ${athlete.lastName}`;
@@ -290,17 +278,17 @@ function EventDetails() {
     return athleteId;
   };
 
-  const getCategoryName = (categoryId) => {
+  const _getCategoryName = (categoryId) => {
     const category = scheduleCategories[categoryId];
     return category ? category.name : categoryId;
   };
 
-  const getAthleteAlias = (athleteId) => {
+  const _getAthleteAlias = (athleteId) => {
     const athlete = scheduleAthletes[athleteId];
     return athlete?.alias || athleteId;
   };
 
-  const getWodName = (wodId) => {
+  const _getWodName = (wodId) => {
     const wod = scheduleWods[wodId];
     return wod ? wod.name : wodId;
   };
@@ -397,10 +385,12 @@ function EventDetails() {
       
       console.log('Refreshing event details...');
       await fetchEventDetails();
-      alert('Image uploaded successfully!');
+      setMessage({ text: 'Image uploaded successfully!', type: 'success' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Failed to upload image');
+      setMessage({ text: 'Failed to upload image', type: 'error' });
+      setTimeout(() => setMessage({ text: '', type: '' }), 3000);
     } finally {
       setUploading(false);
     }
@@ -411,6 +401,18 @@ function EventDetails() {
 
   return (
     <div className="event-details">
+      {message.text && (
+        <div className={`message ${message.type}`} style={{
+          padding: '12px 16px',
+          marginBottom: '16px',
+          borderRadius: '4px',
+          backgroundColor: message.type === 'success' ? '#d4edda' : '#f8d7da',
+          color: message.type === 'success' ? '#155724' : '#721c24',
+          border: `1px solid ${message.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+        }}>
+          {message.text}
+        </div>
+      )}
       {scheduleId && selectedSchedule ? (
         // Schedule Details View
         <div className="schedule-details-page">
@@ -562,6 +564,7 @@ function EventDetails() {
           {uploading ? 'Uploading...' : event.imageUrl ? 'Change Banner' : 'Upload Banner'}
           <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} />
         </label>
+        <p className="upload-hint">Recommended: 1920x400px or similar wide aspect ratio (16:3 or wider)</p>
       </div>
 
       <div className="event-grid">
@@ -995,18 +998,21 @@ function EventDetails() {
           box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         .banner-container {
-          position: relative;
-          width: 100%;
-          height: 400px;
-          border-radius: 12px;
-          overflow: hidden;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+          position: relative !important;
+          width: 100% !important;
+          height: 400px !important;
+          border-radius: 12px !important;
+          overflow: hidden !important;
+          margin-bottom: 20px !important;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+          background: #f0f0f0 !important;
         }
         .banner-image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+          width: 100% !important;
+          height: 100% !important;
+          object-fit: cover !important;
+          object-position: center !important;
+          display: block !important;
         }
         .banner-overlay {
           position: absolute;
@@ -1029,6 +1035,12 @@ function EventDetails() {
         .upload-section {
           margin-bottom: 30px;
           text-align: center;
+        }
+        .upload-hint {
+          margin-top: 8px;
+          font-size: 13px;
+          color: #666;
+          font-style: italic;
         }
         .upload-btn {
           display: inline-flex;

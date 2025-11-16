@@ -3,7 +3,7 @@ import { API } from 'aws-amplify';
 
 function Dashboard({ user }) {
   const [events, setEvents] = useState([]);
-  const [recentScores, setRecentScores] = useState([]);
+  const [_recentScores, _setRecentScores] = useState([]);
 
   useEffect(() => {
     fetchEvents();

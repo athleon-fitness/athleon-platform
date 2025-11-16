@@ -5,7 +5,7 @@ import AthleteLeaderboard from './AthleteLeaderboard';
 import AthleteScheduleViewer from './AthleteScheduleViewer';
 
 function AthleteProfile({ user, signOut }) {
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
@@ -68,6 +68,7 @@ function AthleteProfile({ user, signOut }) {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchData = async () => {
@@ -90,6 +91,7 @@ function AthleteProfile({ user, signOut }) {
     if (events.length > 0) {
       fetchScores();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [events]);
 
   const fetchProfile = async () => {
@@ -366,7 +368,12 @@ function AthleteProfile({ user, signOut }) {
                               <h4>Movements:</h4>
                               <ul>
                                 {wod.movements.map((movement, index) => (
-                                  <li key={index}>{movement}</li>
+                                  <li key={index}>
+                                    {typeof movement === 'string' 
+                                      ? movement 
+                                      : `${movement.reps || ''} ${movement.exercise || movement.name || ''}${movement.weight ? ` (${movement.weight})` : ''}`
+                                    }
+                                  </li>
                                 ))}
                               </ul>
                             </div>

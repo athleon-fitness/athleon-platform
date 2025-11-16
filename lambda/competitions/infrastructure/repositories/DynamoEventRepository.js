@@ -57,9 +57,33 @@ class DynamoEventRepository extends EventRepository {
       return [];
     }
 
-    // Then fetch full event details
+    // Then fetch full event details with athlete counts
+    const ATHLETES_TABLE = process.env.ATHLETES_TABLE;
     const events = await Promise.all(
-      orgEvents.map(orgEvent => this.findById(orgEvent.eventId))
+      orgEvents.map(async (orgEvent) => {
+        const event = await this.findById(orgEvent.eventId);
+        
+        if (!event) return null;
+        
+        // Add registered athlete count if ATHLETES_TABLE is available
+        if (ATHLETES_TABLE) {
+          try {
+            const { Items: athletes } = await this.dynamodb.send(new QueryCommand({
+              TableName: ATHLETES_TABLE,
+              IndexName: 'event-athletes-index',
+              KeyConditionExpression: 'eventId = :eventId',
+              ExpressionAttributeValues: { ':eventId': event.eventId },
+              Select: 'COUNT'
+            }));
+            event.registeredCount = athletes?.length || 0;
+          } catch (error) {
+            console.warn('Could not fetch athlete count', { eventId: event.eventId, error: error.message });
+            event.registeredCount = 0;
+          }
+        }
+        
+        return event;
+      })
     );
 
     return events.filter(event => event !== null);

@@ -442,21 +442,7 @@ function ScoreEntry({ user }) {
               </button>
             </div>
           </div>
-              className="search-input"
-            />
-          </div>
-          
-          <div className="events-grid">
-            {filteredEvents.map(event => (
-              <div key={event.eventId} className="event-card" onClick={() => navigate(`/backoffice/scores/${event.eventId}`)}>
-                <h3>{event.name}</h3>
-                <p>{event.location}</p>
-                <p>{new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}</p>
-                <span className={`status ${event.status}`}>{event.status}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+        </>
       ) : (
         <div className="score-form-container">
           <div className="selected-event-header">

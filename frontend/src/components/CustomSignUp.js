@@ -3,7 +3,7 @@ import { Auth } from 'aws-amplify';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
 
-function CustomSignUp({ onSuccess, onSwitchToSignIn }) {
+function CustomSignUp({ onSuccess: _onSuccess, onSwitchToSignIn }) {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     email: '',

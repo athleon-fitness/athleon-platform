@@ -81,7 +81,7 @@ const NotificationContainer = ({ notifications, onRemove }) => {
   );
 };
 
-const Notification = ({ id, message, type, onClose }) => {
+const Notification = ({ id: _id, message, type, onClose }) => {
   const icons = {
     success: '✅',
     error: '❌',
