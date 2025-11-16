@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API } from 'aws-amplify';
 import AthleteLeaderboard from './AthleteLeaderboard';
@@ -68,10 +68,9 @@ function AthleteProfile({ user, signOut }) {
 
   useEffect(() => {
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       await fetchProfile();
@@ -84,15 +83,14 @@ function AthleteProfile({ user, signOut }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   // Call fetchScores when events are loaded
   useEffect(() => {
     if (events.length > 0) {
       fetchScores();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
+  }, [events, fetchScores]);
 
   const fetchProfile = async () => {
     try {
@@ -200,7 +198,7 @@ function AthleteProfile({ user, signOut }) {
     return registrations.some(reg => reg.eventId === eventId || reg.eventId === eventId);
   };
 
-  const fetchScores = async () => {
+  const fetchScores = useCallback(async () => {
     try {
       // Get all scores from all events
       let allScoresResponse = [];
@@ -242,7 +240,7 @@ function AthleteProfile({ user, signOut }) {
       setScores([]);
       setAllScores([]);
     }
-  };
+  }, [events, profile, user]);
 
   const calculatePersonalBests = () => {
     if (!scores.length) return {};

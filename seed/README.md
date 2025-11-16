@@ -9,7 +9,8 @@
 
 ### **Core Data**
 - **`seed-current-data.js`** - **MAIN SEED SCRIPT**
-  - Creates demo organization, event, categories, WODs, exercises
+  - Creates demo organization, event, WODs, exercises
+  - Uses global categories (requires seed-categories.js first)
   - Uses current CDK table names
   - Run after CDK deployment
 
@@ -40,13 +41,13 @@
 
 ### **Complete Setup (after CDK deploy)**
 ```bash
-# Run all seed scripts
+# Run all seed scripts in correct order
 cd seed
-AWS_PROFILE=labvel-dev node seed-current-data.js
-AWS_PROFILE=labvel-dev node seed-categories.js
-AWS_PROFILE=labvel-dev node seed-baseline-wods.js
-AWS_PROFILE=labvel-dev node seed-exercises.js
-AWS_PROFILE=labvel-dev node seed-authorization.js
+AWS_PROFILE=labvel-dev node seed-categories.js      # 1. Global categories first
+AWS_PROFILE=labvel-dev node seed-current-data.js    # 2. Core data (uses global categories)
+AWS_PROFILE=labvel-dev node seed-baseline-wods.js   # 3. Template WODs
+AWS_PROFILE=labvel-dev node seed-exercises.js       # 4. Exercise library
+AWS_PROFILE=labvel-dev node seed-authorization.js   # 5. RBAC system
 ```
 
 ### **Quick Setup Script**
@@ -60,7 +61,7 @@ AWS_PROFILE=labvel-dev node seed-authorization.js
 ### **Organizations & Events**
 - 1 Demo organization: "Demo Athleon CC"
 - 1 Published event: "Demo Competition 2025"
-- 4 Categories: RX Male/Female, Scaled Male/Female
+- Uses 8 global categories (Men/Women × 4 levels)
 - 2 Event-specific WODs: Fran, Grace
 
 ### **Template Library**
@@ -71,7 +72,7 @@ AWS_PROFILE=labvel-dev node seed-authorization.js
 ### **Total Database Records**
 - Organizations: 1
 - Events: 1  
-- Categories: 4
+- Categories: 8 (global, created by seed-categories.js)
 - WODs: 10 (2 event + 8 template)
 - Exercises: 24 (21 + 3 basic)
 - Roles: 5

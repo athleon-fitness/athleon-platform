@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { API } from 'aws-amplify';
 
 function AthleteLeaderboard({ userProfile }) {
@@ -110,7 +110,6 @@ function AthleteLeaderboard({ userProfile }) {
       
       return () => clearInterval(interval);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedEvent, leaderboardType, selectedSchedule]);
 
   const fetchEventScores = async () => {
@@ -137,10 +136,9 @@ function AthleteLeaderboard({ userProfile }) {
     if (allScores.length > 0) {
       calculateLeaderboard();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCategory, athletes, allScores]);
+  }, [selectedCategory, athletes, allScores, calculateLeaderboard]);
 
-  const calculateLeaderboard = () => {
+  const calculateLeaderboard = useCallback(() => {
     if (!selectedCategory || allScores.length === 0) {
       setLeaderboard([]);
       return;
@@ -220,7 +218,7 @@ function AthleteLeaderboard({ userProfile }) {
       }));
 
     setLeaderboard(sortedLeaderboard);
-  };
+  }, [selectedCategory, allScores, athletes]);
 
   const isCurrentUser = (athleteId) => {
     return userProfile?.athleteId === athleteId;

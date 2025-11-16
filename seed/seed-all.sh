@@ -20,12 +20,12 @@ AWS_PROFILE=labvel-dev node create-organizer-users.js
 echo ""
 
 # Run seed scripts in order
-echo "📋 1/5 Seeding core data..."
-AWS_PROFILE=labvel-dev node seed-current-data.js
+echo "📊 1/5 Seeding global categories..."
+AWS_PROFILE=labvel-dev node seed-categories.js
 echo ""
 
-echo "📊 2/5 Seeding global categories..."
-AWS_PROFILE=labvel-dev node seed-categories.js
+echo "📋 2/5 Seeding core data..."
+AWS_PROFILE=labvel-dev node seed-current-data.js
 echo ""
 
 echo "💪 3/5 Seeding baseline WODs..."

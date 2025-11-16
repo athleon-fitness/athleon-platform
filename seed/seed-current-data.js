@@ -88,27 +88,8 @@ async function seedData() {
       }
     }));
 
-    // 5. Create categories
-    const categories = [
-      { categoryId: 'rx-male', name: 'RX Male', gender: 'male' },
-      { categoryId: 'rx-female', name: 'RX Female', gender: 'female' },
-      { categoryId: 'scaled-male', name: 'Scaled Male', gender: 'male' },
-      { categoryId: 'scaled-female', name: 'Scaled Female', gender: 'female' }
-    ];
-
-    console.log('📊 Creating categories...');
-    for (const cat of categories) {
-      await ddb.send(new PutCommand({
-        TableName: TABLES.CATEGORIES,
-        Item: {
-          eventId: eventId,
-          categoryId: cat.categoryId,
-          name: cat.name,
-          gender: cat.gender,
-          createdAt: new Date().toISOString()
-        }
-      }));
-    }
+    // 5. Use global categories (created by seed-categories.js)
+    console.log('📊 Using global categories (run seed-categories.js first)...');
 
     // 6. Create sample WODs
     const wods = [
