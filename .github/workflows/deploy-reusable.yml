@@ -108,10 +108,15 @@ jobs:
           }
           EOF
 
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
       - name: Lint frontend
         run: |
           cd frontend
-          npm run lint
+          npx eslint@latest .
 
       - name: Build frontend
         run: |
