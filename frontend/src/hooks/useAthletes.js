@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
+
 
 /**
  * Custom hook for fetching and filtering athletes
@@ -20,7 +23,7 @@ export const useAthletes = (eventId) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await API.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`);
       setAthletes(response || []);
     } catch (err) {
       console.error('Error fetching athletes:', err);

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 import { useAuthenticator } from '@aws-amplify/ui-react';
@@ -130,7 +129,7 @@ function OrganizationManagement() {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
     
     try {
-      await API.client.del('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members/${userId}`);
+      await client.del('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members/${userId}`);
       setMessage('✅ Member removed');
       fetchMembers();
     } catch (error) {
@@ -143,7 +142,7 @@ function OrganizationManagement() {
     if (!window.confirm(`Are you sure you want to delete "${organizationDetails.name}"? This action cannot be undone.`)) return;
     
     try {
-      await API.client.del('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}`);
+      await client.del('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}`);
       setMessage('✅ Organization deleted');
       setTimeout(() => {
         navigate('/backoffice/organization');

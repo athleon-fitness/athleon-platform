@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 import LoadingSpinner from '../common/Loading/LoadingSpinner';
@@ -113,7 +112,7 @@ const AuthorizationAdmin = () => {
   const deletePermission = async (roleId, resource) => {
     if (!window.confirm('Are you sure you want to delete this permission?')) return;
     try {
-      await API.client.del('CalisthenicsAPI', `/authorization/permissions/${roleId}/${resource}`);
+      await client.del('CalisthenicsAPI', `/authorization/permissions/${roleId}/${resource}`);
       fetchData();
     } catch (error) {
       console.error('Error deleting permission:', error);
@@ -136,7 +135,7 @@ const AuthorizationAdmin = () => {
   const deleteRole = async (roleId) => {
     if (!window.confirm('Are you sure you want to delete this role?')) return;
     try {
-      await API.client.del('CalisthenicsAPI', `/authorization/roles/${roleId}`);
+      await client.del('CalisthenicsAPI', `/authorization/roles/${roleId}`);
       fetchData();
     } catch (error) {
       console.error('Error deleting role:', error);
@@ -159,7 +158,7 @@ const AuthorizationAdmin = () => {
   const deleteUserRole = async (userId, contextId) => {
     if (!window.confirm('Are you sure you want to remove this user role?')) return;
     try {
-      await API.client.del('CalisthenicsAPI', `/authorization/user-roles/${userId}?contextId=${contextId}`);
+      await client.del('CalisthenicsAPI', `/authorization/user-roles/${userId}?contextId=${contextId}`);
       fetchData();
     } catch (error) {
       console.error('Error deleting user role:', error);

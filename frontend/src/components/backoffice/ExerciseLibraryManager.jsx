@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 import { useAuthenticator } from '@aws-amplify/ui-react';
@@ -72,7 +71,7 @@ function ExerciseLibraryManager() {
   const handleDelete = async (exerciseId) => {
     if (!window.confirm('Delete this exercise?')) return;
     try {
-      await API.client.del('CalisthenicsAPI', `/exercises/${exerciseId}`);
+      await client.del('CalisthenicsAPI', `/exercises/${exerciseId}`);
       setMessage('✅ Exercise deleted');
       fetchExercises();
     } catch (error) {

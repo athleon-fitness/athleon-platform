@@ -1,12 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
+
 
 // Fetch athlete profile
 export const useAthleteProfile = (user) => {
   return useQuery({
     queryKey: ['athleteProfile', user?.attributes?.email],
     queryFn: async () => {
-      const response = await API.get('CalisthenicsAPI', '/athletes');
+      const response = await client.get('CalisthenicsAPI', '/athletes');
       const userAthlete = response.find(athlete => 
         athlete.email === user?.attributes?.email
       );
@@ -36,9 +39,9 @@ export const useUpdateAthleteProfile = () => {
   return useMutation({
     mutationFn: async ({ athleteId, data }) => {
       if (athleteId) {
-        return await API.put('CalisthenicsAPI', `/athletes/${athleteId}`, { body: data });
+        return await client.put('CalisthenicsAPI', `/athletes/${athleteId}`, { body: data });
       } else {
-        return await API.post('CalisthenicsAPI', '/athletes', { body: data });
+        return await client.post('CalisthenicsAPI', '/athletes', { body: data });
       }
     },
     onSuccess: (_data, _variables) => {
@@ -53,7 +56,7 @@ export const useAthleteRegistrations = (athleteId) => {
   return useQuery({
     queryKey: ['athleteRegistrations', athleteId],
     queryFn: async () => {
-      const response = await API.get('CalisthenicsAPI', `/athletes/${athleteId}/competitions`);
+      const response = await client.get('CalisthenicsAPI', `/athletes/${athleteId}/competitions`);
       return response || [];
     },
     enabled: !!athleteId,
@@ -67,7 +70,7 @@ export const useRegisterForEvent = () => {
   
   return useMutation({
     mutationFn: async ({ athleteId, eventId, categoryId }) => {
-      return await API.post('CalisthenicsAPI', `/athletes/${athleteId}/competitions`, {
+      return await client.post('CalisthenicsAPI', `/athletes/${athleteId}/competitions`, {
         body: {
           eventId,
           categoryId,

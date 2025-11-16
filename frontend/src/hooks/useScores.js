@@ -1,12 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
+
 
 // Fetch scores for an event
 export const useEventScores = (eventId) => {
   return useQuery({
     queryKey: ['eventScores', eventId],
     queryFn: async () => {
-      const response = await API.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
       return response || [];
     },
     enabled: !!eventId,
@@ -24,7 +27,7 @@ export const useAthleteScores = (athleteId, eventIds = []) => {
       
       for (const eventId of eventIds) {
         try {
-          const scores = await API.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
+          const scores = await client.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
           allScores = [...allScores, ...(scores || [])];
         } catch (error) {
           console.error(`Error fetching scores for event ${eventId}:`, error);
@@ -49,7 +52,7 @@ export const useSubmitScore = () => {
   
   return useMutation({
     mutationFn: async (scoreData) => {
-      return await API.post('CalisthenicsAPI', '/scores', {
+      return await client.post('CalisthenicsAPI', '/scores', {
         body: scoreData
       });
     },
@@ -66,7 +69,7 @@ export const useLeaderboard = (eventId, categoryId) => {
   return useQuery({
     queryKey: ['leaderboard', eventId, categoryId],
     queryFn: async () => {
-      const response = await API.get('CalisthenicsAPI', `/scores/leaderboard/${eventId}`, {
+      const response = await client.get('CalisthenicsAPI', `/scores/leaderboard/${eventId}`, {
         queryStringParameters: categoryId ? { categoryId } : {}
       });
       return response?.leaderboard || [];

@@ -1,12 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
+
 
 // Fetch all public events
 export const useEvents = () => {
   return useQuery({
     queryKey: ['events'],
     queryFn: async () => {
-      const response = await API.get('CalisthenicsAPI', '/public/events');
+      const response = await client.get('CalisthenicsAPI', '/public/events');
       return response || [];
     },
     staleTime: 5 * 60 * 1000
@@ -18,7 +21,7 @@ export const useEvent = (eventId) => {
   return useQuery({
     queryKey: ['event', eventId],
     queryFn: async () => {
-      const response = await API.get('CalisthenicsAPI', `/public/events/${eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/public/events/${eventId}`);
       return response;
     },
     enabled: !!eventId,
@@ -31,7 +34,7 @@ export const useEventCategories = (eventId) => {
   return useQuery({
     queryKey: ['eventCategories', eventId],
     queryFn: async () => {
-      const response = await API.get('CalisthenicsAPI', `/public/categories?eventId=${eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/public/categories?eventId=${eventId}`);
       return response || [];
     },
     enabled: !!eventId,
@@ -44,7 +47,7 @@ export const useEventWods = (eventId) => {
   return useQuery({
     queryKey: ['eventWods', eventId],
     queryFn: async () => {
-      const response = await API.get('CalisthenicsAPI', `/public/wods?eventId=${eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/public/wods?eventId=${eventId}`);
       return response || [];
     },
     enabled: !!eventId,

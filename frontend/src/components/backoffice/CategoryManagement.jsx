@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 import './Backoffice.css';
@@ -98,7 +97,7 @@ useEffect(() => {
       const url = eventId 
         ? `/categories/${categoryId}?eventId=${eventId}`
         : `/categories/${categoryId}`;
-      await API.client.del('CalisthenicsAPI', url);
+      await client.del('CalisthenicsAPI', url);
       fetchCategories();
     } catch (error) {
       console.error('Error deleting category:', error);

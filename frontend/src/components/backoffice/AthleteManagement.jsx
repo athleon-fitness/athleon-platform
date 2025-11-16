@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 import { useOrganization } from '../../contexts/OrganizationContext';
@@ -235,7 +234,7 @@ function AthleteManagement() {
     }
 
     try {
-      await API.client.del('CalisthenicsAPI', `/athletes/${athleteId}/competitions/${eventId}`);
+      await client.del('CalisthenicsAPI', `/athletes/${athleteId}/competitions/${eventId}`);
       await fetchAthleteCompetitions(athleteId);
       alert('Athlete deregistered successfully');
     } catch (error) {
@@ -275,7 +274,7 @@ function AthleteManagement() {
   const handleReset = async (athlete) => {
     if (window.confirm(`Reset ${athlete.firstName} ${athlete.lastName}? This will force them to complete the welcome setup again.`)) {
       try {
-        await API.client.del('CalisthenicsAPI', `/athletes/${athlete.athleteId}`);
+        await client.del('CalisthenicsAPI', `/athletes/${athlete.athleteId}`);
         await fetchAthletes();
         alert('User reset successfully. They will need to complete setup again on next login.');
       } catch (error) {

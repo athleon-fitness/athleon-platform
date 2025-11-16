@@ -41,7 +41,7 @@ function EventManagement() {
     }
     
     await safeAsync(
-      () => API.client.del('CalisthenicsAPI', `/competitions/${eventId}`),
+      () => client.del('CalisthenicsAPI', `/competitions/${eventId}`),
       {
         showNotification,
         successMessage: 'Event deleted successfully',

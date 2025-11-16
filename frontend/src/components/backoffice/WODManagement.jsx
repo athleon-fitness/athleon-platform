@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 import { useParams } from 'react-router-dom';
@@ -234,7 +233,7 @@ function WODManagement() {
     }
 
     try {
-      await API.client.del('CalisthenicsAPI', `/wods/${wodId}`);
+      await client.del('CalisthenicsAPI', `/wods/${wodId}`);
       fetchWods();
     } catch (error) {
       console.error('Error deleting WOD:', error);

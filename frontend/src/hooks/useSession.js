@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
+
 
 /**
  * Session Management Hook
@@ -29,7 +31,7 @@ export const useSession = () => {
   const createSession = async () => {
     try {
       setLoading(true);
-      const response = await API.post('CalisthenicsAPI', '/sessions', {
+      const response = await client.post('CalisthenicsAPI', '/sessions', {
         body: {
           deviceInfo: {
             userAgent: navigator.userAgent,
@@ -50,7 +52,7 @@ export const useSession = () => {
   const updateActivity = async () => {
     if (!sessionId) return;
     try {
-      await API.get('CalisthenicsAPI', `/sessions/${sessionId}`);
+      await client.get('CalisthenicsAPI', `/sessions/${sessionId}`);
     } catch (error) {
       console.error('Error updating activity:', error);
     }
@@ -59,7 +61,7 @@ export const useSession = () => {
   const getSessions = async () => {
     try {
       setLoading(true);
-      const response = await API.get('CalisthenicsAPI', '/sessions');
+      const response = await client.get('CalisthenicsAPI', '/sessions');
       setSessions(response);
       return response;
     } catch (error) {
@@ -72,7 +74,7 @@ export const useSession = () => {
 
   const endSession = async (id = sessionId) => {
     try {
-      await API.del('CalisthenicsAPI', `/sessions/${id}`);
+      await client.del('CalisthenicsAPI', `/sessions/${id}`);
       if (id === sessionId) {
         setSessionId(null);
       }

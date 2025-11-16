@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 
@@ -56,7 +55,7 @@ useEffect(() => {
   const deleteScoringSystem = async (scoringSystemId) => {
     if (!window.confirm('Delete this scoring system?')) return;
     try {
-      await API.client.del('CalisthenicsAPI', `/events/${eventId}/scoring-systems/${scoringSystemId}`);
+      await client.del('CalisthenicsAPI', `/events/${eventId}/scoring-systems/${scoringSystemId}`);
       fetchScoringSystems();
     } catch (error) {
       console.error('Error deleting scoring system:', error);

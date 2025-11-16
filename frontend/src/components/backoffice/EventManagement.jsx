@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
 import { generateClient } from 'aws-amplify/api';
 const client = generateClient();
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -171,7 +170,7 @@ function EventManagement() {
   const handleDelete = async (eventId) => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
-      await API.client.del('CalisthenicsAPI', `/competitions/${eventId}`);
+      await client.del('CalisthenicsAPI', `/competitions/${eventId}`);
       fetchEvents();
     } catch (error) {
       console.error('Error deleting event:', error);

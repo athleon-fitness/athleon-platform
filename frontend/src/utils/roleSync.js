@@ -1,4 +1,6 @@
-import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
+
 
 const ROLE_MAPPING = {
   'super_admin': 'super_admin',
@@ -21,13 +23,13 @@ export const syncUserRole = async (user) => {
     // Non-blocking sync - don't await to prevent render blocking
     setTimeout(async () => {
       try {
-        const userRoles = await API.get('CalisthenicsAPI', '/authorization/user-roles');
+        const userRoles = await client.get('CalisthenicsAPI', '/authorization/user-roles');
         const existingRole = userRoles.find(ur => 
           ur.userId === user.attributes.sub && ur.contextId === 'global'
         );
         
         if (!existingRole || existingRole.roleId !== rbacRole) {
-          await API.post('CalisthenicsAPI', '/authorization/user-roles', {
+          await client.post('CalisthenicsAPI', '/authorization/user-roles', {
             body: {
               userId: user.attributes.sub,
               email: user.attributes.email,
