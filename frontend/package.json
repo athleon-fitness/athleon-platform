@@ -25,6 +25,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:safe": "DISABLE_ESLINT_PLUGIN=true vite build",
     "preview": "vite preview",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

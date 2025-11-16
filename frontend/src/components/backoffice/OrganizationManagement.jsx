@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -61,7 +61,7 @@ function OrganizationManagement() {
   const fetchOrganizationDetails = async () => {
     try {
       setLoading(true);
-      const response = await API.get('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}`);
+      const response = await client.get('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}`);
       setOrganizationDetails(response);
       setCreatorName(response.creatorName || response.createdBy);
     } catch (error) {
@@ -74,7 +74,7 @@ function OrganizationManagement() {
 
   const fetchMembers = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members`);
+      const response = await client.get('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members`);
       setMembers(response || []);
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -84,7 +84,7 @@ function OrganizationManagement() {
 
   const fetchEvents = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/competitions', {
+      const response = await client.get('CalisthenicsAPI', '/competitions', {
         queryStringParameters: {
           organizationId: selectedOrganization.organizationId
         }
@@ -98,7 +98,7 @@ function OrganizationManagement() {
   const addMember = async (e) => {
     e.preventDefault();
     try {
-      await API.post('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members`, {
+      await client.post('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members`, {
         body: { email: newMemberEmail, role: newMemberRole }
       });
       setMessage('✅ Member added successfully');
@@ -113,7 +113,7 @@ function OrganizationManagement() {
 
   const updateMemberRole = async (userId, newRole) => {
     try {
-      await API.put('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members/${userId}`, {
+      await client.put('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members/${userId}`, {
         body: { role: newRole }
       });
       setMessage('✅ Member role updated');
@@ -128,7 +128,7 @@ function OrganizationManagement() {
     if (!window.confirm('Are you sure you want to remove this member?')) return;
     
     try {
-      await API.del('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members/${userId}`);
+      await API.client.del('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}/members/${userId}`);
       setMessage('✅ Member removed');
       fetchMembers();
     } catch (error) {
@@ -141,7 +141,7 @@ function OrganizationManagement() {
     if (!window.confirm(`Are you sure you want to delete "${organizationDetails.name}"? This action cannot be undone.`)) return;
     
     try {
-      await API.del('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}`);
+      await API.client.del('CalisthenicsAPI', `/organizations/${selectedOrganization.organizationId}`);
       setMessage('✅ Organization deleted');
       setTimeout(() => {
         navigate('/backoffice/organization');

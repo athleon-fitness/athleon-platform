@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useOrganization } from '../../contexts/OrganizationContext';
 import './OrganizationSelector.css';
 

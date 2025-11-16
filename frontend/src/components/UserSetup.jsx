@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import { useTranslation } from 'react-i18next';
 import CategorySelection from './CategorySelection';
 import AthleteProfile from './AthleteProfile';
@@ -22,7 +23,7 @@ function UserSetup({ user, signOut }) {
   const checkUserSetup = async () => {
     try {
       // Check if user already has a profile with category
-      const response = await API.get('CalisthenicsAPI', '/athletes');
+      const response = await client.get('CalisthenicsAPI', '/athletes');
       const userAthlete = response.find(athlete => 
         athlete.email === user?.attributes?.email
       );
@@ -80,7 +81,7 @@ function UserSetup({ user, signOut }) {
       };
 
       console.log('Saving athlete data:', athleteData);
-      await API.post('CalisthenicsAPI', '/athletes', { body: athleteData });
+      await client.post('CalisthenicsAPI', '/athletes', { body: athleteData });
       setNeedsSetup(false);
     } catch (error) {
       console.error('Error completing setup:', error);

@@ -8,9 +8,9 @@ let config = {
 
 // Try to load from build-time config file
 try {
-  const buildConfig = require('./aws-config.json');
-  config = { ...config, ...buildConfig };
-} catch (e) {
+  const buildConfig = await import('./aws-config.json');
+  config = { ...config, ...buildConfig.default };
+} catch {
   // Config file doesn't exist, use environment variables
 }
 

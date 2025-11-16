@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
 
 function EventEdit() {
   const { eventId } = useParams();
@@ -34,7 +34,7 @@ function EventEdit() {
 
   const fetchEvent = async () => {
     try {
-      const eventData = await API.get('CalisthenicsAPI', `/competitions/${eventId}`);
+      const eventData = await client.get('CalisthenicsAPI', `/competitions/${eventId}`);
       console.log('Fetched event data:', eventData);
       
       // Use WODs and categories from event record if available (same as EventDetails)
@@ -53,14 +53,14 @@ function EventEdit() {
       setFormData({
         name: eventData.name || '',
         description: eventData.description || '',
-        startDate: formatDateForInput(eventData.startDate),
-        endDate: formatDateForInput(eventData.endDate),
+        startDate: formatDateForInclient.put(eventData.startDate),
+        endDate: formatDateForInclient.put(eventData.endDate),
         location: eventData.location || '',
         status: eventData.status || 'upcoming',
         published: eventData.published || false,
         publicLeaderboard: eventData.publicLeaderboard || false,
         maxParticipants: eventData.maxParticipants || null,
-        registrationDeadline: formatDateForInput(eventData.registrationDeadline),
+        registrationDeadline: formatDateForInclient.put(eventData.registrationDeadline),
         workouts: eventWods,
         categories: eventCategories
       });
@@ -71,7 +71,7 @@ function EventEdit() {
 
   const fetchWods = async () => {
     try {
-      const wods = await API.get('CalisthenicsAPI', '/wods');
+      const wods = await client.get('CalisthenicsAPI', '/wods');
       setAvailableWods(wods || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -80,7 +80,7 @@ function EventEdit() {
 
   const fetchCategories = async () => {
     try {
-      const categories = await API.get('CalisthenicsAPI', '/categories');
+      const categories = await client.get('CalisthenicsAPI', '/categories');
       setAvailableCategories(categories || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -97,7 +97,7 @@ function EventEdit() {
       
       // Immediately save to backend
       try {
-        await API.put('CalisthenicsAPI', `/competitions/${eventId}`, {
+        await client.put('CalisthenicsAPI', `/competitions/${eventId}`, {
           body: {
             ...formData,
             wods: updatedWorkouts  // Send as 'wods' not 'workouts'
@@ -124,7 +124,7 @@ function EventEdit() {
     
     // Immediately save to backend
     try {
-      await API.put('CalisthenicsAPI', `/competitions/${eventId}`, {
+      await client.put('CalisthenicsAPI', `/competitions/${eventId}`, {
         body: {
           ...formData,
           wods: updatedWorkouts  // Send as 'wods' not 'workouts'
@@ -173,7 +173,7 @@ function EventEdit() {
     setIsSubmitting(true);
     
     try {
-      await API.put('CalisthenicsAPI', `/competitions/${eventId}`, {
+      await client.put('CalisthenicsAPI', `/competitions/${eventId}`, {
         body: formData
       });
       navigate(`/backoffice/events/${eventId}`);

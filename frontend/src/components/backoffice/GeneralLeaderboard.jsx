@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
 
 function GeneralLeaderboard() {
   const [events, setEvents] = useState([]);
@@ -41,7 +41,7 @@ function GeneralLeaderboard() {
 
   const fetchEvents = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/competitions');
+      const response = await client.get('CalisthenicsAPI', '/competitions');
       setEvents(response || []);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -50,7 +50,7 @@ function GeneralLeaderboard() {
 
   const fetchAthletes = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/athletes');
+      const response = await client.get('CalisthenicsAPI', '/athletes');
       setAthletes(response || []);
     } catch (error) {
       console.error('Error fetching athletes:', error);
@@ -59,7 +59,7 @@ function GeneralLeaderboard() {
 
   const fetchWods = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/wods');
+      const response = await client.get('CalisthenicsAPI', '/wods');
       setWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -68,7 +68,7 @@ function GeneralLeaderboard() {
 
   const fetchCategories = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/categories');
+      const response = await client.get('CalisthenicsAPI', '/categories');
       setCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -77,7 +77,7 @@ function GeneralLeaderboard() {
 
   const fetchEventScores = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', `/public/scores?eventId=${selectedEvent.eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/public/scores?eventId=${selectedEvent.eventId}`);
       setAllScores(response || []);
       calculateGeneralLeaderboard(response || []);
     } catch (error) {

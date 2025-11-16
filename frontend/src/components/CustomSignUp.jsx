@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Auth } from 'aws-amplify';
+import { useState } from 'react';
+import { getCurrentUser, fetchAuthSession, signUp } from 'aws-amplify/auth';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
 
@@ -69,7 +69,7 @@ function CustomSignUp({ onSuccess: _onSuccess, onSwitchToSignIn }) {
         }
       }
 
-      await Auth.signUp(signUpParams);
+      await signUp(signUpParams);
 
       alert(t('auth.signUp.success'));
       onSwitchToSignIn();

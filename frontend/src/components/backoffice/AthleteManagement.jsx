@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
 import { useOrganization } from '../../contexts/OrganizationContext';
 
 function AthleteManagement() {
@@ -51,7 +51,7 @@ function AthleteManagement() {
       for (const event of events) {
         try {
           console.log(`Fetching athletes for event: ${event.eventId}`);
-          const eventAthletes = await API.get('CalisthenicsAPI', `/athletes?eventId=${event.eventId}`);
+          const eventAthletes = await client.get('CalisthenicsAPI', `/athletes?eventId=${event.eventId}`);
           console.log(`Athletes found for ${event.eventId}:`, eventAthletes?.length || 0);
           
           if (eventAthletes && eventAthletes.length > 0) {
@@ -73,7 +73,7 @@ function AthleteManagement() {
       // Remove duplicates by userId and merge event registrations
       const athleteMap = new Map();
       allAthletes.forEach(athlete => {
-        const existing = athleteMap.get(athlete.userId);
+        const existing = athleteMap.client.get(athlete.userId);
         if (existing) {
           // Merge event registrations
           if (!existing.events) existing.events = [];
@@ -122,7 +122,7 @@ function AthleteManagement() {
       // First, fetch global categories
       try {
         console.log('Fetching global categories...');
-        const globalCategories = await API.get('CalisthenicsAPI', '/categories?eventId=global');
+        const globalCategories = await client.get('CalisthenicsAPI', '/categories?eventId=global');
         console.log('Global categories found:', globalCategories?.length || 0, globalCategories);
         allCategories.push(...(globalCategories || []));
       } catch (error) {
@@ -132,7 +132,7 @@ function AthleteManagement() {
       for (const event of events) {
         try {
           console.log(`Fetching categories for event: ${event.eventId}`);
-          const eventCategories = await API.get('CalisthenicsAPI', `/categories?eventId=${event.eventId}`);
+          const eventCategories = await client.get('CalisthenicsAPI', `/categories?eventId=${event.eventId}`);
           console.log(`Categories found for ${event.eventId}:`, eventCategories?.length || 0, eventCategories);
           
           if (eventCategories && eventCategories.length > 0) {
@@ -171,7 +171,7 @@ function AthleteManagement() {
     
     try {
       // Fetch organization's events, not public events
-      const response = await API.get('CalisthenicsAPI', '/competitions', {
+      const response = await client.get('CalisthenicsAPI', '/competitions', {
         queryStringParameters: { 
           organizationId: selectedOrganization.organizationId 
         }
@@ -187,7 +187,7 @@ function AthleteManagement() {
 
   const fetchAthleteCompetitions = async (athleteId) => {
     try {
-      const response = await API.get('CalisthenicsAPI', `/athletes/${athleteId}/competitions`);
+      const response = await client.get('CalisthenicsAPI', `/athletes/${athleteId}/competitions`);
       const comps = Array.isArray(response) ? response : [];
       console.log('Athlete events:', comps);
       setAthleteCompetitions(prev => ({
@@ -216,7 +216,7 @@ function AthleteManagement() {
 
   const handleRegister = async (athleteId, eventId, categoryId) => {
     try {
-      await API.post('CalisthenicsAPI', `/athletes/${athleteId}/competitions`, {
+      await client.post('CalisthenicsAPI', `/athletes/${athleteId}/competitions`, {
         body: { eventId, categoryId }
       });
       await fetchAthleteCompetitions(athleteId);
@@ -233,7 +233,7 @@ function AthleteManagement() {
     }
 
     try {
-      await API.del('CalisthenicsAPI', `/athletes/${athleteId}/competitions/${eventId}`);
+      await API.client.del('CalisthenicsAPI', `/athletes/${athleteId}/competitions/${eventId}`);
       await fetchAthleteCompetitions(athleteId);
       alert('Athlete deregistered successfully');
     } catch (error) {
@@ -273,7 +273,7 @@ function AthleteManagement() {
   const handleReset = async (athlete) => {
     if (window.confirm(`Reset ${athlete.firstName} ${athlete.lastName}? This will force them to complete the welcome setup again.`)) {
       try {
-        await API.del('CalisthenicsAPI', `/athletes/${athlete.athleteId}`);
+        await API.client.del('CalisthenicsAPI', `/athletes/${athlete.athleteId}`);
         await fetchAthletes();
         alert('User reset successfully. They will need to complete setup again on next login.');
       } catch (error) {
@@ -294,11 +294,11 @@ function AthleteManagement() {
       };
 
       if (editingAthlete) {
-        await API.put('CalisthenicsAPI', `/athletes/${editingAthlete.athleteId}`, {
+        await client.put('CalisthenicsAPI', `/athletes/${editingAthlete.athleteId}`, {
           body: athleteData
         });
       } else {
-        await API.post('CalisthenicsAPI', '/athletes', {
+        await client.post('CalisthenicsAPI', '/athletes', {
           body: athleteData
         });
       }
@@ -344,7 +344,7 @@ function AthleteManagement() {
           };
 
           try {
-            await API.post('CalisthenicsAPI', '/athletes', { body: athleteData });
+            await client.post('CalisthenicsAPI', '/athletes', { body: athleteData });
             summary.success++;
           } catch (error) {
             summary.errors.push(`Row ${i + 1}: ${error.message}`);

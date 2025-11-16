@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
 import { useParams, useNavigate } from 'react-router-dom';
 
 function ScoreEntry({ user: _user }) {
@@ -98,7 +98,7 @@ function ScoreEntry({ user: _user }) {
 
   const fetchExercises = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/exercises');
+      const response = await client.get('CalisthenicsAPI', '/exercises');
       setExercises(response || []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
@@ -148,7 +148,7 @@ function ScoreEntry({ user: _user }) {
 
   const fetchEvents = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/public/events');
+      const response = await client.get('CalisthenicsAPI', '/public/events');
       setEvents(response);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -160,10 +160,10 @@ function ScoreEntry({ user: _user }) {
       console.log('Fetching WODs for eventId:', eventId);
       
       // Try both approaches: event record wods field AND separate WODs query
-      const eventResponse = await API.get('CalisthenicsAPI', `/competitions/${eventId}`);
+      const eventResponse = await client.get('CalisthenicsAPI', `/competitions/${eventId}`);
       const eventWods = eventResponse.wods || eventResponse.workouts || [];
       
-      const linkedWods = await API.get('CalisthenicsAPI', `/wods?eventId=${eventId}`);
+      const linkedWods = await client.get('CalisthenicsAPI', `/wods?eventId=${eventId}`);
       
       // Combine both sources and deduplicate by wodId
       const allWods = [...eventWods, ...(linkedWods || [])];
@@ -184,7 +184,7 @@ function ScoreEntry({ user: _user }) {
 
   const fetchCategories = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/categories');
+      const response = await client.get('CalisthenicsAPI', '/categories');
       setCategories(response);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -195,7 +195,7 @@ function ScoreEntry({ user: _user }) {
     try {
       if (!selectedEvent) return;
       
-      const response = await API.get('CalisthenicsAPI', `/athletes?eventId=${selectedEvent.eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/athletes?eventId=${selectedEvent.eventId}`);
       setAthletes(response || []);
     } catch (error) {
       console.error('Error fetching athletes:', error);
@@ -207,7 +207,7 @@ function ScoreEntry({ user: _user }) {
       if (!selectedEvent) return;
       
       console.log('Fetching scores from API...');
-      const response = await API.get('CalisthenicsAPI', `/scores?eventId=${selectedEvent.eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/scores?eventId=${selectedEvent.eventId}`);
       console.log('All scores response:', response);
       
       // Only filter if both wodId and categoryId are selected
@@ -233,7 +233,7 @@ function ScoreEntry({ user: _user }) {
   const fetchPublishedSchedules = async () => {
     try {
       console.log('Fetching published schedules for eventId:', selectedEvent.eventId);
-      const response = await API.get('CalisthenicsAPI', `/scheduler/${selectedEvent.eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/scheduler/${selectedEvent.eventId}`);
       console.log('Schedules response:', response);
       const schedules = Array.isArray(response) ? response.filter(s => s.published) : [];
       
@@ -241,7 +241,7 @@ function ScoreEntry({ user: _user }) {
       const detailedSchedules = [];
       for (const schedule of schedules) {
         try {
-          const details = await API.get('CalisthenicsAPI', `/scheduler/${selectedEvent.eventId}/${schedule.scheduleId}`);
+          const details = await client.get('CalisthenicsAPI', `/scheduler/${selectedEvent.eventId}/${schedule.scheduleId}`);
           console.log('Schedule details:', details);
           detailedSchedules.push(details);
         } catch (error) {
@@ -285,7 +285,7 @@ function ScoreEntry({ user: _user }) {
 
       console.log('Submitting score payload:', scorePayload);
 
-      const response = await API.post('CalisthenicsAPI', '/scores', {
+      const response = await client.post('CalisthenicsAPI', '/scores', {
         body: scorePayload
       });
 

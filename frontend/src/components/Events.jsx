@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 
 function Events({ user }) {
   const [events, setEvents] = useState([]);
@@ -11,23 +12,23 @@ function Events({ user }) {
     divisions: ['Male RX', 'Female RX', 'Male Scaled', 'Female Scaled']
   });
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
   const fetchEvents = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/public/events');
+      const response = await client.get('CalisthenicsAPI', '/public/events');
       setEvents(response);
     } catch (error) {
       console.error('Error fetching events:', error);
     }
   };
 
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
   const createEvent = async (e) => {
     e.preventDefault();
     try {
-      await API.post('CalisthenicsAPI', '/events', { body: newEvent });
+      await client.post('CalisthenicsAPI', '/events', { body: newEvent });
       setShowCreateForm(false);
       setNewEvent({ name: '', date: '', workouts: [], divisions: ['Male RX', 'Female RX', 'Male Scaled', 'Female Scaled'] });
       fetchEvents();

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import ScoreBreakdown from '../athlete/ScoreBreakdown';
 import LoadingSpinner from '../common/Loading/LoadingSpinner';
@@ -43,7 +43,7 @@ function Leaderboard() {
   const fetchEvents = async () => {
     if (!selectedOrganization) return;
     try {
-      const response = await API.get('CalisthenicsAPI', '/competitions', {
+      const response = await client.get('CalisthenicsAPI', '/competitions', {
         queryStringParameters: { organizationId: selectedOrganization.organizationId }
       });
       setEvents(response || []);
@@ -54,7 +54,7 @@ function Leaderboard() {
 
   const fetchCategories = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/categories');
+      const response = await client.get('CalisthenicsAPI', '/categories');
       setCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -65,7 +65,7 @@ function Leaderboard() {
     try {
       if (!selectedEvent) return;
       
-      const response = await API.get('CalisthenicsAPI', `/athletes?eventId=${selectedEvent.eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/athletes?eventId=${selectedEvent.eventId}`);
       setAthletes(response || []);
     } catch (error) {
       console.error('Error fetching athletes:', error);
@@ -74,7 +74,7 @@ function Leaderboard() {
 
   const fetchWods = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', `/wods?eventId=${selectedEvent.eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/wods?eventId=${selectedEvent.eventId}`);
       setWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -84,7 +84,7 @@ function Leaderboard() {
   const fetchScores = async () => {
     setLoading(true);
     try {
-      const response = await API.get('CalisthenicsAPI', `/public/scores?eventId=${selectedEvent.eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/public/scores?eventId=${selectedEvent.eventId}`);
       setScores(response || []);
     } catch (error) {
       console.error('Error fetching scores:', error);

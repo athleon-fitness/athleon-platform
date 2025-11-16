@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import AthleteLeaderboard from './AthleteLeaderboard';
 import AthleteScheduleViewer from './AthleteScheduleViewer';
 
@@ -39,8 +40,8 @@ function AthleteProfile({ user, signOut }) {
     
     try {
       const [categoriesRes, wodsRes] = await Promise.all([
-        API.get('CalisthenicsAPI', `/public/categories?eventId=${event.eventId}`),
-        API.get('CalisthenicsAPI', `/public/wods?eventId=${event.eventId}`)
+        client.get('CalisthenicsAPI', `/public/categories?eventId=${event.eventId}`),
+        client.get('CalisthenicsAPI', `/public/wods?eventId=${event.eventId}`)
       ]);
       
       setEventDetails({
@@ -94,7 +95,7 @@ function AthleteProfile({ user, signOut }) {
 
   const fetchProfile = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/athletes');
+      const response = await client.get('CalisthenicsAPI', '/athletes');
       const userAthlete = response.find(athlete => 
         athlete.email === user?.attributes?.email
       );
@@ -124,7 +125,7 @@ function AthleteProfile({ user, signOut }) {
 
   const fetchEvents = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/public/events');
+      const response = await client.get('CalisthenicsAPI', '/public/events');
       setEvents(response || []);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -134,7 +135,7 @@ function AthleteProfile({ user, signOut }) {
 
   const fetchCategories = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/categories');
+      const response = await client.get('CalisthenicsAPI', '/categories');
       setCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -145,7 +146,7 @@ function AthleteProfile({ user, signOut }) {
   const fetchRegistrations = async () => {
     try {
       // Fetch from athlete-competitions table
-      const response = await API.get('CalisthenicsAPI', `/athletes/${user?.attributes?.sub}/competitions`);
+      const response = await client.get('CalisthenicsAPI', `/athletes/${user?.attributes?.sub}/competitions`);
       console.log('Fetched registrations:', response);
       setRegistrations(response || []);
     } catch (error) {
@@ -162,9 +163,9 @@ function AthleteProfile({ user, signOut }) {
   const handleSaveProfile = async () => {
     try {
       if (profile.athleteId) {
-        await API.put('CalisthenicsAPI', `/athletes/${profile.athleteId}`, { body: editForm });
+        await client.put('CalisthenicsAPI', `/athletes/${profile.athleteId}`, { body: editForm });
       } else {
-        await API.post('CalisthenicsAPI', '/athletes', { body: editForm });
+        await client.post('CalisthenicsAPI', '/athletes', { body: editForm });
       }
       setProfile(editForm);
       setEditMode(false);
@@ -177,7 +178,7 @@ function AthleteProfile({ user, signOut }) {
     try {
       const athleteId = profile.athleteId || user?.attributes?.sub;
       
-      await API.post('CalisthenicsAPI', `/athletes/${athleteId}/competitions`, {
+      await client.post('CalisthenicsAPI', `/athletes/${athleteId}/competitions`, {
         body: {
           eventId,
           categoryId,
@@ -208,8 +209,8 @@ function AthleteProfile({ user, signOut }) {
       for (const event of events) {
         try {
           const [eventScores, eventWods] = await Promise.all([
-            API.get('CalisthenicsAPI', `/public/scores?eventId=${event.eventId}`),
-            API.get('CalisthenicsAPI', `/wods?eventId=${event.eventId}`)
+            client.get('CalisthenicsAPI', `/public/scores?eventId=${event.eventId}`),
+            client.get('CalisthenicsAPI', `/wods?eventId=${event.eventId}`)
           ]);
           allScoresResponse = [...allScoresResponse, ...(eventScores || [])];
           allWodsResponse = [...allWodsResponse, ...(eventWods || [])];

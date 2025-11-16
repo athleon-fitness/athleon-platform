@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API, Auth } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { API, Auth } from 'aws-amplify/api';
 import './AthleteScheduleViewer.css';
 import LoadingSpinner from './common/Loading/LoadingSpinner';
 
@@ -22,7 +22,7 @@ const AthleteScheduleViewer = ({ eventId }) => {
 
   const getCurrentUser = async () => {
     try {
-      const user = await Auth.currentAuthenticatedUser();
+      const user = await getCurrentUser();
       setCurrentUser(user);
     } catch (error) {
       console.error('Error getting current user:', error);
@@ -33,7 +33,7 @@ const AthleteScheduleViewer = ({ eventId }) => {
     setLoading(true);
     try {
       // Use the scheduler endpoint to get all schedules, then filter for published ones
-      const response = await API.get('CalisthenicsAPI', `/scheduler/${eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/scheduler/${eventId}`);
       const allSchedules = Array.isArray(response) ? response : (response ? [response] : []);
       const publishedSchedules = allSchedules.filter(schedule => schedule.published === true);
       

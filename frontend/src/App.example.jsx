@@ -3,10 +3,10 @@
  * Copy this structure to your actual App.js
  */
 
-import React from 'react';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Authenticator } from '@aws-amplify/ui-react';
-import { Amplify } from 'aws-amplify';
+import { Amplify } from 'aws-amplify/api';
 import awsExports from './aws-exports';
 
 // Import new components

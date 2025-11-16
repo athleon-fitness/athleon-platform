@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { API } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import LoadingSpinner from './common/Loading/LoadingSpinner';
 
 function PublicEventDetail() {
@@ -42,9 +43,9 @@ function PublicEventDetail() {
       // Fetch public data
       try {
         const [categoriesRes, wodsRes, schedulesRes] = await Promise.all([
-          API.get('CalisthenicsAPI', `/public/categories?eventId=${eventId}`),
-          API.get('CalisthenicsAPI', `/public/wods?eventId=${eventId}`),
-          API.get('CalisthenicsAPI', `/public/schedules/${eventId}`)
+          client.get('CalisthenicsAPI', `/public/categories?eventId=${eventId}`),
+          client.get('CalisthenicsAPI', `/public/wods?eventId=${eventId}`),
+          client.get('CalisthenicsAPI', `/public/schedules/${eventId}`)
         ]);
 
         setCategories(categoriesRes);
@@ -55,7 +56,7 @@ function PublicEventDetail() {
 
         // Fetch public scores if publicLeaderboard is enabled
         if (eventData.publicLeaderboard) {
-          const scoresRes = await API.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
+          const scoresRes = await client.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
           setScores(scoresRes);
         }
       } catch (error) {
@@ -74,7 +75,7 @@ function PublicEventDetail() {
     if (!canViewScores) return;
 
     try {
-      const scoresRes = await API.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
+      const scoresRes = await client.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
       setScores(scoresRes);
     } catch (error) {
       console.error('Error fetching scores:', error);

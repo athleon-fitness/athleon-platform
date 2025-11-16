@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
 import { useParams } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
@@ -53,7 +53,7 @@ function WODManagement() {
       if (eventId) {
         url += `?eventId=${eventId}&includeShared=true`;
       }
-      const response = await API.get('CalisthenicsAPI', url);
+      const response = await client.get('CalisthenicsAPI', url);
       setWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -64,8 +64,8 @@ function WODManagement() {
     try {
       // Fetch both global and event-specific categories
       const [globalResponse, eventResponse] = await Promise.all([
-        API.get('CalisthenicsAPI', '/categories?eventId=global'),
-        eventId && eventId !== 'template' ? API.get('CalisthenicsAPI', `/categories?eventId=${eventId}`) : Promise.resolve([])
+        client.get('CalisthenicsAPI', '/categories?eventId=global'),
+        eventId && eventId !== 'template' ? client.get('CalisthenicsAPI', `/categories?eventId=${eventId}`) : Promise.resolve([])
       ]);
       
       // Combine and deduplicate categories
@@ -85,7 +85,7 @@ function WODManagement() {
 
   const fetchExercises = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/exercises');
+      const response = await client.get('CalisthenicsAPI', '/exercises');
       setExercises(response || []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
@@ -232,7 +232,7 @@ function WODManagement() {
     }
 
     try {
-      await API.del('CalisthenicsAPI', `/wods/${wodId}`);
+      await API.client.del('CalisthenicsAPI', `/wods/${wodId}`);
       fetchWods();
     } catch (error) {
       console.error('Error deleting WOD:', error);
@@ -280,9 +280,9 @@ function WODManagement() {
       console.log('Saving WOD data:', wodData);
 
       if (editingWod) {
-        await API.put('CalisthenicsAPI', `/wods/${editingWod.wodId}`, { body: wodData });
+        await client.put('CalisthenicsAPI', `/wods/${editingWod.wodId}`, { body: wodData });
       } else {
-        await API.post('CalisthenicsAPI', '/wods', { body: wodData });
+        await client.post('CalisthenicsAPI', '/wods', { body: wodData });
       }
 
       setShowModal(false);

@@ -1,8 +1,9 @@
-import React, { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Amplify, Auth } from 'aws-amplify';
+import { Amplify } from 'aws-amplify';
+import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { Authenticator } from '@aws-amplify/ui-react';
 import '@aws-amplify/ui-react/styles.css';
 import { OrganizationProvider } from './contexts/OrganizationContext';
@@ -42,7 +43,7 @@ Amplify.configure({
         endpoint: process.env.REACT_APP_API_URL,
         custom_header: async () => {
           try {
-            const session = await Auth.currentSession();
+            const session = await fetchAuthSession();
             const token = session.getIdToken().getJwtToken();
             return { Authorization: token };
           } catch (error) {
@@ -205,9 +206,9 @@ function AuthPageWrapper() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  React.useEffect(() => {
+  useEffect(() => {
     // Check if user is already authenticated
-    Auth.currentAuthenticatedUser()
+    getCurrentUser()
       .then(user => {
         // User is authenticated, redirect away from login
         if (location.pathname === '/login') {

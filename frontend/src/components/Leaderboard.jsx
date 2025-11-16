@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 
 function Leaderboard() {
   const [events, setEvents] = useState([]);
@@ -22,7 +23,7 @@ function Leaderboard() {
 
   const fetchEvents = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/events');
+      const response = await client.get('CalisthenicsAPI', '/events');
       setEvents(response);
       if (response.length > 0) {
         setSelectedEvent(response[0].eventId);
@@ -41,7 +42,7 @@ function Leaderboard() {
       }
       
       const queryString = new URLSearchParams(params).toString();
-      const response = await API.get('CalisthenicsAPI', `/scores/leaderboard?${queryString}`);
+      const response = await client.get('CalisthenicsAPI', `/scores/leaderboard?${queryString}`);
       setLeaderboard(response);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);

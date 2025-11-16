@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import { useParams, useNavigate } from 'react-router-dom';
 
 function ScoreEntry({ user }) {
@@ -77,12 +78,12 @@ function ScoreEntry({ user }) {
     try {
       // Athletes should see all published events, organizers see their organization's events
       if (userRole === 'athlete') {
-        const response = await API.get('CalisthenicsAPI', '/public/events');
+        const response = await client.get('CalisthenicsAPI', '/public/events');
         setEvents(response);
         setFilteredEvents(response);
       } else {
         // For organizers, we need organization context - this should be handled by parent component
-        const response = await API.get('CalisthenicsAPI', '/competitions', {
+        const response = await client.get('CalisthenicsAPI', '/competitions', {
           queryStringParameters: { organizationId: 'all' } // Temporary fix
         });
         setEvents(response);
@@ -104,7 +105,7 @@ function ScoreEntry({ user }) {
       // Try both approaches: event record wods field AND separate WODs query
       console.log('Fetching event details...');
       try {
-        const eventResponse = await API.get('CalisthenicsAPI', `/competitions/${eventId}`);
+        const eventResponse = await client.get('CalisthenicsAPI', `/competitions/${eventId}`);
         console.log('Event response:', eventResponse);
         
         const eventWods = eventResponse.wods || eventResponse.workouts || [];
@@ -112,7 +113,7 @@ function ScoreEntry({ user }) {
         
         console.log('Fetching linked WODs...');
         try {
-          const linkedWods = await API.get('CalisthenicsAPI', `/wods?eventId=${eventId}`);
+          const linkedWods = await client.get('CalisthenicsAPI', `/wods?eventId=${eventId}`);
           console.log('Linked WODs from API:', linkedWods);
           
           // Combine both sources and deduplicate by wodId
@@ -145,7 +146,7 @@ function ScoreEntry({ user }) {
 
   const fetchCategories = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/categories');
+      const response = await client.get('CalisthenicsAPI', '/categories');
       setCategories(response);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -155,7 +156,7 @@ function ScoreEntry({ user }) {
   const fetchPublishedSchedules = async () => {
     try {
       console.log('Fetching published schedules for eventId:', selectedEvent.eventId);
-      const response = await API.get('CalisthenicsAPI', `/scheduler/${selectedEvent.eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/scheduler/${selectedEvent.eventId}`);
       console.log('Schedules response:', response);
       const schedules = Array.isArray(response) ? response.filter(s => s.published) : [];
       console.log('Published schedules:', schedules);
@@ -271,7 +272,7 @@ function ScoreEntry({ user }) {
       
       // Submit all scores for this heat
       for (const scorePayload of scores) {
-        await API.post('CalisthenicsAPI', '/scores', {
+        await client.post('CalisthenicsAPI', '/scores', {
           body: scorePayload
         });
       }
@@ -363,7 +364,7 @@ function ScoreEntry({ user }) {
         scorePayload.scheduleId = selectedSchedule.scheduleId;
       }
 
-      await API.post('CalisthenicsAPI', '/scores', {
+      await client.post('CalisthenicsAPI', '/scores', {
         body: scorePayload
       });
 
@@ -442,7 +443,7 @@ function ScoreEntry({ user }) {
               </button>
             </div>
           </div>
-        </>
+        </div>
       ) : (
         <div className="score-form-container">
           <div className="selected-event-header">

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import SchedulerWizard from './SchedulerWizard';
 import './CompetitionScheduler.css';
 
@@ -23,7 +24,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
   const fetchSavedSchedules = async () => {
     try {
       setLoading(true);
-      const response = await API.get('CalisthenicsAPI', `/scheduler/${eventId}`);
+      const response = await client.get('CalisthenicsAPI', `/scheduler/${eventId}`);
       setSavedSchedules(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error('Error fetching saved schedules:', error);
@@ -43,7 +44,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
 
   const publishSchedule = async (scheduleId) => {
     try {
-      await API.put('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}/publish`);
+      await client.put('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}/publish`);
       fetchSavedSchedules(); // Refresh to show updated status
     } catch (error) {
       console.error('Error publishing schedule:', error);
@@ -57,7 +58,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
     }
     
     try {
-      await API.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
+      await API.client.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
       fetchSavedSchedules(); // Refresh the list
     } catch (error) {
       console.error('Error deleting schedule:', error);
@@ -69,7 +70,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
     try {
       setLoading(true);
       
-      const response = await API.post('CalisthenicsAPI', 
+      const response = await client.post('CalisthenicsAPI', 
         `/scheduler/${eventId}/${currentSchedule.scheduleId}/process-results`, {
         body: {
           filterId: tournamentState.currentFilter,
@@ -78,7 +79,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
       });
       
       if (response.nextStage) {
-        const nextStageResponse = await API.post('CalisthenicsAPI',
+        const nextStageResponse = await client.post('CalisthenicsAPI',
           `/scheduler/${eventId}/${currentSchedule.scheduleId}/next-stage`, {
           body: { startTime: '09:00' }
         });

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
 import { useOrganization } from '../../contexts/OrganizationContext';
 
 function ScoreManagement() {
@@ -24,7 +24,7 @@ function ScoreManagement() {
     if (!selectedOrganization) return;
     
     try {
-      const response = await API.get('CalisthenicsAPI', `/competitions?organizationId=${selectedOrganization.organizationId}`);
+      const response = await client.get('CalisthenicsAPI', `/competitions?organizationId=${selectedOrganization.organizationId}`);
       setEvents(response);
       if (response.length > 0) {
         setSelectedEvent(response[0].eventId);
@@ -36,7 +36,7 @@ function ScoreManagement() {
 
   const fetchScores = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', `/scores?eventId=${selectedEvent}`);
+      const response = await client.get('CalisthenicsAPI', `/scores?eventId=${selectedEvent}`);
       setScores(response);
     } catch (error) {
       console.error('Error fetching scores:', error);

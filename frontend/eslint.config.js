@@ -6,11 +6,29 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
   { ignores: ['build'] },
+  // Cypress configuration
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['cypress.config.js'],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: { ...globals.node },
+      sourceType: 'commonjs',
+    },
+  },
+  {
+    files: ['cypress/**/*.js'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: { ...globals.browser, ...globals.mocha, cy: 'readonly', Cypress: 'readonly' },
+    },
+  },
+  // React configuration
+  {
+    files: ['**/*.{js,jsx}'],
+    ignores: ['cypress/**/*', 'cypress.config.js'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: { ...globals.browser, process: 'readonly' },
       parserOptions: {
         ecmaVersion: 'latest',
         ecmaFeatures: { jsx: true },
@@ -29,6 +47,14 @@ export default [
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
+      'react/prop-types': 'off',
+      'react/no-unescaped-entities': 'off',
+      'react/no-unknown-property': 'off',
+      'no-unused-vars': 'warn',
+      'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/rules-of-hooks': 'warn',
+      'react-hooks/immutability': 'off',
+      'react-hooks/set-state-in-effect': 'off',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

@@ -1,6 +1,8 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { API, Auth } from 'aws-amplify';
+import { createContext, useState, useEffect, useContext } from 'react';
+import { generateClient } from 'aws-amplify/api';
+import { getCurrentUser, fetchAuthSession, signUp } from 'aws-amplify/auth';
 
+const client = generateClient();
 const OrganizationContext = createContext();
 
 export const useOrganization = () => {
@@ -24,7 +26,7 @@ export const OrganizationProvider = ({ children }) => {
 
   const checkSuperAdmin = async () => {
     try {
-      const user = await Auth.currentAuthenticatedUser();
+      const user = await getCurrentUser();
       const email = user.attributes.email;
       setIsSuperAdmin(email === 'admin@athleon.fitness');
     } catch (error) {
@@ -34,10 +36,10 @@ export const OrganizationProvider = ({ children }) => {
 
   const fetchOrganizations = async () => {
     try {
-      const orgs = await API.get('CalisthenicsAPI', '/organizations');
+      const orgs = await client.get('CalisthenicsAPI', '/organizations');
       
       // Add "All Organizations" option for super admin
-      const user = await Auth.currentAuthenticatedUser();
+      const user = await getCurrentUser();
       const email = user.attributes.email;
       
       if (email === 'admin@athleon.fitness') {
@@ -79,7 +81,7 @@ export const OrganizationProvider = ({ children }) => {
   };
 
   const createOrganization = async (name, description) => {
-    const newOrg = await API.post('CalisthenicsAPI', '/organizations', {
+    const newOrg = await client.post('CalisthenicsAPI', '/organizations', {
       body: { name, description }
     });
     await fetchOrganizations();

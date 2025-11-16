@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
+const client = generateClient();
 import './SchedulerWizard.css';
 
 const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
@@ -53,7 +54,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
       console.log('🔍 Fetching schedule details for event:', eventId);
       
       // First get event details (same as EventDetails component)
-      const eventResponse = await API.get('CalisthenicsAPI', `/competitions/${eventId}`);
+      const eventResponse = await client.get('CalisthenicsAPI', `/competitions/${eventId}`);
       
       console.log('📋 Event response keys:', Object.keys(eventResponse));
       console.log('📋 Categories field exists:', !!eventResponse.categories);
@@ -61,11 +62,11 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
       console.log('📋 WODs field exists:', !!eventResponse.wods);
       
       const [athletes, days] = await Promise.all([
-        API.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`).catch(err => {
+        client.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`).catch(err => {
           console.warn('Failed to load athletes:', err);
           return [];
         }),
-        API.get('CalisthenicsAPI', `/competitions/${eventId}/days`).catch(err => {
+        client.get('CalisthenicsAPI', `/competitions/${eventId}/days`).catch(err => {
           console.warn('Failed to load event days:', err);
           return [];
         })
@@ -84,7 +85,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
       } else {
         // Fallback to fetching WODs linked to event
         try {
-          wods = await API.get('CalisthenicsAPI', `/wods?eventId=${eventId}`) || [];
+          wods = await client.get('CalisthenicsAPI', `/wods?eventId=${eventId}`) || [];
         } catch (err) {
           console.warn('Failed to load WODs:', err);
           wods = [];
@@ -109,7 +110,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
       } else {
         // Fallback to fetching categories linked to event
         try {
-          categories = await API.get('CalisthenicsAPI', `/categories?eventId=${eventId}`) || [];
+          categories = await client.get('CalisthenicsAPI', `/categories?eventId=${eventId}`) || [];
         } catch (err) {
           console.warn('Failed to load categories:', err);
           categories = [];
@@ -136,7 +137,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
 
   const loadSchedules = async () => {
     try {
-      const scheduleData = await API.get('CalisthenicsAPI', `/scheduler/${eventId}`);
+      const scheduleData = await client.get('CalisthenicsAPI', `/scheduler/${eventId}`);
       setSchedules(Array.isArray(scheduleData) ? scheduleData : (scheduleData ? [scheduleData] : []));
     } catch (error) {
       console.error('Error loading schedules:', error);
@@ -173,9 +174,9 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
       
       // Re-fetch event data to get latest days
       const [eventResponse, athletes, days] = await Promise.all([
-        API.get('CalisthenicsAPI', `/competitions/${eventId}`),
-        API.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`).catch(() => []),
-        API.get('CalisthenicsAPI', `/competitions/${eventId}/days`).catch(() => [])
+        client.get('CalisthenicsAPI', `/competitions/${eventId}`),
+        client.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`).catch(() => []),
+        client.get('CalisthenicsAPI', `/competitions/${eventId}/days`).catch(() => [])
       ]);
       
       console.log('🔄 Fresh data loaded:', { 
@@ -192,7 +193,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
       };
       
       const scheduleConfig = { ...config, ...freshEventData };
-      const response = await API.post('CalisthenicsAPI', `/scheduler/${eventId}`, {
+      const response = await client.post('CalisthenicsAPI', `/scheduler/${eventId}`, {
         body: scheduleConfig
       });
       setCurrentSchedule(response);
@@ -210,7 +211,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
   const saveSchedule = async (schedule) => {
     setSaving(true);
     try {
-      const saved = await API.post('CalisthenicsAPI', `/scheduler/${eventId}/save`, {
+      const saved = await client.post('CalisthenicsAPI', `/scheduler/${eventId}/save`, {
         body: schedule
       });
       setCurrentSchedule(saved);
@@ -227,7 +228,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
   const publishSchedule = async (scheduleId) => {
     setPublishing(true);
     try {
-      await API.post('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}/publish`);
+      await client.post('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}/publish`);
       if (currentSchedule?.scheduleId === scheduleId) {
         setCurrentSchedule({...currentSchedule, published: true});
       }
@@ -244,7 +245,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
   const unpublishSchedule = async (scheduleId) => {
     setPublishing(true);
     try {
-      await API.post('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}/unpublish`);
+      await client.post('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}/unpublish`);
       if (currentSchedule?.scheduleId === scheduleId) {
         setCurrentSchedule({...currentSchedule, published: false});
       }
@@ -262,7 +263,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
     if (!window.confirm('Are you sure you want to delete this schedule?')) return;
     
     try {
-      await API.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
+      await API.client.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
       if (currentSchedule?.scheduleId === scheduleId) {
         setCurrentSchedule(null);
       }
@@ -275,7 +276,7 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
 
   const loadSchedule = async (scheduleId) => {
     try {
-      const schedule = await API.get('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
+      const schedule = await client.get('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
       setCurrentSchedule(schedule);
       setCurrentStep(6);
     } catch (error) {

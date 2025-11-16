@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect } from 'react';
+import { generateClient } from 'aws-amplify/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import OrganizationSelector from './OrganizationSelector';
@@ -70,7 +70,7 @@ function EventManagement() {
     if (!selectedOrganization) return;
     
     try {
-      const response = await API.get('CalisthenicsAPI', `/competitions?organizationId=${selectedOrganization.organizationId}`);
+      const response = await client.get('CalisthenicsAPI', `/competitions?organizationId=${selectedOrganization.organizationId}`);
       
       // Process events with basic data only - no additional API calls
       const eventsWithData = response.map(event => {
@@ -104,7 +104,7 @@ function EventManagement() {
 
   const fetchWods = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/wods');
+      const response = await client.get('CalisthenicsAPI', '/wods');
       setAvailableWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -113,7 +113,7 @@ function EventManagement() {
 
   const fetchCategories = async () => {
     try {
-      const response = await API.get('CalisthenicsAPI', '/categories');
+      const response = await client.get('CalisthenicsAPI', '/categories');
       setAvailableCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -145,7 +145,7 @@ function EventManagement() {
     // Fetch WODs for this event
     let eventWods = [];
     try {
-      eventWods = await API.get('CalisthenicsAPI', `/wods?eventId=${event.eventId}`);
+      eventWods = await client.get('CalisthenicsAPI', `/wods?eventId=${event.eventId}`);
     } catch (error) {
       console.error('Error fetching event WODs:', error);
     }
@@ -169,7 +169,7 @@ function EventManagement() {
   const handleDelete = async (eventId) => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
-      await API.del('CalisthenicsAPI', `/competitions/${eventId}`);
+      await API.client.del('CalisthenicsAPI', `/competitions/${eventId}`);
       fetchEvents();
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -184,7 +184,7 @@ function EventManagement() {
       const fileName = `${Date.now()}-${file.name}`;
       
       // Step 1: Get presigned URL
-      const urlResponse = await API.post('CalisthenicsAPI', `/competitions/${eventId}/upload-url`, {
+      const urlResponse = await client.post('CalisthenicsAPI', `/competitions/${eventId}/upload-url`, {
         body: { fileName, fileType: file.type }
       });
       
@@ -234,10 +234,10 @@ function EventManagement() {
       };
       
       if (editingEvent) {
-        await API.put('CalisthenicsAPI', `/competitions/${editingEvent.eventId}`, { body: eventData });
+        await client.put('CalisthenicsAPI', `/competitions/${editingEvent.eventId}`, { body: eventData });
         eventResponse = { eventId: editingEvent.eventId };
       } else {
-        eventResponse = await API.post('CalisthenicsAPI', '/competitions', { body: eventData });
+        eventResponse = await client.post('CalisthenicsAPI', '/competitions', { body: eventData });
       }
       
       // Upload image if file is selected (now we have eventId)
@@ -245,7 +245,7 @@ function EventManagement() {
         imageUrl = await handleImageUpload(imageFile, eventResponse.eventId);
         if (imageUrl) {
           // Update event with image URL
-          await API.put('CalisthenicsAPI', `/competitions/${eventResponse.eventId}`, { 
+          await client.put('CalisthenicsAPI', `/competitions/${eventResponse.eventId}`, { 
             body: { imageUrl } 
           });
         }
@@ -278,7 +278,7 @@ function EventManagement() {
 
   const updateEventStatus = async (eventId, status) => {
     try {
-      await API.put('CalisthenicsAPI', `/competitions/${eventId}`, { body: { status } });
+      await client.put('CalisthenicsAPI', `/competitions/${eventId}`, { body: { status } });
       fetchEvents();
     } catch (error) {
       console.error('Error updating event:', error);

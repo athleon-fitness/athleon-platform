@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { API } from 'aws-amplify';
+import { useState, useEffect, useMemo } from 'react';
+import { generateClient } from 'aws-amplify/api';
 
 /**
  * WodSelector Component
@@ -18,7 +18,7 @@ const WodSelector = ({ selectedWods = [], onChange }) => {
   const fetchWods = async () => {
     try {
       setLoading(true);
-      const response = await API.get('CalisthenicsAPI', '/wods');
+      const response = await client.get('CalisthenicsAPI', '/wods');
       setAvailableWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);

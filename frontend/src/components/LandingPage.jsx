@@ -9,11 +9,6 @@ function LandingPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('organizers');
 
-  // Close mobile menu on route change
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [navigate]);
-
   // Close mobile menu on escape key
   useEffect(() => {
     const handleEscape = (e) => {
