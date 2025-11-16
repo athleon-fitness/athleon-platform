@@ -10,6 +10,7 @@ import { OrganizationProvider } from './contexts/OrganizationContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import { LoadingSpinner } from './components/common/Loading';
 import { queryClient } from './lib/queryClient';
+import amplifyConfig from './amplifyconfiguration';
 import './i18n'; // Initialize i18n
 import { canAccessBackoffice } from './utils/organizerRoles';
 
@@ -23,41 +24,22 @@ const PublicExercises = lazy(() => import('./components/PublicExercises'));
 const PublicEventDetail = lazy(() => import('./components/PublicEventDetail'));
 const AthleteEventDetails = lazy(() => import('./components/athlete/AthleteEventDetails'));
 
-// Configuration from environment variables
-Amplify.configure({
-  Auth: {
-    region: process.env.REACT_APP_REGION,
-    userPoolId: process.env.REACT_APP_USER_POOL_ID,
-    userPoolWebClientId: process.env.REACT_APP_USER_POOL_CLIENT_ID,
-  },
-  Storage: {
-    AWSS3: {
-      bucket: 'calisthenics-event-images-571340586587',
-      region: process.env.REACT_APP_REGION,
-    }
-  },
-  API: {
-    endpoints: [
-      {
-        name: 'CalisthenicsAPI',
-        endpoint: process.env.REACT_APP_API_URL,
-        custom_header: async () => {
-          try {
-            const session = await fetchAuthSession();
-            const token = session.getIdToken().getJwtToken();
-            return { Authorization: token };
-          } catch (error) {
-            // Silently handle unauthenticated users - this is expected for public endpoints
-            if (!error.message || !error.message.includes('No current user')) {
-              console.error('Auth error:', error);
-            }
-            return {};
-          }
-        }
-      }
-    ]
-  }
+// Configure Amplify with v6 format
+// Log configuration for debugging
+console.log('🔧 Amplify Configuration:', {
+  region: amplifyConfig.Auth.Cognito.region,
+  userPoolId: amplifyConfig.Auth.Cognito.userPoolId,
+  apiEndpoint: amplifyConfig.API.REST.CalisthenicsAPI.endpoint,
+  hasUserPoolClientId: !!amplifyConfig.Auth.Cognito.userPoolClientId,
+  env: process.env.REACT_APP_ENV
 });
+
+try {
+  Amplify.configure(amplifyConfig);
+  console.log('✅ Amplify configured successfully');
+} catch (error) {
+  console.error('❌ Amplify configuration error:', error);
+}
 
 // Loading fallback component
 const PageLoader = () => (
