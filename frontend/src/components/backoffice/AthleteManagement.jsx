@@ -45,6 +45,14 @@ function AthleteManagement() {
       console.log('Fetching athletes for organization:', selectedOrganization.organizationId);
       console.log('Available events:', events);
       
+      // Super admin with "All Organizations" selected - fetch ALL athletes
+      if (selectedOrganization.organizationId === 'all') {
+        console.log('Super admin mode - fetching ALL athletes');
+        const allAthletesResponse = await get('/athletes');
+        setAthletes(allAthletesResponse || []);
+        return;
+      }
+      
       // Get all athletes registered for any event in this organization
       const allAthletes = [];
       

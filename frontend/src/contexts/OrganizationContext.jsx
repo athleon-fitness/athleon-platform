@@ -27,6 +27,8 @@ export const OrganizationProvider = ({ children }) => {
     try {
       const session = await fetchAuthSession();
       const userRole = session.tokens?.idToken?.payload?.['custom:role'];
+      console.log('🔍 checkSuperAdmin - userRole:', userRole);
+      console.log('🔍 checkSuperAdmin - setting isSuperAdmin to:', userRole === 'super_admin');
       setIsSuperAdmin(userRole === 'super_admin');
     } catch (error) {
       console.error('Error checking super admin:', error);

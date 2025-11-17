@@ -40,4 +40,50 @@ describe('Score Calculator', () => {
       expect(result.breakdown.timeBonus).toBe(10);
     });
   });
+
+  describe('Time-Based Mode', () => {
+    it('should calculate score for fully completed WOD', () => {
+      const scoringSystem = {
+        type: 'time-based',
+        config: { timeCap: { minutes: 10, seconds: 0 } }
+      };
+      const rawData = {
+        exercises: [
+          { exerciseId: 'ex-1', exerciseName: 'Pull Ups', completed: true, reps: 50 },
+          { exerciseId: 'ex-2', exerciseName: 'Push Ups', completed: true, reps: 100 }
+        ],
+        completionTime: '08:45',
+        timeCap: '10:00'
+      };
+      
+      const result = calculateScore(rawData, scoringSystem);
+      
+      expect(result.calculatedScore).toBe('08:45');
+      expect(result.breakdown.allCompleted).toBe(true);
+      expect(result.breakdown.completedExercises).toBe(2);
+      expect(result.breakdown.totalExercises).toBe(2);
+    });
+
+    it('should calculate score for incomplete WOD', () => {
+      const scoringSystem = {
+        type: 'time-based',
+        config: { timeCap: { minutes: 10, seconds: 0 } }
+      };
+      const rawData = {
+        exercises: [
+          { exerciseId: 'ex-1', exerciseName: 'Pull Ups', completed: true, reps: 50 },
+          { exerciseId: 'ex-2', exerciseName: 'Push Ups', completed: false, reps: 100, maxReps: 75 }
+        ],
+        completionTime: '10:00',
+        timeCap: '10:00'
+      };
+      
+      const result = calculateScore(rawData, scoringSystem);
+      
+      expect(result.calculatedScore).toBe(125); // 50 + 75
+      expect(result.breakdown.allCompleted).toBe(false);
+      expect(result.breakdown.totalReps).toBe(125);
+      expect(result.breakdown.completedExercises).toBe(1);
+    });
+  });
 });

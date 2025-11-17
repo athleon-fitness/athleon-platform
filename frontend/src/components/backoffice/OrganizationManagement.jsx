@@ -43,6 +43,7 @@ function OrganizationManagement() {
   // Debug logging
   console.log('OrganizationManagement Debug:', {
     userEmail: user?.attributes?.email,
+    contextIsSuperAdmin,
     isSuperAdmin,
     selectedOrganization,
     isOwnerOrAdmin,
