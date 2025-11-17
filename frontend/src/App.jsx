@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -52,6 +52,72 @@ const PageLoader = () => (
     <LoadingSpinner size="lg" message="Loading..." />
   </div>
 );
+
+function AuthenticatedRoutes({ user, signOut }) {
+  const [isReady, setIsReady] = useState(false);
+  const [fullUser, setFullUser] = useState(null);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        // Fetch the full user data with all attributes
+        const currentUser = await getCurrentUser();
+        const session = await fetchAuthSession();
+        
+        console.log('🔍 Full user object:', {
+          username: currentUser?.username,
+          userId: currentUser?.userId,
+          signInDetails: currentUser?.signInDetails
+        });
+        
+        console.log('🔍 User attributes from Authenticator:', {
+          email: user?.attributes?.email,
+          role: user?.attributes?.['custom:role'],
+          organizerRole: user?.attributes?.['custom:organizerRole'],
+          allAttributes: user?.attributes
+        });
+        
+        console.log('🔍 Session tokens:', {
+          accessToken: session?.tokens?.accessToken ? 'present' : 'missing',
+          idToken: session?.tokens?.idToken ? 'present' : 'missing'
+        });
+        
+        // Use the user from Authenticator as it has the attributes
+        setFullUser(user);
+        setIsReady(true);
+      } catch (error) {
+        console.error('❌ Error loading user data:', error);
+        setFullUser(user);
+        setIsReady(true);
+      }
+    };
+
+    if (user) {
+      loadUserData();
+    }
+  }, [user]);
+
+  if (!isReady) {
+    return <PageLoader />;
+  }
+
+  const isOrganizer = canAccessBackoffice(fullUser);
+  console.log('🔍 Is organizer?', isOrganizer, 'for user:', fullUser?.attributes?.email);
+
+  return (
+    <Routes>
+      {isOrganizer ? (
+        <Route path="/*" element={
+          <OrganizationProvider>
+            <BackofficeLayout user={fullUser} signOut={signOut} />
+          </OrganizationProvider>
+        } />
+      ) : (
+        <Route path="/*" element={<UserSetup user={fullUser} signOut={signOut} />} />
+      )}
+    </Routes>
+  );
+}
 
 function AuthPage() {
   return (
@@ -164,21 +230,7 @@ function AuthPage() {
       }}
     >
       {({ signOut, user }) => {
-        const isOrganizer = canAccessBackoffice(user);
-        
-        return (
-          <Routes>
-            {isOrganizer ? (
-              <Route path="/*" element={
-                <OrganizationProvider>
-                  <BackofficeLayout user={user} signOut={signOut} />
-                </OrganizationProvider>
-              } />
-            ) : (
-              <Route path="/*" element={<UserSetup user={user} signOut={signOut} />} />
-            )}
-          </Routes>
-        );
+        return <AuthenticatedRoutes user={user} signOut={signOut} />;
       }}
     </Authenticator>
   );
