@@ -71,11 +71,9 @@ function EventDetails() {
 
   const togglePublishStatus = async () => {
     try {
-      await client.put('CalisthenicsAPI', `/competitions/${eventId}`, {
-        body: {
-          ...event,
-          published: !event.published
-        }
+      await put(`/competitions/${eventId}`, {
+        ...event,
+        published: !event.published
       });
       
       // Update local state
@@ -377,9 +375,7 @@ function EventDetails() {
       
       console.log('Updating event with imageUrl...');
       // Update event with image URL
-      await client.put('CalisthenicsAPI', `/competitions/${eventId}`, {
-        body: { imageUrl }
-      });
+      await put(`/competitions/${eventId}`, { imageUrl });
       
       console.log('Refreshing event details...');
       await fetchEventDetails();

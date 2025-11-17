@@ -1,6 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get } from '../lib/api';
 
 const FeatureFlagContext = createContext();
 
@@ -16,7 +15,7 @@ export const FeatureFlagProvider = ({ children }) => {
   const fetchFeatureFlags = async () => {
     try {
       // Call backend endpoint to get feature flags
-      const response = await client.get('CalisthenicsAPI', '/feature-flags');
+      const response = await get('/feature-flags');
       setFlags(response.flags || {});
     } catch (error) {
       console.error('Failed to fetch feature flags:', error);

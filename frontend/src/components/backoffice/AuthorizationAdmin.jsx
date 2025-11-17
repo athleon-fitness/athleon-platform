@@ -95,9 +95,7 @@ const AuthorizationAdmin = () => {
   const updatePermission = async (e) => {
     e.preventDefault();
     try {
-      await client.put('CalisthenicsAPI', `/authorization/permissions/${editingPermission.roleId}/${editingPermission.resource}`, {
-        body: { actions: editingPermission.actions }
-      });
+      await put(`/authorization/permissions/${editingPermission.roleId}/${editingPermission.resource}`, { actions: editingPermission.actions });
       setEditingPermission(null);
       fetchData();
     } catch (error) {
@@ -118,9 +116,7 @@ const AuthorizationAdmin = () => {
   const updateRole = async (e) => {
     e.preventDefault();
     try {
-      await client.put('CalisthenicsAPI', `/authorization/roles/${editingRole.roleId}`, {
-        body: { name: editingRole.name, description: editingRole.description }
-      });
+      await put(`/authorization/roles/${editingRole.roleId}`, { name: editingRole.name, description: editingRole.description });
       setEditingRole(null);
       fetchData();
     } catch (error) {
@@ -141,9 +137,7 @@ const AuthorizationAdmin = () => {
   const updateUserRole = async (e) => {
     e.preventDefault();
     try {
-      await client.put('CalisthenicsAPI', `/authorization/user-roles/${editingUserRole.userId}`, {
-        body: { roleId: editingUserRole.roleId, contextId: editingUserRole.contextId }
-      });
+      await put(`/authorization/user-roles/${editingUserRole.userId}`, { roleId: editingUserRole.roleId, contextId: editingUserRole.contextId });
       setEditingUserRole(null);
       fetchData();
     } catch (error) {

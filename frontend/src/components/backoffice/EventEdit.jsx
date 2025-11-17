@@ -97,11 +97,9 @@ function EventEdit() {
       
       // Immediately save to backend
       try {
-        await client.put('CalisthenicsAPI', `/competitions/${eventId}`, {
-          body: {
-            ...formData,
-            wods: updatedWorkouts  // Send as 'wods' not 'workouts'
-          }
+        await put(`/competitions/${eventId}`, {
+          ...formData,
+          wods: updatedWorkouts  // Send as 'wods' not 'workouts'
         });
         console.log('WOD added and saved successfully');
       } catch (error) {
@@ -124,11 +122,9 @@ function EventEdit() {
     
     // Immediately save to backend
     try {
-      await client.put('CalisthenicsAPI', `/competitions/${eventId}`, {
-        body: {
-          ...formData,
-          wods: updatedWorkouts  // Send as 'wods' not 'workouts'
-        }
+      await put(`/competitions/${eventId}`, {
+        ...formData,
+        wods: updatedWorkouts  // Send as 'wods' not 'workouts'
       });
       console.log('WOD removed and saved successfully');
     } catch (error) {

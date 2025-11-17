@@ -68,8 +68,10 @@ jobs:
       - name: Install backend dependencies
         run: npm install --include=dev
 
-      - name: Build layer
-        run: npm run build:layer
+      - name: Install layer dependencies
+        run: |
+          cd layers/athleon-shared
+          npm ci --production
 
       - name: CDK diff
         run: npm run diff
@@ -77,9 +79,9 @@ jobs:
           CI: true
           ENVIRONMENT: ${{ inputs.environment }}
 
-      - name: Deploy using existing script
+      - name: Deploy CDK stack
         id: cdk-deploy
-        run: npm run deploy
+        run: cdk deploy --all --require-approval never --context stage=${{ inputs.environment }}
         env:
           CI: true
           ENVIRONMENT: ${{ inputs.environment }}
