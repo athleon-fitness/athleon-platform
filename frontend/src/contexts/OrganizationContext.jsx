@@ -43,7 +43,13 @@ export const OrganizationProvider = ({ children }) => {
         return;
       }
 
-      const orgs = await get('/organizations');
+      const response = await get('/organizations');
+      console.log('🔍 Organizations API response:', response);
+      console.log('🔍 Response type:', typeof response);
+      console.log('🔍 Is array?', Array.isArray(response));
+      
+      // Ensure orgs is an array
+      const orgs = Array.isArray(response) ? response : [];
       
       // Add "All Organizations" option for super admin
       const currentUser = await getCurrentUser();
