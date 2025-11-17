@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../../lib/api';
 import { useParams } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { useOrganization } from '../../contexts/OrganizationContext';
@@ -54,7 +53,7 @@ function WODManagement() {
       if (eventId) {
         url += `?eventId=${eventId}&includeShared=true`;
       }
-      const response = await client.get('CalisthenicsAPI', url);
+      const response = await get(url);
       setWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -65,8 +64,8 @@ function WODManagement() {
     try {
       // Fetch both global and event-specific categories
       const [globalResponse, eventResponse] = await Promise.all([
-        client.get('CalisthenicsAPI', '/categories?eventId=global'),
-        eventId && eventId !== 'template' ? client.get('CalisthenicsAPI', `/categories?eventId=${eventId}`) : Promise.resolve([])
+        get('/categories?eventId=global'),
+        eventId && eventId !== 'template' ? get(`/categories?eventId=${eventId}`) : Promise.resolve([])
       ]);
       
       // Combine and deduplicate categories
@@ -86,7 +85,7 @@ function WODManagement() {
 
   const fetchExercises = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/exercises');
+      const response = await get('/exercises');
       setExercises(response || []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
@@ -233,7 +232,7 @@ function WODManagement() {
     }
 
     try {
-      await client.del('CalisthenicsAPI', `/wods/${wodId}`);
+      await del(`/wods/${wodId}`);
       fetchWods();
     } catch (error) {
       console.error('Error deleting WOD:', error);
@@ -281,9 +280,9 @@ function WODManagement() {
       console.log('Saving WOD data:', wodData);
 
       if (editingWod) {
-        await client.put('CalisthenicsAPI', `/wods/${editingWod.wodId}`, { body: wodData });
+        await put(`/wods/${editingWod.wodId}`, wodData);
       } else {
-        await client.post('CalisthenicsAPI', '/wods', { body: wodData });
+        await post('/wods', wodData);
       }
 
       setShowModal(false);
