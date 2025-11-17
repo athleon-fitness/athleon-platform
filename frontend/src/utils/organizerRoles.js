@@ -78,20 +78,13 @@ export const getOrganizerRole = (user) => {
   console.log('🔍 getOrganizerRole - checking user:', {
     email: user?.attributes?.email,
     customRole: user?.attributes?.['custom:role'],
-    organizerRole: user?.attributes?.['custom:organizerRole'],
-    isSuperAdmin: user?.attributes?.['custom:isSuperAdmin']
+    organizerRole: user?.attributes?.['custom:organizerRole']
   });
   
   // Check for super admin by email or role
   if (user?.attributes?.email === 'admin@athleon.fitness' || 
       user?.attributes?.['custom:role'] === 'super_admin') {
     console.log('✅ User is SUPER_ADMIN (by email or role)');
-    return ORGANIZER_ROLES.SUPER_ADMIN;
-  }
-  
-  // Check for super admin attribute (legacy)
-  if (user?.attributes?.['custom:isSuperAdmin'] === 'true') {
-    console.log('✅ User is SUPER_ADMIN (legacy attribute)');
     return ORGANIZER_ROLES.SUPER_ADMIN;
   }
   
