@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../lib/api';
 
 function Dashboard({ user }) {
   const [events, setEvents] = useState([]);
 
   const fetchEvents = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/events');
+      const response = await get('/events');
       setEvents(response.slice(0, 3)); // Show only recent 3 events
     } catch (error) {
       console.error('Error fetching events:', error);

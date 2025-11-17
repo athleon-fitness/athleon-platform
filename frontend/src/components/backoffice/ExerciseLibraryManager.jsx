@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../../lib/api';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 
 function ExerciseLibraryManager() {
@@ -26,7 +25,7 @@ function ExerciseLibraryManager() {
 
   const fetchExercises = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/exercises');
+      const response = await get('/exercises');
       setExercises(response);
     } catch (error) {
       console.error('Error fetching exercises:', error);
@@ -37,14 +36,10 @@ function ExerciseLibraryManager() {
     e.preventDefault();
     try {
       if (editingExercise) {
-        await client.put('CalisthenicsAPI', `/exercises/${editingExercise.exerciseId}`, {
-          body: formData
-        });
+        await put(`/exercises/${editingExercise.exerciseId}`, formData);
         setMessage('✅ Exercise updated successfully');
       } else {
-        await client.post('CalisthenicsAPI', '/exercises', {
-          body: formData
-        });
+        await post('/exercises', formData);
         setMessage('✅ Exercise created successfully');
       }
       setShowForm(false);
@@ -71,7 +66,7 @@ function ExerciseLibraryManager() {
   const handleDelete = async (exerciseId) => {
     if (!window.confirm('Delete this exercise?')) return;
     try {
-      await client.del('CalisthenicsAPI', `/exercises/${exerciseId}`);
+      await del(`/exercises/${exerciseId}`);
       setMessage('✅ Exercise deleted');
       fetchExercises();
     } catch (error) {

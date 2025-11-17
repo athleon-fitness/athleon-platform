@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../../lib/api';
 import LoadingSpinner from '../common/Loading/LoadingSpinner';
 
 const AuthorizationAdmin = () => {
@@ -43,9 +42,9 @@ const AuthorizationAdmin = () => {
     setLoading(true);
     try {
       const [rolesRes, permissionsRes, userRolesRes] = await Promise.all([
-        client.get('CalisthenicsAPI', '/authorization/roles'),
-        client.get('CalisthenicsAPI', '/authorization/permissions'),
-        client.get('CalisthenicsAPI', '/authorization/user-roles')
+        get('/authorization/roles'),
+        get('/authorization/permissions'),
+        get('/authorization/user-roles')
       ]);
       
       setRoles(rolesRes);
@@ -60,9 +59,8 @@ const AuthorizationAdmin = () => {
   const createRole = async (e) => {
     e.preventDefault();
     try {
-      await client.post('CalisthenicsAPI', '/authorization/roles', {
-        body: newRole
-      });
+      await post('/authorization/roles', newRole
+      );
       setNewRole({ roleId: '', name: '', description: '' });
       fetchData();
     } catch (error) {
@@ -73,9 +71,8 @@ const AuthorizationAdmin = () => {
   const createPermission = async (e) => {
     e.preventDefault();
     try {
-      await client.post('CalisthenicsAPI', '/authorization/permissions', {
-        body: newPermission
-      });
+      await post('/authorization/permissions', newPermission
+      );
       setNewPermission({ roleId: '', resource: '', actions: [] });
       fetchData();
     } catch (error) {
@@ -86,9 +83,8 @@ const AuthorizationAdmin = () => {
   const assignUserRole = async (e) => {
     e.preventDefault();
     try {
-      await client.post('CalisthenicsAPI', '/authorization/user-roles', {
-        body: userRoleAssignment
-      });
+      await post('/authorization/user-roles', userRoleAssignment
+      );
       setUserRoleAssignment({ userId: '', email: '', roleId: '', contextId: 'global' });
       fetchData();
     } catch (error) {
@@ -112,7 +108,7 @@ const AuthorizationAdmin = () => {
   const deletePermission = async (roleId, resource) => {
     if (!window.confirm('Are you sure you want to delete this permission?')) return;
     try {
-      await client.del('CalisthenicsAPI', `/authorization/permissions/${roleId}/${resource}`);
+      await del(`/authorization/permissions/${roleId}/${resource}`);
       fetchData();
     } catch (error) {
       console.error('Error deleting permission:', error);
@@ -135,7 +131,7 @@ const AuthorizationAdmin = () => {
   const deleteRole = async (roleId) => {
     if (!window.confirm('Are you sure you want to delete this role?')) return;
     try {
-      await client.del('CalisthenicsAPI', `/authorization/roles/${roleId}`);
+      await del(`/authorization/roles/${roleId}`);
       fetchData();
     } catch (error) {
       console.error('Error deleting role:', error);
@@ -158,7 +154,7 @@ const AuthorizationAdmin = () => {
   const deleteUserRole = async (userId, contextId) => {
     if (!window.confirm('Are you sure you want to remove this user role?')) return;
     try {
-      await client.del('CalisthenicsAPI', `/authorization/user-roles/${userId}?contextId=${contextId}`);
+      await del(`/authorization/user-roles/${userId}?contextId=${contextId}`);
       fetchData();
     } catch (error) {
       console.error('Error deleting user role:', error);

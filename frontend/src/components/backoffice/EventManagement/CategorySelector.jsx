@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
+import { get, post, put, del } from '../../../lib/api';
 import { isCategorySelected } from '../../../utils/categoryHelpers';
 
 /**
@@ -18,7 +18,7 @@ const CategorySelector = ({ selectedCategories = [], onChange }) => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const response = await client.get('CalisthenicsAPI', '/categories');
+      const response = await get('/categories');
       setCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get } from '../../lib/api';
 import { useOrganization } from '../../contexts/OrganizationContext';
 
 function Analytics() {
@@ -26,7 +25,7 @@ function Analytics() {
       setLoading(true);
       
       // Use new dedicated analytics endpoint
-      const analyticsData = await client.get('CalisthenicsAPI', `/analytics?organizationId=${selectedOrganization.organizationId}`);
+      const analyticsData = await get(`/analytics?organizationId=${selectedOrganization.organizationId}`);
       
       setEvents(analyticsData.events || []);
       setAthletes(analyticsData.athletes || []);

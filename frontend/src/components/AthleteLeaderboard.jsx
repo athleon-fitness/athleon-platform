@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../lib/api';
 
 function AthleteLeaderboard({ userProfile }) {
   const [events, setEvents] = useState([]);
@@ -19,9 +18,9 @@ function AthleteLeaderboard({ userProfile }) {
   const fetchData = async () => {
     try {
       const [eventsRes, athletesRes, categoriesRes] = await Promise.all([
-        client.get('CalisthenicsAPI', '/public/events'),
-        client.get('CalisthenicsAPI', '/athletes'),
-        client.get('CalisthenicsAPI', '/categories')
+        get('/public/events'),
+        get('/athletes'),
+        get('/categories')
       ]);
       
       setEvents(eventsRes || []);
@@ -34,7 +33,7 @@ function AthleteLeaderboard({ userProfile }) {
 
   const fetchPublishedSchedules = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', `/scheduler/${selectedEvent.eventId}`);
+      const response = await get(`/scheduler/${selectedEvent.eventId}`);
       const schedules = Array.isArray(response) ? response.filter(s => s.published) : [];
       setPublishedSchedules(schedules);
     } catch (error) {
@@ -45,7 +44,7 @@ function AthleteLeaderboard({ userProfile }) {
 
   const fetchEventScores = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', `/public/scores?eventId=${selectedEvent.eventId}`);
+      const response = await get(`/public/scores?eventId=${selectedEvent.eventId}`);
       setAllScores(response || []);
     } catch (error) {
       console.error('Error fetching scores:', error);
@@ -55,7 +54,7 @@ function AthleteLeaderboard({ userProfile }) {
 
   const fetchEventWods = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', `/wods?eventId=${selectedEvent.eventId}`);
+      const response = await get(`/wods?eventId=${selectedEvent.eventId}`);
       setWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -129,7 +128,7 @@ function AthleteLeaderboard({ userProfile }) {
       if (selectedCategory) url += `&categoryId=${selectedCategory}`;
       if (selectedSchedule) url += `&scheduleId=${selectedSchedule.scheduleId}`;
       
-      const response = await client.get('CalisthenicsAPI', url);
+      const response = await get(url);
       if (response?.leaderboard) {
         setLeaderboard(response.leaderboard);
       } else {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
+import { get, post, put, del } from '../../../lib/api';
 import { useNotification } from '../../common/NotificationProvider';
 import { validateForm, validateRequired, validateDateRange } from '../../../utils/validation';
 import { safeAsync } from '../../../utils/errorHandler';
@@ -109,7 +109,7 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
       formData.append('file', file);
       formData.append('fileName', fileName);
       
-      const response = await client.post('CalisthenicsAPI', '/upload-image', { body: formData });
+      const response = await post('/upload-image', formData);
       return response.imageUrl;
     } catch (error) {
       showNotification('Failed to upload image', 'error');
@@ -156,8 +156,8 @@ const EventForm = ({ event, onCancel, onSuccess, organizationId }) => {
       
       const { success: _success } = await safeAsync(
         () => event 
-          ? client.put('CalisthenicsAPI', `/competitions/${event.eventId}`, { body: eventData })
-          : client.post('CalisthenicsAPI', '/competitions', { body: eventData }),
+          ? put(`/competitions/${event.eventId}`, eventData )
+          : post('/competitions', eventData),
         {
           showNotification,
           successMessage: event ? 'Event updated successfully!' : 'Event created successfully!',

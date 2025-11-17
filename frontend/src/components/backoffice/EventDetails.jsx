@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../../lib/api';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import CompetitionScheduler from '../CompetitionScheduler';
 import ScoringSystemManager from './ScoringSystemManager';
@@ -60,7 +59,7 @@ function EventDetails() {
     }
     
     try {
-      const response = await client.get('CalisthenicsAPI', `/scheduler/${eventId}/${id}`);
+      const response = await get(`/scheduler/${eventId}/${id}`);
       setSelectedSchedule(response);
       if (response && response.scheduleId && response.scheduleId !== 'undefined') {
         fetchScheduleDetails(response);
@@ -89,12 +88,12 @@ function EventDetails() {
 
   const fetchEventDetails = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', `/competitions/${eventId}`);
+      const response = await get(`/competitions/${eventId}`);
       setEvent(response);
       
       // Try both approaches: event record wods field AND separate WODs query
       const eventWods = response.wods || response.workouts || [];
-      const linkedWods = await client.get('CalisthenicsAPI', `/wods?eventId=${eventId}`);
+      const linkedWods = await get(`/wods?eventId=${eventId}`);
       
       // Combine both sources and deduplicate by wodId
       const allWods = [...eventWods, ...(linkedWods || [])];
@@ -108,7 +107,7 @@ function EventDetails() {
       setWods(uniqueWods);
 
       // Fetch categories for this event (proper DDD approach)
-      const categoriesResponse = await client.get('CalisthenicsAPI', `/categories?eventId=${eventId}`);
+      const categoriesResponse = await get(`/categories?eventId=${eventId}`);
       setCategories(categoriesResponse || []);
     } catch (error) {
       console.error('Error fetching event:', error);
@@ -117,7 +116,7 @@ function EventDetails() {
 
   const fetchEventDays = async () => {
     try {
-      const days = await client.get('CalisthenicsAPI', `/competitions/${eventId}/days`);
+      const days = await get(`/competitions/${eventId}/days`);
       setEventDays(days || []);
     } catch (error) {
       console.error('Error fetching event days:', error);
@@ -127,7 +126,7 @@ function EventDetails() {
   const fetchAthletes = async () => {
     try {
       // Get registered athletes for this event
-      const registeredAthletes = await client.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`);
+      const registeredAthletes = await get(`/athletes?eventId=${eventId}`);
       setAthletes(registeredAthletes || []);
       setLoading(false);
     } catch (error) {
@@ -139,7 +138,7 @@ function EventDetails() {
 
   const fetchExercises = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/exercises');
+      const response = await get('/exercises');
       setExercises(response || []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
@@ -196,9 +195,9 @@ function EventDetails() {
       
       // Fetch athletes, categories, and WODs for the schedule
       const [athletesRes, categoriesRes, wodsRes] = await Promise.all([
-        client.get('CalisthenicsAPI', `/athletes?eventId=${eventId}`),
-        client.get('CalisthenicsAPI', `/categories?eventId=${eventId}`),
-        client.get('CalisthenicsAPI', `/wods?eventId=${eventId}`)
+        get(`/athletes?eventId=${eventId}`),
+        get(`/categories?eventId=${eventId}`),
+        get(`/wods?eventId=${eventId}`)
       ]);
 
       console.log('✅ Athletes fetched:', athletesRes.length, athletesRes);
@@ -352,12 +351,10 @@ function EventDetails() {
     try {
       console.log('Getting presigned URL...');
       // Get presigned URL from backend
-      const response = await client.post('CalisthenicsAPI', `/competitions/${eventId}/upload-url`, {
-        body: {
+      const response = await post(`/competitions/${eventId}/upload-url`, {
           fileName: file.name,
           contentType: file.type
-        }
-      });
+        });
       
       console.log('Presigned URL response:', response);
       const { uploadUrl, imageUrl } = response;

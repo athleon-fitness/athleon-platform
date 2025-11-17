@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { generateClient } from 'aws-amplify/api';
+import { get, post, put, del } from '../../../lib/api';
 import { useOrganization } from '../../../contexts/OrganizationContext';
 import { useEvents } from '../../../hooks/useEvents';
 import { useNotification } from '../../common/NotificationProvider';
@@ -41,7 +41,7 @@ function EventManagement() {
     }
     
     await safeAsync(
-      () => client.del('CalisthenicsAPI', `/competitions/${eventId}`),
+      () => del(`/competitions/${eventId}`),
       {
         showNotification,
         successMessage: 'Event deleted successfully',

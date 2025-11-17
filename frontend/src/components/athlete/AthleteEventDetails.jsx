@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../../lib/api';
 
 function AthleteEventDetails() {
   const { eventId } = useParams();
@@ -33,15 +32,15 @@ function AthleteEventDetails() {
   const fetchEventData = async () => {
     try {
       // First try to get the public event data
-      const eventRes = await client.get('CalisthenicsAPI', `/public/events/${eventId}`);
+      const eventRes = await get(`/public/events/${eventId}`);
       setEvent(eventRes);
       
       // Try to fetch authenticated data
       try {
         const [categoriesRes, wodsRes, athletesRes] = await Promise.all([
-          client.get('CalisthenicsAPI', `/categories?eventId=${eventId}`),
-          client.get('CalisthenicsAPI', `/wods?eventId=${eventId}`),
-          client.get('CalisthenicsAPI', '/athletes')
+          get(`/categories?eventId=${eventId}`),
+          get(`/wods?eventId=${eventId}`),
+          get('/athletes')
         ]);
 
         // Use dual approach: combine event record data with separate table data
@@ -85,8 +84,8 @@ function AthleteEventDetails() {
         // Fallback to public endpoints for categories and wods
         try {
           const [publicCategoriesRes, publicWodsRes] = await Promise.all([
-            client.get('CalisthenicsAPI', `/public/categories?eventId=${eventId}`),
-            client.get('CalisthenicsAPI', `/public/wods?eventId=${eventId}`)
+            get(`/public/categories?eventId=${eventId}`),
+            get(`/public/wods?eventId=${eventId}`)
           ]);
           
           // Use dual approach for public data too
@@ -124,7 +123,7 @@ function AthleteEventDetails() {
           
           // Fetch public scores if event is active or completed
           if (eventRes.status === 'active' || eventRes.status === 'completed') {
-            const publicScoresRes = await client.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
+            const publicScoresRes = await get(`/public/scores?eventId=${eventId}`);
             setScores(publicScoresRes);
           }
         } catch (publicError) {
@@ -134,7 +133,7 @@ function AthleteEventDetails() {
       
       // Fetch public schedules (available to everyone)
       try {
-        const schedulesRes = await client.get('CalisthenicsAPI', `/public/schedules/${eventId}`);
+        const schedulesRes = await get(`/public/schedules/${eventId}`);
         setSchedules(schedulesRes);
       } catch (scheduleError) {
         console.error('Error fetching schedules:', scheduleError);
@@ -157,11 +156,11 @@ function AthleteEventDetails() {
         if (selectedCategory) url += `&categoryId=${selectedCategory}`;
         if (selectedWod) url += `&wodId=${selectedWod}`;
         
-        const scoresRes = await client.get('CalisthenicsAPI', url);
+        const scoresRes = await get(url);
         setScores(scoresRes);
       } else if (canViewScores) {
         // Spectators can view public scores for active/completed events
-        const scoresRes = await client.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
+        const scoresRes = await get(`/public/scores?eventId=${eventId}`);
         setScores(scoresRes);
       }
     } catch (error) {

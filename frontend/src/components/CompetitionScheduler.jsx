@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../lib/api';
 import SchedulerWizard from './SchedulerWizard';
 import './CompetitionScheduler.css';
 
@@ -25,7 +24,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
   const fetchSavedSchedules = async () => {
     try {
       setLoading(true);
-      const response = await client.get('CalisthenicsAPI', `/scheduler/${eventId}`);
+      const response = await get(`/scheduler/${eventId}`);
       setSavedSchedules(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error('Error fetching saved schedules:', error);
@@ -45,7 +44,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
 
   const publishSchedule = async (scheduleId) => {
     try {
-      await client.put('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}/publish`);
+      await put(`/scheduler/${eventId}/${scheduleId}/publish`);
       fetchSavedSchedules(); // Refresh to show updated status
     } catch (error) {
       console.error('Error publishing schedule:', error);
@@ -59,7 +58,7 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
     }
     
     try {
-      await client.del('CalisthenicsAPI', `/scheduler/${eventId}/${scheduleId}`);
+      await del(`/scheduler/${eventId}/${scheduleId}`);
       fetchSavedSchedules(); // Refresh the list
     } catch (error) {
       console.error('Error deleting schedule:', error);
@@ -71,19 +70,13 @@ const CompetitionScheduler = ({ eventId, onScheduleGenerated }) => {
     try {
       setLoading(true);
       
-      const response = await client.post('CalisthenicsAPI', 
-        `/scheduler/${eventId}/${currentSchedule.scheduleId}/process-results`, {
-        body: {
+      const response = await post(`/scheduler/${eventId}/${currentSchedule.scheduleId}/process-results`, {
           filterId: tournamentState.currentFilter,
           matchResults: results
-        }
-      });
+        });
       
       if (response.nextStage) {
-        const nextStageResponse = await client.post('CalisthenicsAPI',
-          `/scheduler/${eventId}/${currentSchedule.scheduleId}/next-stage`, {
-          body: { startTime: '09:00' }
-        });
+        const nextStageResponse = await post(`/scheduler/${eventId}/${currentSchedule.scheduleId}/next-stage`, { startTime: '09:00' });
         
         setCurrentSchedule(nextStageResponse);
       }

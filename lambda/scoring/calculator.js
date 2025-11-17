@@ -1,11 +1,29 @@
 // Stateless score calculation engine
 // Pure function: input (rawData, scoringSystem) → output (calculatedScore)
 
+// Time parsing utilities
+function parseTimeToSeconds(timeString) {
+  if (!timeString) return 0;
+  const parts = timeString.split(':');
+  if (parts.length !== 2) return 0;
+  const minutes = parseInt(parts[0], 10) || 0;
+  const seconds = parseInt(parts[1], 10) || 0;
+  return minutes * 60 + seconds;
+}
+
+function formatSecondsToTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins}:${String(secs).padStart(2, '0')}`;
+}
+
 exports.calculateScore = (rawData, scoringSystem) => {
   if (scoringSystem.type === 'classic') {
     return calculateClassicScore(rawData, scoringSystem.config);
   } else if (scoringSystem.type === 'advanced') {
     return calculateAdvancedScore(rawData, scoringSystem.config);
+  } else if (scoringSystem.type === 'time-based') {
+    return calculateTimeBasedScore(rawData, scoringSystem.config);
   }
   
   throw new Error(`Unknown scoring system type: ${scoringSystem.type}`);
@@ -92,6 +110,51 @@ function calculateAdvancedScore(rawData, config) {
     }
   };
 }
+
+function calculateTimeBasedScore(rawData, config) {
+  const { exercises, completionTime, timeCap } = rawData;
+  
+  // Determine if all exercises are completed
+  const allCompleted = exercises.every(ex => ex.completed === true);
+  
+  // Calculate total reps for incomplete WODs
+  // For completed exercises: use target reps
+  // For incomplete exercises: use maxReps achieved
+  const totalReps = exercises.reduce((sum, ex) => {
+    return sum + (ex.completed ? ex.reps : (ex.maxReps || 0));
+  }, 0);
+  
+  // Calculate completed exercise count
+  const completedCount = exercises.filter(ex => ex.completed).length;
+  
+  // Determine the final completion time
+  const finalCompletionTime = allCompleted ? completionTime : timeCap;
+  
+  // Generate breakdown object with exercise-level completion details
+  const exerciseBreakdown = exercises.map(ex => ({
+    exerciseId: ex.exerciseId,
+    exerciseName: ex.exerciseName,
+    completed: ex.completed,
+    maxReps: ex.maxReps,
+    reps: ex.reps
+  }));
+  
+  return {
+    calculatedScore: allCompleted ? completionTime : totalReps,
+    breakdown: {
+      allCompleted,
+      completionTime: finalCompletionTime,
+      totalReps,
+      completedExercises: completedCount,
+      totalExercises: exercises.length,
+      exercises: exerciseBreakdown
+    }
+  };
+}
+
+// Export utility functions for use in other modules
+exports.parseTimeToSeconds = parseTimeToSeconds;
+exports.formatSecondsToTime = formatSecondsToTime;
 
 // Lambda handler for direct invocation
 exports.handler = async (event) => {

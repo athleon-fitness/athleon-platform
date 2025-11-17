@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../../lib/api';
 
 function ScoringSystemManager({ eventId }) {
   const [scoringSystems, setScoringSystems] = useState([]);
@@ -23,7 +22,7 @@ useEffect(() => {
 
   const fetchScoringSystems = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', `/events/${eventId}/scoring-systems`);
+      const response = await get(`/events/${eventId}/scoring-systems`);
       setScoringSystems(response);
     } catch (error) {
       console.error('Error fetching scoring systems:', error);
@@ -32,7 +31,7 @@ useEffect(() => {
 
   const fetchExercises = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/exercises');
+      const response = await get('/exercises');
       setExercises(response);
     } catch (error) {
       console.error('Error fetching exercises:', error);
@@ -42,9 +41,8 @@ useEffect(() => {
   const createScoringSystem = async (e) => {
     e.preventDefault();
     try {
-      await client.post('CalisthenicsAPI', `/events/${eventId}/scoring-systems`, {
-        body: formData
-      });
+      await post(`/events/${eventId}/scoring-systems`, formData
+      );
       setShowForm(false);
       fetchScoringSystems();
     } catch (error) {
@@ -55,7 +53,7 @@ useEffect(() => {
   const deleteScoringSystem = async (scoringSystemId) => {
     if (!window.confirm('Delete this scoring system?')) return;
     try {
-      await client.del('CalisthenicsAPI', `/events/${eventId}/scoring-systems/${scoringSystemId}`);
+      await del(`/events/${eventId}/scoring-systems/${scoringSystemId}`);
       fetchScoringSystems();
     } catch (error) {
       console.error('Error deleting scoring system:', error);

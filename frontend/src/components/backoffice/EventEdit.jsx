@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put } from '../../lib/api';
 
 function EventEdit() {
   const { eventId } = useParams();
@@ -35,7 +34,7 @@ function EventEdit() {
 
   const fetchEvent = async () => {
     try {
-      const eventData = await client.get('CalisthenicsAPI', `/competitions/${eventId}`);
+      const eventData = await get(`/competitions/${eventId}`);
       console.log('Fetched event data:', eventData);
       
       // Use WODs and categories from event record if available (same as EventDetails)
@@ -72,7 +71,7 @@ function EventEdit() {
 
   const fetchWods = async () => {
     try {
-      const wods = await client.get('CalisthenicsAPI', '/wods');
+      const wods = await get('/wods');
       setAvailableWods(wods || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -81,7 +80,7 @@ function EventEdit() {
 
   const fetchCategories = async () => {
     try {
-      const categories = await client.get('CalisthenicsAPI', '/categories');
+      const categories = await get('/categories');
       setAvailableCategories(categories || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -174,9 +173,8 @@ function EventEdit() {
     setIsSubmitting(true);
     
     try {
-      await client.put('CalisthenicsAPI', `/competitions/${eventId}`, {
-        body: formData
-      });
+      await put(`/competitions/${eventId}`, formData
+      );
       navigate(`/backoffice/events/${eventId}`);
     } catch (error) {
       console.error('Error updating event:', error);

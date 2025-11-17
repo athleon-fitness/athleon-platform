@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get } from '../../lib/api';
 
 function GeneralLeaderboard() {
   const [events, setEvents] = useState([]);
@@ -42,7 +41,7 @@ function GeneralLeaderboard() {
 
   const fetchEvents = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/competitions');
+      const response = await get('/competitions');
       setEvents(response || []);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -51,7 +50,7 @@ function GeneralLeaderboard() {
 
   const fetchAthletes = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/athletes');
+      const response = await get('/athletes');
       setAthletes(response || []);
     } catch (error) {
       console.error('Error fetching athletes:', error);
@@ -60,7 +59,7 @@ function GeneralLeaderboard() {
 
   const fetchWods = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/wods');
+      const response = await get('/wods');
       setWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -69,7 +68,7 @@ function GeneralLeaderboard() {
 
   const fetchCategories = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/categories');
+      const response = await get('/categories');
       setCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -78,7 +77,7 @@ function GeneralLeaderboard() {
 
   const fetchEventScores = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', `/public/scores?eventId=${selectedEvent.eventId}`);
+      const response = await get(`/public/scores?eventId=${selectedEvent.eventId}`);
       setAllScores(response || []);
       calculateGeneralLeaderboard(response || []);
     } catch (error) {

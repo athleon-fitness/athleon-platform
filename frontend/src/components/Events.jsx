@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../lib/api';
 
 function Events({ user }) {
   const [events, setEvents] = useState([]);
@@ -14,7 +13,7 @@ function Events({ user }) {
 
   const fetchEvents = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/public/events');
+      const response = await get('/public/events');
       setEvents(response);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -28,7 +27,7 @@ function Events({ user }) {
   const createEvent = async (e) => {
     e.preventDefault();
     try {
-      await client.post('CalisthenicsAPI', '/events', { body: newEvent });
+      await post('/events', newEvent);
       setShowCreateForm(false);
       setNewEvent({ name: '', date: '', workouts: [], divisions: ['Male RX', 'Female RX', 'Male Scaled', 'Female Scaled'] });
       fetchEvents();

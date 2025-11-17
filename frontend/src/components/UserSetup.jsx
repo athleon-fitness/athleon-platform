@@ -85,7 +85,7 @@ function UserSetup({ user, signOut }) {
       };
 
       console.log('Saving athlete data:', athleteData);
-      await client.post('CalisthenicsAPI', '/athletes', { body: athleteData });
+      await post('/athletes', athleteData);
       setNeedsSetup(false);
     } catch (error) {
       console.error('Error completing setup:', error);

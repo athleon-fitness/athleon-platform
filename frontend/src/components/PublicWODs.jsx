@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
@@ -17,7 +16,7 @@ function PublicWODs() {
 
   const fetchWods = async () => {
     try {
-      const response = await client.get('CalisthenicsAPI', '/public/wods');
+      const response = await get('/public/wods');
       setWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
