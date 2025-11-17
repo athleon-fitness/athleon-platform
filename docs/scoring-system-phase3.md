@@ -292,7 +292,7 @@ await API.post('CalisthenicsAPI', '/scores', {
 # Frontend
 cd frontend
 npm run build
-aws s3 sync build/ s3://calisthenics-app-571340586587 --delete --profile labvel-dev
+aws s3 sync build/ s3://athleon-frontend-development --delete --profile labvel-dev
 aws cloudfront create-invalidation --distribution-id E1MZ3OMBI2NDM3 --paths "/*" --profile labvel-dev
 ```
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get, post, put, del } from '../../lib/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import OrganizationSelector from './OrganizationSelector';
@@ -71,13 +70,10 @@ function EventManagement() {
     if (!selectedOrganization) return;
     
     try {
-      const response = await client.get({
-        apiName: 'CalisthenicsAPI',
-        path: `/competitions?organizationId=${selectedOrganization.organizationId}`
-      });
+      const body = await get(`/competitions?organizationId=${selectedOrganization.organizationId}`);
       
       // Process events with basic data only - no additional API calls
-      const eventsWithData = response.map(event => {
+      const eventsWithData = (body || []).map(event => {
         // Use WODs from event record if available
         const eventWods = event.wods || event.workouts || [];
         
@@ -108,10 +104,7 @@ function EventManagement() {
 
   const fetchWods = async () => {
     try {
-      const response = await client.get({
-        apiName: 'CalisthenicsAPI',
-        path: '/wods'
-      });
+      const response = await get('/wods');
       setAvailableWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
@@ -120,10 +113,7 @@ function EventManagement() {
 
   const fetchCategories = async () => {
     try {
-      const response = await client.get({
-        apiName: 'CalisthenicsAPI',
-        path: '/categories'
-      });
+      const response = await get('/categories');
       setAvailableCategories(response || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -155,10 +145,7 @@ function EventManagement() {
     // Fetch WODs for this event
     let eventWods = [];
     try {
-      eventWods = await client.get({
-        apiName: 'CalisthenicsAPI',
-        path: `/wods?eventId=${event.eventId}`
-      });
+      eventWods = await get(`/wods?eventId=${event.eventId}`) || [];
     } catch (error) {
       console.error('Error fetching event WODs:', error);
     }
@@ -182,10 +169,7 @@ function EventManagement() {
   const handleDelete = async (eventId) => {
     if (!window.confirm('Are you sure you want to delete this event?')) return;
     try {
-      await client.del({
-        apiName: 'CalisthenicsAPI',
-        path: `/competitions/${eventId}`
-      });
+      await del(`/competitions/${eventId}`);
       fetchEvents();
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -200,13 +184,7 @@ function EventManagement() {
       const fileName = `${Date.now()}-${file.name}`;
       
       // Step 1: Get presigned URL
-      const urlResponse = await client.post({
-        apiName: 'CalisthenicsAPI',
-        path: `/competitions/${eventId}/upload-url`,
-        options: {
-          body: { fileName, fileType: file.type }
-        }
-      });
+      const urlResponse = await post(`/competitions/${eventId}/upload-url`, { fileName, fileType: file.type });
       
       // Step 2: Upload directly to S3 using presigned URL
       const uploadResponse = await fetch(urlResponse.uploadUrl, {
@@ -254,22 +232,10 @@ function EventManagement() {
       };
       
       if (editingEvent) {
-        await client.put({
-          apiName: 'CalisthenicsAPI',
-          path: `/competitions/${editingEvent.eventId}`,
-          options: {
-            body: eventData
-          }
-        });
+        await put(`/competitions/${editingEvent.eventId}`, eventData);
         eventResponse = { eventId: editingEvent.eventId };
       } else {
-        eventResponse = await client.post({
-          apiName: 'CalisthenicsAPI',
-          path: '/competitions',
-          options: {
-            body: eventData
-          }
-        });
+        eventResponse = await post('/competitions', eventData);
       }
       
       // Upload image if file is selected (now we have eventId)
@@ -277,13 +243,7 @@ function EventManagement() {
         imageUrl = await handleImageUpload(imageFile, eventResponse.eventId);
         if (imageUrl) {
           // Update event with image URL
-          await client.put({
-            apiName: 'CalisthenicsAPI',
-            path: `/competitions/${eventResponse.eventId}`,
-            options: {
-              body: { imageUrl }
-            }
-          });
+          await put(`/competitions/${eventResponse.eventId}`, { imageUrl });
         }
       }
       
@@ -314,13 +274,7 @@ function EventManagement() {
 
   const updateEventStatus = async (eventId, status) => {
     try {
-      await client.put({
-        apiName: 'CalisthenicsAPI',
-        path: `/competitions/${eventId}`,
-        options: {
-          body: { status }
-        }
-      });
+      await put(`/competitions/${eventId}`, { status });
       fetchEvents();
     } catch (error) {
       console.error('Error updating event:', error);

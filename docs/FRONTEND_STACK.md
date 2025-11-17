@@ -108,14 +108,14 @@ const frontendStack = new FrontendStack(this, 'Frontend', {
 
 ## Migration from Existing Setup
 
-If you have existing S3 bucket (`calisthenics-app-571340586587`) and CloudFront (`E1MZ3OMBI2NDM3`):
+If you have existing S3 bucket (`athleon-frontend-development`) and CloudFront (`E1MZ3OMBI2NDM3`):
 
 ### Option 1: Keep Existing (Recommended for Production)
 Continue using manual deployment to existing resources:
 ```bash
 cd frontend
 npm run build
-aws s3 sync build/ s3://calisthenics-app-571340586587 --delete --profile labvel-dev
+aws s3 sync build/ s3://athleon-frontend-development --delete --profile labvel-dev
 aws cloudfront create-invalidation --distribution-id E1MZ3OMBI2NDM3 --paths "/*" --profile labvel-dev
 ```
 

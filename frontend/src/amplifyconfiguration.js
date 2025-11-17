@@ -35,7 +35,7 @@ const amplifyConfig = {
     REST: {
       CalisthenicsAPI: {
         endpoint: import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL || '',
-        region: import.meta.env.VITE_REGION || import.meta.env.REACT_APP_REGION || 'us-east-2',
+        region: import.meta.env.VITE_REGION || import.meta.env.REACT_APP_REGION || 'us-east-2'
       }
     }
   }

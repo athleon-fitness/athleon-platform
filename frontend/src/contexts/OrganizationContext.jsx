@@ -1,8 +1,7 @@
 import { createContext, useState, useEffect, useContext } from 'react';
-import { generateClient } from 'aws-amplify/api';
+import { get, post } from '../lib/api';
 import { getCurrentUser } from 'aws-amplify/auth';
 
-const client = generateClient();
 const OrganizationContext = createContext();
 
 export const useOrganization = () => {
@@ -37,14 +36,18 @@ export const OrganizationProvider = ({ children }) => {
 
   const fetchOrganizations = async () => {
     try {
-      const orgs = await client.get({
-        apiName: 'CalisthenicsAPI',
-        path: '/organizations'
-      });
+      // Ensure user is authenticated before making API calls
+      const user = await getCurrentUser();
+      if (!user) {
+        console.log('User not authenticated, skipping organizations fetch');
+        return;
+      }
+
+      const orgs = await get('/organizations');
       
       // Add "All Organizations" option for super admin
-      const user = await getCurrentUser();
-      const email = user?.attributes?.email || user?.email;
+      const currentUser = await getCurrentUser();
+      const email = currentUser?.attributes?.email || currentUser?.email;
       
       if (email === 'admin@athleon.fitness') {
         const allOrgsOption = {
@@ -86,13 +89,7 @@ export const OrganizationProvider = ({ children }) => {
   };
 
   const createOrganization = async (name, description) => {
-    const newOrg = await client.post({
-      apiName: 'CalisthenicsAPI',
-      path: '/organizations',
-      options: {
-        body: { name, description }
-      }
-    });
+    const newOrg = await post('/organizations', { name, description });
     await fetchOrganizations();
     return newOrg;
   };
