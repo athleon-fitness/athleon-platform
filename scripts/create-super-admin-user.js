@@ -20,7 +20,8 @@ async function createSuperAdmin() {
       Username: SUPER_ADMIN_EMAIL,
       UserAttributes: [
         { Name: 'email', Value: SUPER_ADMIN_EMAIL },
-        { Name: 'email_verified', Value: 'true' }
+        { Name: 'email_verified', Value: 'true' },
+        { Name: 'custom:role', Value: 'super_admin' }
       ],
       TemporaryPassword: TEMP_PASSWORD,
       MessageAction: 'SUPPRESS' // Don't send welcome email

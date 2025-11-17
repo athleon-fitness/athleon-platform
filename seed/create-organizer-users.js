@@ -26,7 +26,8 @@ async function createOrganizers() {
         Username: email,
         UserAttributes: [
           { Name: 'email', Value: email },
-          { Name: 'email_verified', Value: 'true' }
+          { Name: 'email_verified', Value: 'true' },
+          { Name: 'custom:role', Value: 'organizer' }
         ],
         TemporaryPassword: 'TempPass123!',
         MessageAction: 'SUPPRESS'

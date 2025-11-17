@@ -98,6 +98,29 @@ export class FrontendStack extends Construct {
       },
     });
 
+    // CloudFront function to handle SPA routing vs asset requests
+    const spaRoutingFunction = new cloudfront.Function(this, 'SpaRoutingFunction', {
+      functionName: `athleon-spa-routing-${props.stage}`,
+      code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+  
+  // If request is for an asset (has file extension), don't modify
+  if (uri.match(/\\.[a-zA-Z0-9]+$/)) {
+    return request;
+  }
+  
+  // If request is for a route (no extension), serve index.html
+  if (!uri.match(/\\.[a-zA-Z0-9]+$/) && uri !== '/') {
+    request.uri = '/index.html';
+  }
+  
+  return request;
+}
+      `),
+    });
+
     // CloudFront distribution
     this.distribution = new cloudfront.Distribution(this, 'Distribution', {
       defaultBehavior: {
@@ -105,8 +128,19 @@ export class FrontendStack extends Construct {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         responseHeadersPolicy: securityHeadersPolicy,
+        functionAssociations: [{
+          function: spaRoutingFunction,
+          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+        }],
       },
       additionalBehaviors: {
+        // Handle Vite assets with proper caching
+        '/assets/*': {
+          origin: origins.S3BucketOrigin.withOriginAccessControl(this.bucket),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED_FOR_UNCOMPRESSED_OBJECTS,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.CORS_S3_ORIGIN,
+        },
         '/images/*': {
           origin: origins.S3BucketOrigin.withOriginAccessControl(props.eventImagesBucket),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -130,20 +164,7 @@ function handler(event) {
       domainNames: props.domain ? [props.domain] : undefined,
       certificate: this.cloudfrontCertificate,
       defaultRootObject: 'index.html',
-      errorResponses: [
-        {
-          httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: '/index.html',
-          ttl: cdk.Duration.minutes(5),
-        },
-        {
-          httpStatus: 403,
-          responseHttpStatus: 200,
-          responsePagePath: '/index.html',
-          ttl: cdk.Duration.minutes(5),
-        },
-      ],
+      // Remove error responses - let the function handle routing
     });
 
     // Grant CloudFront access to event images bucket

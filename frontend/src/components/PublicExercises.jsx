@@ -1,10 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { generateClient } from 'aws-amplify/api';
+import { get } from 'aws-amplify/api';
 import LanguageSwitcher from './common/LanguageSwitcher';
-
-const client = generateClient();
 
 function PublicExercises() {
   const [exercises, setExercises] = useState([]);
@@ -28,8 +26,12 @@ function PublicExercises() {
 
   const fetchExercises = async () => {
     try {
-      // Use Amplify client instead of fetch
-      const data = await client.get('CalisthenicsAPI', '/public/exercises');
+      // Use Amplify API directly
+      const response = await get({
+        apiName: 'CalisthenicsAPI',
+        path: '/public/exercises'
+      }).response;
+      const data = await response.body.json();
       setExercises(data || []);
     } catch (error) {
       console.error('Error fetching exercises:', error);

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { generateClient } from 'aws-amplify/api';
-const client = generateClient();
+import { get } from 'aws-amplify/api';
 import LoadingSpinner from './common/Loading/LoadingSpinner';
 
 function PublicEventDetail() {
@@ -30,8 +29,12 @@ function PublicEventDetail() {
 
   const fetchEventData = async () => {
     try {
-      // Use Amplify client instead of fetch
-      const eventData = await client.get('CalisthenicsAPI', `/public/events/${eventId}`);
+      // Use Amplify API directly
+      const eventResponse = await get({
+        apiName: 'CalisthenicsAPI',
+        path: `/public/events/${eventId}`
+      }).response;
+      const eventData = await eventResponse.body.json();
 
       if (!eventData.published) {
         navigate('/events');
@@ -42,11 +45,15 @@ function PublicEventDetail() {
 
       // Fetch public data
       try {
-        const [categoriesRes, wodsRes, schedulesRes] = await Promise.all([
-          client.get('CalisthenicsAPI', `/public/categories?eventId=${eventId}`),
-          client.get('CalisthenicsAPI', `/public/wods?eventId=${eventId}`),
-          client.get('CalisthenicsAPI', `/public/schedules/${eventId}`)
+        const [categoriesResponse, wodsResponse, schedulesResponse] = await Promise.all([
+          get({ apiName: 'CalisthenicsAPI', path: `/public/categories?eventId=${eventId}` }).response,
+          get({ apiName: 'CalisthenicsAPI', path: `/public/wods?eventId=${eventId}` }).response,
+          get({ apiName: 'CalisthenicsAPI', path: `/public/schedules/${eventId}` }).response
         ]);
+
+        const categoriesRes = await categoriesResponse.body.json();
+        const wodsRes = await wodsResponse.body.json();
+        const schedulesRes = await schedulesResponse.body.json();
 
         setCategories(categoriesRes);
         setWods(wodsRes);
@@ -56,7 +63,11 @@ function PublicEventDetail() {
 
         // Fetch public scores if publicLeaderboard is enabled
         if (eventData.publicLeaderboard) {
-          const scoresRes = await client.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
+          const scoresResponse = await get({
+            apiName: 'CalisthenicsAPI',
+            path: `/public/scores?eventId=${eventId}`
+          }).response;
+          const scoresRes = await scoresResponse.body.json();
           setScores(scoresRes);
         }
       } catch (error) {
@@ -75,7 +86,11 @@ function PublicEventDetail() {
     if (!canViewScores) return;
 
     try {
-      const scoresRes = await client.get('CalisthenicsAPI', `/public/scores?eventId=${eventId}`);
+      const scoresResponse = await get({
+        apiName: 'CalisthenicsAPI',
+        path: `/public/scores?eventId=${eventId}`
+      }).response;
+      const scoresRes = await scoresResponse.body.json();
       setScores(scoresRes);
     } catch (error) {
       console.error('Error fetching scores:', error);
