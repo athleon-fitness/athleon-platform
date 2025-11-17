@@ -58,13 +58,16 @@ export const OrganizationProvider = ({ children }) => {
           name: 'All Organizations',
           role: 'super_admin'
         };
+        console.log('🔍 Super admin detected, creating allOrgsOption:', allOrgsOption);
         setOrganizations([allOrgsOption, ...orgs]);
         
         const savedOrgId = localStorage.getItem('selectedOrganizationId');
+        console.log('🔍 Saved org ID from localStorage:', savedOrgId);
         const defaultOrg = savedOrgId 
           ? [allOrgsOption, ...orgs].find(o => o.organizationId === savedOrgId)
           : allOrgsOption;
         
+        console.log('🔍 Setting default organization:', defaultOrg);
         setSelectedOrganization(defaultOrg);
       } else {
         setOrganizations(orgs);
