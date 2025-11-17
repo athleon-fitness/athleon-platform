@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { generateClient } from 'aws-amplify/api';
 import LanguageSwitcher from './common/LanguageSwitcher';
+
+const client = generateClient();
 
 function PublicEvents() {
   const [events, setEvents] = useState([]);
@@ -15,13 +18,14 @@ function PublicEvents() {
 
   const fetchPublishedEvents = async () => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL || 'https://api.dev.athleon.fitness';
-      const response = await fetch(`${apiUrl}/public/events`);
-      const data = await response.json();
+      // Use Amplify client instead of fetch - handles CORS and auth automatically
+      const data = await client.get('CalisthenicsAPI', '/public/events');
       console.log('Published events:', data);
-      setEvents(data);
+      setEvents(data || []);
     } catch (error) {
       console.error('Error fetching events:', error);
+      // Set empty array on error to prevent UI breaking
+      setEvents([]);
     } finally {
       setLoading(false);
     }

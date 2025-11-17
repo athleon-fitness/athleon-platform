@@ -24,16 +24,16 @@ echo "📊 1/5 Seeding global categories..."
 AWS_PROFILE=labvel-dev node seed-categories.js
 echo ""
 
-echo "📋 2/5 Seeding core data..."
+echo "🏋️ 2/5 Seeding exercise library..."
+AWS_PROFILE=labvel-dev node seed-exercises.js
+echo ""
+
+echo "📋 3/5 Seeding core data..."
 AWS_PROFILE=labvel-dev node seed-current-data.js
 echo ""
 
-echo "💪 3/5 Seeding baseline WODs..."
+echo "💪 4/5 Seeding baseline WODs..."
 AWS_PROFILE=labvel-dev node seed-baseline-wods.js
-echo ""
-
-echo "🏋️ 4/5 Seeding exercise library..."
-AWS_PROFILE=labvel-dev node seed-exercises.js
 echo ""
 
 echo "🔐 5/5 Seeding authorization system..."

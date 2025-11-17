@@ -15,16 +15,16 @@ const { DynamoDBDocumentClient, PutCommand, ScanCommand } = require('@aws-sdk/li
 const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
-// Get table names from environment or use discovered names
+// Get table names from environment or use current deployment names
 const TABLES = {
-  ORGANIZATIONS: 'Athleon-OrganizationsOrganizationsTableECC8F9CE-3MTY5XXIRLV0',
-  ORGANIZATION_MEMBERS: 'Athleon-OrganizationsOrganizationMembersTable46313781-14LJLNYLY8PEZ',
-  ORGANIZATION_EVENTS: 'Athleon-OrganizationsOrganizationEventsTable7597D5EB-KQ606XH74LLD',
-  EVENTS: 'Athleon-CompetitionsEventsTable5FF68F4B-19W3OK2X2HX7D',
-  ATHLETES: 'Athleon-AthletesAthletesTable83BA454D-1N1IH76W4RQ9P',
-  CATEGORIES: 'Athleon-CategoriesCategoriesTable6441F570-U0RM4NSYM5YO',
-  WODS: 'Athleon-WodsWodsTableC84CB78B-7UBMQVHUZ6WR',
-  EXERCISES: 'Athleon-ScoringExerciseLibraryTable4BA87342-19F9WI8DI32SD'
+  ORGANIZATIONS: 'Athleon-development-OrganizationsOrganizationsTableECC8F9CE-J35ALRAB5IO6',
+  ORGANIZATION_MEMBERS: 'Athleon-development-OrganizationsOrganizationMembersTable46313781-QUHZA4F6TI61',
+  ORGANIZATION_EVENTS: 'Athleon-development-OrganizationsOrganizationEventsTable7597D5EB-1XX00AKSXEU0J',
+  EVENTS: 'Athleon-development-CompetitionsEventsTable5FF68F4B-1KYM40V6NU4IB',
+  ATHLETES: 'Athleon-development-AthletesAthletesTable83BA454D-2AJSCGKR07IB',
+  CATEGORIES: 'Athleon-development-CategoriesCategoriesTable6441F570-LT9OMJZDY1ZG',
+  WODS: 'Athleon-development-WodsWodsTableC84CB78B-ZVG9JE0QE3CK',
+  EXERCISES: 'Athleon-development-ScoringExerciseLibraryTable4BA87342-XHHEA1QX03IF'
 };
 
 async function seedData() {

@@ -37,6 +37,35 @@
   - 17 permissions across all resources
   - Role assignments for system users
 
+## 🧹 Cleanup Scripts (2 files)
+
+### **Data Cleanup**
+- **`cleanup-seed-data.js`** - Removes all seed data
+  - Deletes all DynamoDB records created by seed scripts
+  - Removes Cognito test users
+  - Resets platform to clean state
+
+- **`cleanup-all.sh`** - **MASTER CLEANUP SCRIPT**
+  - Interactive confirmation prompt
+  - Runs cleanup-seed-data.js
+  - Safe reset with confirmation
+
+## 📊 **Current Seed Data Structure**
+
+### **Execution Order (seed-all.sh)**
+1. **create-organizer-users.js** - Cognito organizer users
+2. **seed-categories.js** - 8 global categories
+3. **seed-current-data.js** - Demo org/event (uses global categories)
+4. **seed-baseline-wods.js** - 8 template WODs
+5. **seed-exercises.js** - 21 exercise library
+6. **seed-authorization.js** - RBAC system
+
+### **Cleanup Order (cleanup-all.sh)**
+1. **cleanup-seed-data.js** - Removes all data in reverse dependency order
+   - Scores → Schedules → Org Events → Org Members
+   - Athletes → WODs → Exercises → Categories → Events → Organizations
+   - Cognito test users (@test.com, admin@athleon.fitness)
+
 ## 📋 Usage Order
 
 ### **Complete Setup (after CDK deploy)**
@@ -53,6 +82,21 @@ AWS_PROFILE=labvel-dev node seed-authorization.js   # 5. RBAC system
 ### **Quick Setup Script**
 ```bash
 # Run the master seed script
+./seed-all.sh
+```
+
+### **Quick Cleanup Script**
+```bash
+# Reset platform to clean state
+./cleanup-all.sh
+```
+
+## 🔄 **Reset & Reseed Workflow**
+```bash
+# 1. Clean existing data
+./cleanup-all.sh
+
+# 2. Reseed fresh data
 ./seed-all.sh
 ```
 

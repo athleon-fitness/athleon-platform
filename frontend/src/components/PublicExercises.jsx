@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { generateClient } from 'aws-amplify/api';
 import LanguageSwitcher from './common/LanguageSwitcher';
+
+const client = generateClient();
 
 function PublicExercises() {
   const [exercises, setExercises] = useState([]);
@@ -25,12 +28,9 @@ function PublicExercises() {
 
   const fetchExercises = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL || 'https://api.dev.athleon.fitness'}/public/exercises`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      setExercises(data);
+      // Use Amplify client instead of fetch
+      const data = await client.get('CalisthenicsAPI', '/public/exercises');
+      setExercises(data || []);
     } catch (error) {
       console.error('Error fetching exercises:', error);
       // Fallback to sample exercises if API fails

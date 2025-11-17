@@ -4,9 +4,9 @@ const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 const client = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const ROLES_TABLE = 'Athleon-development-AuthorizationRolesTable118AC625-1DRAUVHMNYZRS';
-const PERMISSIONS_TABLE = 'Athleon-development-AuthorizationPermissionsTable79EDEB0E-1XSHHW8Z3LD1J';
-const USER_ROLES_TABLE = 'Athleon-development-AuthorizationUserRolesTable77A8EE09-G4D1GEMXKRYY';
+const ROLES_TABLE = 'Athleon-development-AuthorizationRolesTable118AC625-EUPOAS730QV';
+const PERMISSIONS_TABLE = 'Athleon-development-AuthorizationPermissionsTable79EDEB0E-A6561ZHEJ93R';
+const USER_ROLES_TABLE = 'Athleon-development-AuthorizationUserRolesTable77A8EE09-1D6YJNRHPJMU0';
 
 async function seedRoles() {
   const roles = [

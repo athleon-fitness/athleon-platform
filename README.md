@@ -420,6 +420,19 @@ cd /home/labvel/projects/athleon/web_app_athleon
 cdk deploy --profile labvel-dev
 ```
 
+### Seed Data
+```bash
+# Complete setup (users + data)
+./run-seed-all.sh
+
+# Data only (if users exist)
+./run-seed-data.sh
+
+# Manual setup
+cd scripts && AWS_PROFILE=labvel-dev node create-super-admin-user.js
+cd ../seed && ./seed-all.sh
+```
+
 ### Frontend
 ```bash
 cd frontend
