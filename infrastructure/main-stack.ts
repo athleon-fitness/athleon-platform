@@ -258,6 +258,16 @@ export class AthleonStack extends cdk.Stack {
       authorizer: networkStack.authorizer,
     });
 
+    // Scoring Systems
+    const scoringSystems = networkStack.api.root.addResource('scoring-systems');
+    scoringSystems.addMethod('ANY', new apigateway.LambdaIntegration(scoringStack.scoringSystemsLambda), {
+      authorizer: networkStack.authorizer,
+    });
+    scoringSystems.addResource('{proxy+}').addMethod('ANY', 
+      new apigateway.LambdaIntegration(scoringStack.scoringSystemsLambda), 
+      { authorizer: networkStack.authorizer }
+    );
+
     // Categories
     const categories = networkStack.api.root.addResource('categories');
     categories.addMethod('ANY', new apigateway.LambdaIntegration(categoriesStack.categoriesLambda), {

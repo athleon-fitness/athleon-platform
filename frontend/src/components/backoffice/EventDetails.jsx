@@ -114,8 +114,9 @@ function EventDetails() {
 
   const fetchEventDays = async () => {
     try {
-      const days = await get(`/competitions/${eventId}/days`);
-      setEventDays(days || []);
+      // Event days are not implemented yet - part of scheduling domain
+      // For now, just set empty array to avoid 404 errors
+      setEventDays([]);
     } catch (error) {
       console.error('Error fetching event days:', error);
     }

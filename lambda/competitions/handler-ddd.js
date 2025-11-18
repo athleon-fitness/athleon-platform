@@ -232,6 +232,11 @@ exports.handler = async (event) => {
       return createResponse(204, '', origin);
     }
 
+    // DDD VIOLATION REMOVED: Event days and scoring systems belong to other bounded contexts
+    // Frontend should call the appropriate domain APIs:
+    // - Event days: Not implemented yet (would be part of Scheduling domain)
+    // - Scoring systems: Call /scoring-systems API directly
+
     // POST /competitions/{eventId}/upload-url - Generate S3 upload URL
     if (eventId && pathParts[1] === 'upload-url' && method === 'POST') {
       const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');

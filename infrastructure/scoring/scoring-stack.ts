@@ -17,6 +17,7 @@ export interface ScoringStackProps  {
 export class ScoringStack extends Construct {
   public readonly scoresLambda: lambda.Function;
   public readonly exercisesLambda: lambda.Function;
+  public readonly scoringSystemsLambda: lambda.Function;
   public readonly scoresTable: dynamodb.Table;
   public readonly scoringSystemsTable: dynamodb.Table;
   public readonly leaderboardCacheTable: dynamodb.Table;
@@ -137,10 +138,11 @@ export class ScoringStack extends Construct {
     });
 
     // Scoring Systems Lambda
-    const scoringSystemsLambda = new lambda.Function(this, 'ScoringSystemsLambda', {
+    this.scoringSystemsLambda = new lambda.Function(this, 'ScoringSystemsLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'systems.handler',
       code: lambda.Code.fromAsset('lambda/scoring'),
+      layers: [props.sharedLayer.layer],
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: {
@@ -148,13 +150,14 @@ export class ScoringStack extends Construct {
       },
     });
 
-    this.scoringSystemsTable.grantReadWriteData(scoringSystemsLambda);
+    this.scoringSystemsTable.grantReadWriteData(this.scoringSystemsLambda);
 
     // Exercise Library Lambda
     this.exercisesLambda = new lambda.Function(this, 'ExercisesLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'exercises.handler',
       code: lambda.Code.fromAsset('lambda/scoring'),
+      layers: [props.sharedLayer.layer],
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       environment: {
