@@ -267,7 +267,7 @@
   margin: 0;
   width: auto;
   justify-content: flex-start;
-  padding-left: var(--nav-spacing-md);
+  padding-left: 8px;
   transform: none;
 }
 
@@ -278,7 +278,7 @@
 
 .sidebar-container.hidden .nav-content {
   justify-content: flex-start;
-  padding-left: var(--nav-spacing-md);
+  
   gap: 0;
   width: 100%;
 }

@@ -1,21 +1,8 @@
 // Stateless score calculation engine
 // Pure function: input (rawData, scoringSystem) → output (calculatedScore)
 
-// Time parsing utilities
-function parseTimeToSeconds(timeString) {
-  if (!timeString) return 0;
-  const parts = timeString.split(':');
-  if (parts.length !== 2) return 0;
-  const minutes = parseInt(parts[0], 10) || 0;
-  const seconds = parseInt(parts[1], 10) || 0;
-  return minutes * 60 + seconds;
-}
-
-function formatSecondsToTime(seconds) {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${String(secs).padStart(2, '0')}`;
-}
+// Import time utilities
+const { parseTimeToSeconds, formatSecondsToTime } = require('./utils');
 
 exports.calculateScore = (rawData, scoringSystem) => {
   if (scoringSystem.type === 'classic') {
@@ -151,10 +138,6 @@ function calculateTimeBasedScore(rawData, config) {
     }
   };
 }
-
-// Export utility functions for use in other modules
-exports.parseTimeToSeconds = parseTimeToSeconds;
-exports.formatSecondsToTime = formatSecondsToTime;
 
 // Lambda handler for direct invocation
 exports.handler = async (event) => {

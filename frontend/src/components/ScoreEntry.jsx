@@ -420,36 +420,6 @@ function ScoreEntry({ user }) {
             <button className="btn-secondary" onClick={() => navigate('/backoffice/scores')}>Change Event</button>
           </div>
 
-          {/* Debug information */}
-          <div style={{background: '#f0f0f0', padding: '10px', margin: '10px 0', fontSize: '12px', border: '1px solid #ccc'}}>
-            <strong>🐛 Debug Info:</strong><br/>
-            Selected Event ID: {selectedEvent.eventId}<br/>
-            Entry Mode: {entryMode}<br/>
-            WODs Count: {wods.length}<br/>
-            Categories Count: {categories.length}<br/>
-            Published Schedules Count: {publishedSchedules.length}<br/>
-            {entryMode === 'wod' && (
-              <>
-                {wods.length > 0 && (
-                  <div>WODs: {wods.map(w => w.name || w.wodId).join(', ')}</div>
-                )}
-                {wods.length === 0 && (
-                  <div style={{color: 'red'}}>⚠️ No WODs found for this event!</div>
-                )}
-              </>
-            )}
-            {entryMode === 'schedule' && (
-              <>
-                {publishedSchedules.length > 0 && (
-                  <div>Schedules: {publishedSchedules.map(s => s.scheduleId).join(', ')}</div>
-                )}
-                {publishedSchedules.length === 0 && (
-                  <div style={{color: 'red'}}>⚠️ No published schedules found for this event!</div>
-                )}
-              </>
-            )}
-          </div>
-
           <form onSubmit={submitScore} className="score-form">
             <h3>Step 3: Enter Score</h3>
             {entryMode === 'schedule' && (

@@ -10,6 +10,11 @@ export interface CompetitionsStackProps {
     organizationEventsTable: dynamodb.Table;
     organizationMembersTable: dynamodb.Table;
     scoringSystemsTable: dynamodb.Table;
+    categoriesTable?: dynamodb.Table;
+    wodsTable?: dynamodb.Table;
+    athleteEventsTable?: dynamodb.Table;
+    cloudfrontDomain?: string;
+    lambdaEnvironment?: Record<string, string>;
 }
 export declare class CompetitionsStack extends Construct {
     readonly eventsTable: dynamodb.Table;

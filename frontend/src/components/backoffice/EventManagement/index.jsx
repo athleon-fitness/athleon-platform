@@ -8,6 +8,7 @@ import { safeAsync } from '../../../utils/errorHandler';
 import EventList from './EventList';
 import EventForm from './EventForm';
 import OrganizationSelector from '../OrganizationSelector';
+import ConfirmDialog from '../../common/ConfirmDialog';
 import './EventManagement.css';
 
 /**
@@ -24,6 +25,7 @@ function EventManagement() {
   
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, eventId: null });
 
   const handleCreate = () => {
     setEditingEvent(null);
@@ -35,10 +37,13 @@ function EventManagement() {
     setShowForm(true);
   };
 
-  const handleDelete = async (eventId) => {
-    if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
-      return;
-    }
+  const handleDelete = (eventId) => {
+    setDeleteConfirm({ isOpen: true, eventId });
+  };
+
+  const confirmDelete = async () => {
+    const eventId = deleteConfirm.eventId;
+    setDeleteConfirm({ isOpen: false, eventId: null });
     
     await safeAsync(
       () => del(`/competitions/${eventId}`),
@@ -126,6 +131,17 @@ function EventManagement() {
         loading={loading}
         onEdit={handleEdit}
         onDelete={handleDelete}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, eventId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Event"
+        message="Are you sure you want to delete this event? This action cannot be undone."
+        confirmText="Delete Event"
+        cancelText="Cancel"
+        variant="danger"
       />
     </div>
   );

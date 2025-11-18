@@ -21,6 +21,13 @@ export default defineConfig(({ mode }) => {
       'import.meta.env.VITE_USER_POOL_CLIENT_ID': JSON.stringify(env.REACT_APP_USER_POOL_CLIENT_ID || env.VITE_USER_POOL_CLIENT_ID),
       'import.meta.env.VITE_REGION': JSON.stringify(env.REACT_APP_REGION || env.VITE_REGION),
       'import.meta.env.VITE_ENV': JSON.stringify(env.REACT_APP_ENV || env.VITE_ENV),
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./frontend/src/setupTests.js'],
+      css: true,
+      root: '.',
     }
   }
 })

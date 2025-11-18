@@ -24,7 +24,15 @@ function ScoreEntry({ user: _user }) {
   const [athletePerformance, setAthletePerformance] = useState([]);
   const [rank, setRank] = useState(1);
   
-  // Global advanced scoring system
+  // Scoring system state
+  const [scoringSystem, setScoringSystem] = useState(null);
+  
+  // Time-based scoring state
+  const [exerciseCompletionStatus, setExerciseCompletionStatus] = useState([]);
+  const [completionTime, setCompletionTime] = useState('');
+  const [validationErrors, setValidationErrors] = useState([]);
+  
+  // Global advanced scoring system (fallback)
   const globalScoringSystem = {
     type: 'advanced',
     config: {
@@ -93,8 +101,29 @@ function ScoreEntry({ user: _user }) {
           eqs: 5
         })));
       }
+      
+      // Fetch scoring system for this WOD
+      fetchScoringSystem(wod);
     }
   }, [scoreData.wodId, wods]);
+
+  // Initialize exercise completion status when scoring system changes to time-based
+  useEffect(() => {
+    if (selectedWod?.movements && scoringSystem?.type === 'time-based') {
+      setExerciseCompletionStatus(selectedWod.movements.map(m => ({
+        exerciseId: m.exerciseId,
+        exerciseName: m.exercise,
+        targetReps: m.reps,
+        completed: false,
+        maxReps: ''
+      })));
+    } else if (scoringSystem?.type !== 'time-based') {
+      // Clear time-based state when switching away from time-based scoring
+      setExerciseCompletionStatus([]);
+      setCompletionTime('');
+      setValidationErrors([]);
+    }
+  }, [selectedWod, scoringSystem]);
 
   const fetchExercises = async () => {
     try {
@@ -103,6 +132,81 @@ function ScoreEntry({ user: _user }) {
     } catch (error) {
       console.error('Error fetching exercises:', error);
     }
+  };
+
+  const fetchScoringSystem = async (wod) => {
+    try {
+      if (!wod || !wod.scoringSystemId) {
+        // Fallback to global advanced scoring system
+        setScoringSystem(globalScoringSystem);
+        return;
+      }
+      
+      const response = await get(`/scoring-systems/${wod.scoringSystemId}`);
+      setScoringSystem(response || globalScoringSystem);
+    } catch (error) {
+      console.error('Error fetching scoring system:', error);
+      setScoringSystem(globalScoringSystem);
+    }
+  };
+
+  const parseTimeToSeconds = (timeString) => {
+    if (!timeString) return 0;
+    const parts = timeString.split(':');
+    if (parts.length !== 2) return 0;
+    const minutes = parseInt(parts[0]) || 0;
+    const seconds = parseInt(parts[1]) || 0;
+    return minutes * 60 + seconds;
+  };
+
+  const formatSecondsToTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  const validateTimeBasedScore = () => {
+    const errors = [];
+    
+    // Validate all exercises have completion status
+    if (exerciseCompletionStatus.some(ex => typeof ex.completed !== 'boolean')) {
+      errors.push('All exercises must have completion status');
+    }
+    
+    // Validate incomplete exercises have maxReps
+    const incompleteExercises = exerciseCompletionStatus.filter(ex => !ex.completed);
+    incompleteExercises.forEach(ex => {
+      if (!ex.maxReps && ex.maxReps !== 0) {
+        errors.push(`${ex.exerciseName}: Max reps required for incomplete exercise`);
+      }
+      if (ex.maxReps && parseInt(ex.maxReps) > parseInt(ex.targetReps)) {
+        errors.push(`${ex.exerciseName}: Max reps cannot exceed target reps (${ex.targetReps})`);
+      }
+    });
+    
+    // Validate completion time is provided
+    if (!completionTime) {
+      errors.push('Completion time is required');
+    }
+    
+    // Validate completion time format
+    if (completionTime && !/^\d{1,2}:\d{2}$/.test(completionTime)) {
+      errors.push('Completion time must be in mm:ss format (e.g., 10:00)');
+    }
+    
+    // Validate completion time doesn't exceed time cap
+    if (completionTime && scoringSystem?.config?.timeCap) {
+      const completionSeconds = parseTimeToSeconds(completionTime);
+      const capSeconds = parseTimeToSeconds(
+        `${scoringSystem.config.timeCap.minutes}:${String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}`
+      );
+      if (completionSeconds > capSeconds) {
+        errors.push(`Completion time cannot exceed time cap (${scoringSystem.config.timeCap.minutes}:${String(scoringSystem.config.timeCap.seconds).padStart(2, '0')})`);
+      }
+    }
+    
+    setValidationErrors(errors);
+    return errors.length === 0;
   };
 
   const calculateScore = () => {
@@ -135,7 +239,7 @@ function ScoreEntry({ user: _user }) {
       totalEDS += eds * eqs;
     });
 
-    const timeBonus = globalScoringSystem.config.timeBonuses[rank] || 0;
+    const timeBonus = (scoringSystem || globalScoringSystem).config?.timeBonuses?.[rank] || 0;
     return totalEDS + timeBonus;
   };
 
@@ -261,32 +365,77 @@ function ScoreEntry({ user: _user }) {
     e.preventDefault();
     setSubmitting(true);
     setMessage('');
+    setValidationErrors([]);
 
     try {
+      // Validate time-based scoring if applicable
+      if (scoringSystem?.type === 'time-based') {
+        if (!validateTimeBasedScore()) {
+          setSubmitting(false);
+          return;
+        }
+      }
+      
       const calculatedScore = calculateScore();
       
-      const scorePayload = {
-        eventId: selectedEvent.eventId,
-        athleteId: scoreData.athleteId,
-        wodId: scoreData.wodId,
-        categoryId: scoreData.categoryId,
-        dayId: scoreData.dayId || 'day-1',
-        score: calculatedScore || scoreData.score,
-        rank: rank,
-        rawData: {
-          exercises: athletePerformance.filter(p => p.reps),
+      let scorePayload;
+      
+      if (scoringSystem?.type === 'time-based') {
+        // Time-based scoring payload
+        const allCompleted = exerciseCompletionStatus.every(ex => ex.completed);
+        const timeCap = scoringSystem.config?.timeCap 
+          ? `${scoringSystem.config.timeCap.minutes}:${String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}`
+          : '10:00';
+        
+        scorePayload = {
+          eventId: selectedEvent.eventId,
+          athleteId: scoreData.athleteId,
+          wodId: scoreData.wodId,
+          categoryId: scoreData.categoryId,
+          dayId: scoreData.dayId || 'day-1',
+          scoringSystemId: scoringSystem.scoringSystemId || 'time-based-default',
+          score: allCompleted ? completionTime : exerciseCompletionStatus.reduce((sum, ex) => {
+            return sum + (ex.completed ? parseInt(ex.targetReps) : parseInt(ex.maxReps || 0));
+          }, 0).toString(),
+          rawData: {
+            exercises: exerciseCompletionStatus.map(ex => ({
+              exerciseId: ex.exerciseId,
+              exerciseName: ex.exerciseName,
+              completed: ex.completed,
+              reps: parseInt(ex.targetReps),
+              maxReps: ex.completed ? null : parseInt(ex.maxReps || 0)
+            })),
+            completionTime: allCompleted ? completionTime : timeCap,
+            timeCap: timeCap
+          },
+          ...(scoreData.scheduleId && { scheduleId: scoreData.scheduleId }),
+          ...(scoreData.sessionId && { sessionId: scoreData.sessionId }),
+          ...(selectedMatch && { matchId: selectedMatch.matchId || `match-${Date.now()}` })
+        };
+      } else {
+        // Classic/Advanced scoring payload
+        scorePayload = {
+          eventId: selectedEvent.eventId,
+          athleteId: scoreData.athleteId,
+          wodId: scoreData.wodId,
+          categoryId: scoreData.categoryId,
+          dayId: scoreData.dayId || 'day-1',
+          score: calculatedScore || scoreData.score,
           rank: rank,
-          timeTaken: scoreData.timeTaken || 'Completed'
-        },
-        ...(scoreData.scheduleId && { scheduleId: scoreData.scheduleId }),
-        ...(scoreData.sessionId && { sessionId: scoreData.sessionId }),
-        ...(selectedMatch && { matchId: selectedMatch.matchId || `match-${Date.now()}` })
-      };
+          rawData: {
+            exercises: athletePerformance.filter(p => p.reps),
+            rank: rank,
+            timeTaken: scoreData.timeTaken || 'Completed'
+          },
+          ...(scoreData.scheduleId && { scheduleId: scoreData.scheduleId }),
+          ...(scoreData.sessionId && { sessionId: scoreData.sessionId }),
+          ...(selectedMatch && { matchId: selectedMatch.matchId || `match-${Date.now()}` })
+        };
+      }
 
       console.log('Submitting score payload:', scorePayload);
 
-      const response = await post('/scores', scorePayload
-      );
+      const response = await post('/scores', scorePayload);
 
       if (response.updated) {
         setMessage('✅ Score updated successfully!');
@@ -303,6 +452,8 @@ function ScoreEntry({ user: _user }) {
       });
       setAthleteSearch('');
       setAthletePerformance([]);
+      setExerciseCompletionStatus([]);
+      setCompletionTime('');
       setRank(1);
       
       // Refresh scores
@@ -498,7 +649,181 @@ function ScoreEntry({ user: _user }) {
                   </div>
                 </div>
 
-                {selectedWod && athletePerformance.length > 0 && (
+                {selectedWod && scoringSystem?.type === 'time-based' && exerciseCompletionStatus.length > 0 && (
+                  <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
+                    <div style={{
+                      background: 'white',
+                      padding: '12px',
+                      borderRadius: '6px',
+                      marginBottom: '15px',
+                      borderLeft: '4px solid #FF5722'
+                    }}>
+                      <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
+                      <div style={{fontSize: '13px', color: '#666'}}>
+                        <div><strong>Format:</strong> {selectedWod.format}</div>
+                        {scoringSystem.config?.timeCap && (
+                          <div>
+                            <strong>Time Cap:</strong> ⏱️ {scoringSystem.config.timeCap.minutes}:{String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}
+                          </div>
+                        )}
+                        <div style={{marginTop: '8px'}}><strong>Movements:</strong></div>
+                        <ul style={{margin: '5px 0', paddingLeft: '20px'}}>
+                          {selectedWod.movements?.map((m, i) => (
+                            <li key={i}>{m.reps} {m.exercise} {m.weight && `(${m.weight})`}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <h4 style={{marginTop: 0}}>⏱️ Time-Based Score Entry</h4>
+                    
+                    {validationErrors.length > 0 && (
+                      <div style={{
+                        background: '#f8d7da',
+                        border: '1px solid #f5c6cb',
+                        borderRadius: '6px',
+                        padding: '12px',
+                        marginBottom: '15px'
+                      }}>
+                        <h4 style={{margin: '0 0 8px 0', color: '#721c24'}}>⚠️ Please fix the following errors:</h4>
+                        <ul style={{margin: 0, paddingLeft: '20px', color: '#721c24'}}>
+                          {validationErrors.map((error, idx) => (
+                            <li key={idx}>{error}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <div style={{marginBottom: '20px'}}>
+                      <h5 style={{marginBottom: '10px', color: '#495057'}}>Exercise Completion Status</h5>
+                      {exerciseCompletionStatus.map((exercise, idx) => (
+                        <div key={idx} style={{
+                          background: 'white',
+                          padding: '15px',
+                          borderRadius: '6px',
+                          marginBottom: '10px',
+                          border: '1px solid #e1e8ed'
+                        }}>
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '2fr 1fr 1fr',
+                            gap: '15px',
+                            alignItems: 'center'
+                          }}>
+                            <div>
+                              <div style={{fontWeight: '600', color: '#2c3e50', marginBottom: '4px'}}>
+                                {exercise.exerciseName}
+                              </div>
+                              <small style={{color: '#6c757d'}}>Target: {exercise.targetReps} reps</small>
+                            </div>
+                            
+                            <div>
+                              <label style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                                fontSize: '14px',
+                                fontWeight: '500'
+                              }}>
+                                <input
+                                  type="checkbox"
+                                  checked={exercise.completed}
+                                  onChange={(e) => {
+                                    const updated = [...exerciseCompletionStatus];
+                                    updated[idx].completed = e.target.checked;
+                                    if (e.target.checked) {
+                                      updated[idx].maxReps = exercise.targetReps;
+                                    }
+                                    setExerciseCompletionStatus(updated);
+                                  }}
+                                  style={{marginRight: '8px', width: '18px', height: '18px'}}
+                                />
+                                <span style={{color: exercise.completed ? '#28a745' : '#6c757d'}}>
+                                  {exercise.completed ? '✓ Completed' : 'Incomplete'}
+                                </span>
+                              </label>
+                            </div>
+                            
+                            <div>
+                              {!exercise.completed && (
+                                <div>
+                                  <label style={{
+                                    display: 'block',
+                                    fontSize: '12px',
+                                    color: '#6c757d',
+                                    marginBottom: '4px'
+                                  }}>
+                                    Max Reps Achieved *
+                                  </label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={exercise.targetReps}
+                                    value={exercise.maxReps}
+                                    onChange={(e) => {
+                                      const updated = [...exerciseCompletionStatus];
+                                      updated[idx].maxReps = e.target.value;
+                                      setExerciseCompletionStatus(updated);
+                                    }}
+                                    placeholder="0"
+                                    required
+                                    style={{
+                                      width: '100%',
+                                      padding: '8px',
+                                      borderRadius: '4px',
+                                      border: '1px solid #ddd',
+                                      fontSize: '14px'
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div style={{
+                      background: 'white',
+                      padding: '15px',
+                      borderRadius: '6px',
+                      border: '1px solid #e1e8ed'
+                    }}>
+                      <label style={{
+                        display: 'block',
+                        fontSize: '14px',
+                        fontWeight: '600',
+                        color: '#2c3e50',
+                        marginBottom: '8px'
+                      }}>
+                        Completion Time (mm:ss) *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="10:00"
+                        value={completionTime}
+                        onChange={(e) => setCompletionTime(e.target.value)}
+                        pattern="[0-9]{1,2}:[0-9]{2}"
+                        required
+                        style={{
+                          width: '200px',
+                          padding: '10px',
+                          borderRadius: '6px',
+                          border: '2px solid #e1e8ed',
+                          fontSize: '16px',
+                          fontWeight: '500'
+                        }}
+                      />
+                      {scoringSystem.config?.timeCap && (
+                        <small style={{display: 'block', color: '#6c757d', marginTop: '6px'}}>
+                          Time Cap: {scoringSystem.config.timeCap.minutes}:{String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}
+                        </small>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {selectedWod && scoringSystem?.type !== 'time-based' && athletePerformance.length > 0 && (
                   <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
                     <div style={{
                       background: 'white',
@@ -737,7 +1062,181 @@ function ScoreEntry({ user: _user }) {
                           </select>
                         </div>
 
-                        {selectedWod && athletePerformance.length > 0 && (
+                        {selectedWod && scoringSystem?.type === 'time-based' && exerciseCompletionStatus.length > 0 && (
+                          <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
+                            <div style={{
+                              background: 'white',
+                              padding: '12px',
+                              borderRadius: '6px',
+                              marginBottom: '15px',
+                              borderLeft: '4px solid #FF5722'
+                            }}>
+                              <h4 style={{margin: '0 0 8px 0', color: '#FF5722'}}>📋 {selectedWod.name}</h4>
+                              <div style={{fontSize: '13px', color: '#666'}}>
+                                <div><strong>Format:</strong> {selectedWod.format}</div>
+                                {scoringSystem.config?.timeCap && (
+                                  <div>
+                                    <strong>Time Cap:</strong> ⏱️ {scoringSystem.config.timeCap.minutes}:{String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}
+                                  </div>
+                                )}
+                                <div style={{marginTop: '8px'}}><strong>Movements:</strong></div>
+                                <ul style={{margin: '5px 0', paddingLeft: '20px'}}>
+                                  {selectedWod.movements?.map((m, i) => (
+                                    <li key={i}>{m.reps} {m.exercise} {m.weight && `(${m.weight})`}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                            
+                            <h4 style={{marginTop: 0}}>⏱️ Time-Based Score Entry</h4>
+                            
+                            {validationErrors.length > 0 && (
+                              <div style={{
+                                background: '#f8d7da',
+                                border: '1px solid #f5c6cb',
+                                borderRadius: '6px',
+                                padding: '12px',
+                                marginBottom: '15px'
+                              }}>
+                                <h4 style={{margin: '0 0 8px 0', color: '#721c24'}}>⚠️ Please fix the following errors:</h4>
+                                <ul style={{margin: 0, paddingLeft: '20px', color: '#721c24'}}>
+                                  {validationErrors.map((error, idx) => (
+                                    <li key={idx}>{error}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            
+                            <div style={{marginBottom: '20px'}}>
+                              <h5 style={{marginBottom: '10px', color: '#495057'}}>Exercise Completion Status</h5>
+                              {exerciseCompletionStatus.map((exercise, idx) => (
+                                <div key={idx} style={{
+                                  background: 'white',
+                                  padding: '15px',
+                                  borderRadius: '6px',
+                                  marginBottom: '10px',
+                                  border: '1px solid #e1e8ed'
+                                }}>
+                                  <div style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: '2fr 1fr 1fr',
+                                    gap: '15px',
+                                    alignItems: 'center'
+                                  }}>
+                                    <div>
+                                      <div style={{fontWeight: '600', color: '#2c3e50', marginBottom: '4px'}}>
+                                        {exercise.exerciseName}
+                                      </div>
+                                      <small style={{color: '#6c757d'}}>Target: {exercise.targetReps} reps</small>
+                                    </div>
+                                    
+                                    <div>
+                                      <label style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        fontWeight: '500'
+                                      }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={exercise.completed}
+                                          onChange={(e) => {
+                                            const updated = [...exerciseCompletionStatus];
+                                            updated[idx].completed = e.target.checked;
+                                            if (e.target.checked) {
+                                              updated[idx].maxReps = exercise.targetReps;
+                                            }
+                                            setExerciseCompletionStatus(updated);
+                                          }}
+                                          style={{marginRight: '8px', width: '18px', height: '18px'}}
+                                        />
+                                        <span style={{color: exercise.completed ? '#28a745' : '#6c757d'}}>
+                                          {exercise.completed ? '✓ Completed' : 'Incomplete'}
+                                        </span>
+                                      </label>
+                                    </div>
+                                    
+                                    <div>
+                                      {!exercise.completed && (
+                                        <div>
+                                          <label style={{
+                                            display: 'block',
+                                            fontSize: '12px',
+                                            color: '#6c757d',
+                                            marginBottom: '4px'
+                                          }}>
+                                            Max Reps Achieved *
+                                          </label>
+                                          <input
+                                            type="number"
+                                            min="0"
+                                            max={exercise.targetReps}
+                                            value={exercise.maxReps}
+                                            onChange={(e) => {
+                                              const updated = [...exerciseCompletionStatus];
+                                              updated[idx].maxReps = e.target.value;
+                                              setExerciseCompletionStatus(updated);
+                                            }}
+                                            placeholder="0"
+                                            required
+                                            style={{
+                                              width: '100%',
+                                              padding: '8px',
+                                              borderRadius: '4px',
+                                              border: '1px solid #ddd',
+                                              fontSize: '14px'
+                                            }}
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            
+                            <div style={{
+                              background: 'white',
+                              padding: '15px',
+                              borderRadius: '6px',
+                              border: '1px solid #e1e8ed'
+                            }}>
+                              <label style={{
+                                display: 'block',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                color: '#2c3e50',
+                                marginBottom: '8px'
+                              }}>
+                                Completion Time (mm:ss) *
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="10:00"
+                                value={completionTime}
+                                onChange={(e) => setCompletionTime(e.target.value)}
+                                pattern="[0-9]{1,2}:[0-9]{2}"
+                                required
+                                style={{
+                                  width: '200px',
+                                  padding: '10px',
+                                  borderRadius: '6px',
+                                  border: '2px solid #e1e8ed',
+                                  fontSize: '16px',
+                                  fontWeight: '500'
+                                }}
+                              />
+                              {scoringSystem.config?.timeCap && (
+                                <small style={{display: 'block', color: '#6c757d', marginTop: '6px'}}>
+                                  Time Cap: {scoringSystem.config.timeCap.minutes}:{String(scoringSystem.config.timeCap.seconds).padStart(2, '0')}
+                                </small>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {selectedWod && scoringSystem?.type !== 'time-based' && athletePerformance.length > 0 && (
                           <div style={{background: '#f8f9fa', padding: '15px', borderRadius: '8px', marginTop: '15px'}}>
                             <div style={{
                               background: 'white',

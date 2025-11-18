@@ -1,7 +1,8 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, GetCommand, QueryCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const { EventBridgeClient, PutEventsCommand } = require('@aws-sdk/client-eventbridge');
-const { calculateScore, parseTimeToSeconds } = require('./calculator');
+const { calculateScore } = require('./calculator');
+const { parseTimeToSeconds, isValidTimeFormat, exceedsTimeCap } = require('./utils');
 
 // Import from Lambda Layer
 const { verifyToken, isSuperAdmin, checkOrganizationAccess, getCorsHeaders } = require('/opt/nodejs/utils/auth');
@@ -103,29 +104,18 @@ function validateTimeBasedScore(rawData, scoringSystem) {
   }
 
   // Validate time format for completionTime
-  if (completionTime) {
-    const timePattern = /^[0-9]{1,2}:[0-9]{2}$/;
-    if (!timePattern.test(completionTime)) {
-      errors.push('Invalid time format. Use mm:ss (e.g., 10:00)');
-    }
-  }
-
-  // Validate completion time doesn't exceed time cap
-  if (completionTime && timeCap) {
-    const completionSeconds = parseTimeToSeconds(completionTime);
-    const capSeconds = parseTimeToSeconds(timeCap);
-    
-    if (completionSeconds > capSeconds) {
-      errors.push(`Completion time (${completionTime}) cannot exceed time cap (${timeCap})`);
-    }
+  if (completionTime && !isValidTimeFormat(completionTime)) {
+    errors.push('Invalid time format. Use mm:ss (e.g., 10:00)');
   }
 
   // Validate time cap format if provided
-  if (timeCap) {
-    const timePattern = /^[0-9]{1,2}:[0-9]{2}$/;
-    if (!timePattern.test(timeCap)) {
-      errors.push('Invalid time cap format. Use mm:ss (e.g., 10:00)');
-    }
+  if (timeCap && !isValidTimeFormat(timeCap)) {
+    errors.push('Invalid time cap format. Use mm:ss (e.g., 10:00)');
+  }
+
+  // Validate completion time doesn't exceed time cap
+  if (completionTime && timeCap && exceedsTimeCap(completionTime, timeCap)) {
+    errors.push(`Completion time (${completionTime}) cannot exceed time cap (${timeCap})`);
   }
 
   return {

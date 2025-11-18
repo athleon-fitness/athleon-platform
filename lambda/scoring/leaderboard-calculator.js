@@ -1,6 +1,6 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, QueryCommand, PutCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
-const { parseTimeToSeconds } = require('./calculator');
+const { parseTimeToSeconds } = require('./utils');
 
 const client = new DynamoDBClient({});
 const ddb = DynamoDBDocumentClient.from(client);

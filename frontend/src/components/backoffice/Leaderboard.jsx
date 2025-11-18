@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { get } from '../../lib/api';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import ScoreBreakdown from '../athlete/ScoreBreakdown';
+import ScoreDetails from '../athlete/ScoreDetails';
 import LoadingSpinner from '../common/Loading/LoadingSpinner';
 import './Backoffice.css';
 
@@ -94,6 +95,21 @@ function Leaderboard() {
     }
   };
 
+  // Helper function to parse time string to seconds for comparison
+  const parseTimeToSeconds = (timeString) => {
+    if (!timeString || typeof timeString !== 'string') return 0;
+    const parts = timeString.split(':');
+    if (parts.length !== 2) return 0;
+    const minutes = parseInt(parts[0], 10) || 0;
+    const seconds = parseInt(parts[1], 10) || 0;
+    return minutes * 60 + seconds;
+  };
+
+  // Helper function to check if a score is time-based
+  const isTimeBasedScore = (score) => {
+    return score.breakdown && score.breakdown.allCompleted !== undefined;
+  };
+
   const getWodLeaderboard = () => {
     if (!selectedWod) return [];
     
@@ -102,6 +118,32 @@ function Leaderboard() {
       filtered = filtered.filter(s => s.categoryId === selectedCategory);
     }
     
+    // Check if any score is time-based to determine sorting strategy
+    const hasTimeBasedScores = filtered.some(isTimeBasedScore);
+    
+    if (hasTimeBasedScores) {
+      // Time-based ranking: completed first (by time), then incomplete (by exercises then reps)
+      const completed = filtered.filter(s => s.breakdown?.allCompleted === true);
+      const incomplete = filtered.filter(s => s.breakdown?.allCompleted !== true);
+      
+      // Sort completed by time (ascending - faster is better)
+      completed.sort((a, b) => {
+        const timeA = parseTimeToSeconds(a.breakdown?.completionTime);
+        const timeB = parseTimeToSeconds(b.breakdown?.completionTime);
+        return timeA - timeB;
+      });
+      
+      // Sort incomplete by completed exercises (descending), then total reps (descending)
+      incomplete.sort((a, b) => {
+        const completedDiff = (b.breakdown?.completedExercises || 0) - (a.breakdown?.completedExercises || 0);
+        if (completedDiff !== 0) return completedDiff;
+        return (b.breakdown?.totalReps || 0) - (a.breakdown?.totalReps || 0);
+      });
+      
+      return [...completed, ...incomplete];
+    }
+    
+    // Default sorting for non-time-based scores
     return filtered.sort((a, b) => b.score - a.score);
   };
 
@@ -255,11 +297,15 @@ function Leaderboard() {
                 <th>Athlete</th>
                 <th>Category</th>
                 {view === 'wod' ? (
-                  <th>Score</th>
+                  <>
+                    <th>Score</th>
+                    <th>Actions</th>
+                  </>
                 ) : (
                   <>
                     <th>Total Points</th>
                     <th>WOD Results</th>
+                    <th>Actions</th>
                   </>
                 )}
               </tr>
@@ -269,10 +315,11 @@ function Leaderboard() {
                 const rank = view === 'wod' ? idx + 1 : entry.rank;
                 const category = categories.find(c => c.categoryId === entry.categoryId);
                 const isExpanded = expandedScore === entry.athleteId;
+                const isTimeBased = isTimeBasedScore(entry);
                 
                 return (
                   <React.Fragment key={entry.athleteId}>
-                    <tr className={getRankClass(rank)} onClick={() => setExpandedScore(isExpanded ? null : entry.athleteId)} style={{cursor: 'pointer'}}>
+                    <tr className={getRankClass(rank)}>
                       <td className="rank-cell">
                         <span className={`rank-badge ${getRankClass(rank)}`}>
                           #{rank}
@@ -284,7 +331,27 @@ function Leaderboard() {
                       </td>
                       <td>{category?.name || 'N/A'}</td>
                       {view === 'wod' ? (
-                        <td className="score-cell">{entry.score}</td>
+                        <td className="score-cell">
+                          {isTimeBased ? (
+                            // Time-based score display
+                            entry.breakdown?.allCompleted ? (
+                              <span className="time-based-score completed">
+                                <span className="clock-icon">⏱️</span>
+                                <span className="time-value">{entry.breakdown.completionTime}</span>
+                              </span>
+                            ) : (
+                              <span className="time-based-score incomplete">
+                                <span className="reps-value">{entry.breakdown?.totalReps || 0} reps</span>
+                                <span className="exercises-info">
+                                  ({entry.breakdown?.completedExercises || 0}/{entry.breakdown?.totalExercises || 0} exercises)
+                                </span>
+                              </span>
+                            )
+                          ) : (
+                            // Regular score display
+                            entry.score
+                          )}
+                        </td>
                       ) : (
                         <>
                           <td className="points-cell">{entry.totalPoints}</td>
@@ -298,11 +365,26 @@ function Leaderboard() {
                           </td>
                         </>
                       )}
+                      <td className="actions-cell">
+                        {entry.breakdown && (
+                          <button 
+                            className="view-details-btn"
+                            onClick={() => setExpandedScore(isExpanded ? null : entry.athleteId)}
+                            aria-label={isExpanded ? 'Hide details' : 'View details'}
+                          >
+                            {isExpanded ? 'Hide Details' : 'View Details'}
+                          </button>
+                        )}
+                      </td>
                     </tr>
                     {isExpanded && entry.breakdown && (
-                      <tr>
-                        <td colSpan={view === 'wod' ? 4 : 5} style={{padding: '15px', background: '#f8f9fa'}}>
-                          <ScoreBreakdown score={entry} />
+                      <tr className="expanded-row">
+                        <td colSpan={view === 'wod' ? 5 : 6} style={{padding: '15px', background: '#f8f9fa'}}>
+                          {isTimeBased ? (
+                            <ScoreDetails score={entry} />
+                          ) : (
+                            <ScoreBreakdown score={entry} />
+                          )}
                         </td>
                       </tr>
                     )}
@@ -510,6 +592,70 @@ function Leaderboard() {
           color: #6c757d;
           font-weight: 500;
         }
+        .time-based-score {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 16px;
+        }
+        .time-based-score.completed {
+          color: #28a745;
+          font-weight: 700;
+        }
+        .time-based-score.incomplete {
+          color: #6c757d;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 4px;
+        }
+        .clock-icon {
+          font-size: 18px;
+        }
+        .time-value {
+          font-size: 20px;
+          font-weight: 700;
+        }
+        .reps-value {
+          font-size: 18px;
+          font-weight: 700;
+          color: #495057;
+        }
+        .exercises-info {
+          font-size: 13px;
+          color: #6c757d;
+          font-weight: 500;
+        }
+        .actions-cell {
+          text-align: center;
+        }
+        .view-details-btn {
+          padding: 8px 16px;
+          background: linear-gradient(135deg, #007bff, #0056b3);
+          color: white;
+          border: none;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+        }
+        .view-details-btn:hover {
+          background: linear-gradient(135deg, #0056b3, #004085);
+          box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+          transform: translateY(-1px);
+        }
+        .view-details-btn:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+        }
+        .expanded-row {
+          background: #f8f9fa !important;
+        }
+        .expanded-row:hover {
+          background: #f8f9fa !important;
+          transform: none !important;
+        }
         @media (max-width: 768px) {
           .leaderboard {
             padding: 15px;
@@ -531,7 +677,7 @@ function Leaderboard() {
             overflow-x: auto;
           }
           table {
-            min-width: 600px;
+            min-width: 700px;
           }
           th, td {
             padding: 12px 8px;
@@ -543,6 +689,19 @@ function Leaderboard() {
             font-size: 14px;
           }
           .score-cell, .points-cell {
+            font-size: 16px;
+          }
+          .view-details-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+          }
+          .time-based-score {
+            font-size: 14px;
+          }
+          .time-value {
+            font-size: 16px;
+          }
+          .reps-value {
             font-size: 16px;
           }
         }

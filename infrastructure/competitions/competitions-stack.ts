@@ -10,7 +10,6 @@ import { createBundledLambda } from '../shared/lambda-bundling';
 export interface CompetitionsStackProps  {
   stage: string;
   eventBus: events.EventBus;
-  sharedLayer: lambda.LayerVersion;
   eventImagesBucket: s3.Bucket;
   organizationEventsTable: dynamodb.Table;
   organizationMembersTable: dynamodb.Table;
@@ -19,6 +18,7 @@ export interface CompetitionsStackProps  {
   wodsTable?: dynamodb.Table;
   athleteEventsTable?: dynamodb.Table;
   cloudfrontDomain?: string;
+  lambdaEnvironment?: Record<string, string>;
 }
 
 export class CompetitionsStack extends Construct {
@@ -61,7 +61,6 @@ export class CompetitionsStack extends Construct {
       handler: 'handler-ddd.handler',
       timeout: cdk.Duration.seconds(30),
       memorySize: 512, // Slightly more memory for domain logic
-      layers: [props.sharedLayer],
       environment: {
         EVENTS_TABLE: this.eventsTable.tableName,
         EVENT_DAYS_TABLE: this.eventDaysTable.tableName,
@@ -73,8 +72,9 @@ export class CompetitionsStack extends Construct {
         CATEGORIES_TABLE: props.categoriesTable?.tableName || '',
         WODS_TABLE: props.wodsTable?.tableName || '',
         ATHLETES_TABLE: props.athleteEventsTable?.tableName || '',
-        EVENT_BUS_NAME: this.competitionsEventBus.eventBusName, // DDD handler uses this name
+        EVENT_BUS_NAME: this.competitionsEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
+        ...props.lambdaEnvironment,
       },
     });
 

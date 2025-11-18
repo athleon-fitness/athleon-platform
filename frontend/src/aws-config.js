@@ -4,6 +4,7 @@ let config = {
   apiUrl: import.meta.env.VITE_API_URL,
   userPoolId: import.meta.env.VITE_USER_POOL_ID,
   userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID,
+  authDomain: import.meta.env.VITE_AUTH_DOMAIN,
 };
 
 // Try to load from build-time config file
@@ -19,6 +20,16 @@ const awsConfig = {
     region: config.region,
     userPoolId: config.userPoolId,
     userPoolWebClientId: config.userPoolClientId,
+    // Custom domain configuration
+    ...(config.authDomain && {
+      oauth: {
+        domain: config.authDomain,
+        scope: ['email', 'openid', 'profile'],
+        redirectSignIn: window.location.origin,
+        redirectSignOut: window.location.origin,
+        responseType: 'code',
+      }
+    })
   },
   API: {
     endpoints: [

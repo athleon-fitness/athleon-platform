@@ -48,9 +48,12 @@ exports.handler = async (event) => {
     path: event.path
   });
 
+  // Extract origin for CORS
+  const origin = event.headers?.origin || event.headers?.Origin;
+
   // Handle preflight OPTIONS requests
   if (event.httpMethod === 'OPTIONS') {
-    return createOptionsResponse();
+    return createOptionsResponse(origin);
   }
 
   try {
@@ -88,7 +91,7 @@ exports.handler = async (event) => {
     // GET /public/events - Get all published events
     if (path === '/public/events' && method === 'GET') {
       const events = await service.getPublishedEvents();
-      return createResponse(200, events.map(e => e.toObject()));
+      return createResponse(200, events.map(e => e.toObject()), origin);
     }
 
     // GET /public/events/{eventId} - Get single published event
@@ -97,21 +100,16 @@ exports.handler = async (event) => {
       const event = await service.getEvent(publicEventId);
       
       if (!event || !event.published) {
-        return createErrorResponse,
-  getCorsHeaders(404, 'Event not found or not published');
+        return createErrorResponse(404, 'Event not found or not published', origin);
       }
       
-      return createResponse(200, event.toObject());
+      return createResponse(200, event.toObject(), origin);
     }
 
     // ===== AUTHENTICATED ENDPOINTS =====
     
     if (!userId) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({ message: 'Authentication required' })
-      };
+      return createErrorResponse(401, 'Authentication required', origin);
     }
 
     // GET /competitions?organizationId={orgId} - Get organization events
@@ -119,19 +117,11 @@ exports.handler = async (event) => {
       const organizationId = event.queryStringParameters?.organizationId;
       
       if (!organizationId) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ message: 'organizationId is required' })
-        };
+        return createErrorResponse(400, 'organizationId is required', origin);
       }
       
       const events = await service.getOrganizationEvents(organizationId);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(events.map(e => e.toObject()))
-      };
+      return createResponse(200, events.map(e => e.toObject()), origin);
     }
 
     // POST /competitions - Create new event
@@ -192,11 +182,7 @@ exports.handler = async (event) => {
           }
         }
       }
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify(newEvent.toObject())
-      };
+      return createResponse(201, newEvent.toObject(), origin);
     }
 
     // GET /competitions/{eventId} - Get single event
@@ -204,78 +190,46 @@ exports.handler = async (event) => {
       const eventData = await service.getEvent(eventId);
       
       if (!eventData) {
-        return {
-          statusCode: 404,
-          headers,
-          body: JSON.stringify({ message: 'Event not found' })
-        };
+        return createErrorResponse(404, 'Event not found', origin);
       }
       
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(eventData.toObject())
-      };
+      return createResponse(200, eventData.toObject(), origin);
     }
 
     // PUT /competitions/{eventId} - Update event
     if (eventId && pathParts.length === 1 && method === 'PUT') {
       const updatedEvent = await service.updateEvent(eventId, requestBody, userId);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(updatedEvent.toObject())
-      };
+      return createResponse(200, updatedEvent.toObject(), origin);
     }
 
     // POST /competitions/{eventId}/publish - Publish event
     if (eventId && pathParts[1] === 'publish' && method === 'POST') {
       const publishedEvent = await service.publishEvent(eventId, userId);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(publishedEvent.toObject())
-      };
+      return createResponse(200, publishedEvent.toObject(), origin);
     }
 
     // POST /competitions/{eventId}/unpublish - Unpublish event
     if (eventId && pathParts[1] === 'unpublish' && method === 'POST') {
       const unpublishedEvent = await service.unpublishEvent(eventId, userId);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(unpublishedEvent.toObject())
-      };
+      return createResponse(200, unpublishedEvent.toObject(), origin);
     }
 
     // POST /competitions/{eventId}/leaderboard/public - Make leaderboard public
     if (eventId && pathParts[1] === 'leaderboard' && pathParts[2] === 'public' && method === 'POST') {
       const updatedEvent = await service.makeLeaderboardPublic(eventId, userId);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(updatedEvent.toObject())
-      };
+      return createResponse(200, updatedEvent.toObject(), origin);
     }
 
     // POST /competitions/{eventId}/leaderboard/private - Make leaderboard private
     if (eventId && pathParts[1] === 'leaderboard' && pathParts[2] === 'private' && method === 'POST') {
       const updatedEvent = await service.makeLeaderboardPrivate(eventId, userId);
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify(updatedEvent.toObject())
-      };
+      return createResponse(200, updatedEvent.toObject(), origin);
     }
 
     // DELETE /competitions/{eventId} - Delete event
     if (eventId && pathParts.length === 1 && method === 'DELETE') {
       await service.deleteEvent(eventId, userId);
-      return {
-        statusCode: 204,
-        headers,
-        body: ''
-      };
+      return createResponse(204, '', origin);
     }
 
     // POST /competitions/{eventId}/upload-url - Generate S3 upload URL
@@ -287,20 +241,12 @@ exports.handler = async (event) => {
       const EVENT_IMAGES_BUCKET = process.env.EVENT_IMAGES_BUCKET;
       
       if (!EVENT_IMAGES_BUCKET) {
-        return {
-          statusCode: 500,
-          headers,
-          body: JSON.stringify({ message: 'Event images bucket not configured' })
-        };
+        return createErrorResponse(500, 'Event images bucket not configured', origin);
       }
       
       const { fileName, fileType } = requestBody;
       if (!fileName || !fileType) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({ message: 'fileName and fileType are required' })
-        };
+        return createErrorResponse(400, 'fileName and fileType are required', origin);
       }
       
       const key = `events/${eventId}/${fileName}`;
@@ -314,37 +260,23 @@ exports.handler = async (event) => {
         const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 300 });
         const imageUrl = `https://${EVENT_IMAGES_BUCKET}.s3.amazonaws.com/${key}`;
         
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({ uploadUrl, imageUrl })
-        };
+        return createResponse(200, { uploadUrl, imageUrl }, origin);
       } catch (error) {
         logger.error('Error generating upload URL', { error: error.message, eventId });
-        return {
-          statusCode: 500,
-          headers,
-          body: JSON.stringify({ message: 'Failed to generate upload URL' })
-        };
+        return createErrorResponse(500, 'Failed to generate upload URL', origin);
       }
     }
 
     // Route not found
-    return {
-      statusCode: 404,
-      headers,
-      body: JSON.stringify({ message: 'Route not found' })
-    };
+    return createErrorResponse(404, 'Route not found', origin);
 
   } catch (error) {
     logger.error('Error in DDD handler', { error: error.message, stack: error.stack });
     
-    return {
-      statusCode: error.message.includes('not found') ? 404 : 500,
-      headers,
-      body: JSON.stringify({
-        message: error.message || 'Internal server error'
-      })
-    };
+    return createErrorResponse(
+      error.message.includes('not found') ? 404 : 500,
+      error.message || 'Internal server error',
+      origin
+    );
   }
 };

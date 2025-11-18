@@ -3,6 +3,7 @@ import { get, post, put, del } from '../../lib/api';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useOrganization } from '../../contexts/OrganizationContext';
 import OrganizationSelector from './OrganizationSelector';
+import ConfirmDialog from '../common/ConfirmDialog';
 import './EventManagement.css';
 
 function EventManagement() {
@@ -43,6 +44,7 @@ function EventManagement() {
     movements: [{ exercise: '', reps: '', weight: '' }],
     description: ''
   });
+  const [deleteConfirm, setDeleteConfirm] = useState({ isOpen: false, eventId: null });
 
   const wodFormats = ['AMRAP', 'Chipper', 'EMOM', 'RFT', 'Ladder', 'Tabata'];
 
@@ -166,8 +168,14 @@ function EventManagement() {
     setShowEditPage(true);
   };
 
-  const handleDelete = async (eventId) => {
-    if (!window.confirm('Are you sure you want to delete this event?')) return;
+  const handleDelete = (eventId) => {
+    setDeleteConfirm({ isOpen: true, eventId });
+  };
+
+  const confirmDelete = async () => {
+    const eventId = deleteConfirm.eventId;
+    setDeleteConfirm({ isOpen: false, eventId: null });
+    
     try {
       await del(`/competitions/${eventId}`);
       fetchEvents();
@@ -228,7 +236,9 @@ function EventManagement() {
       const eventData = { 
         ...formData, 
         imageUrl: imageUrl || '', // Temporary, will update if image uploaded
-        organizationId: selectedOrganization.organizationId 
+        organizationId: selectedOrganization.organizationId,
+        categories: formData.categories || [],
+        wods: formData.workouts || []
       };
       
       if (editingEvent) {
@@ -1010,6 +1020,17 @@ function EventManagement() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm({ isOpen: false, eventId: null })}
+        onConfirm={confirmDelete}
+        title="Delete Event"
+        message="Are you sure you want to delete this event? This action cannot be undone."
+        confirmText="Delete Event"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </div>
   );
 }

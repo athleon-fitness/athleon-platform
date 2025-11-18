@@ -148,6 +148,7 @@ export class AthleonStack extends cdk.Stack {
       wodsTable: wodsStack.wodsTable,
       athleteEventsTable: athletesStack.athleteEventsTable,
       cloudfrontDomain: `https://${props.config.domain || frontendStack.distribution.distributionDomainName}`,
+      lambdaEnvironment: props.config.lambda.environment,
     });
 
     const schedulingStack = new SchedulingStack(this, 'Scheduling', {
