@@ -31,7 +31,9 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest --run",
     "test:watch": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "deploy:s3": "aws s3 sync build/ s3://athleon-frontend-development --delete --profile labvel-dev",
+    "invalidate:cloudfront": "aws cloudfront create-invalidation --distribution-id E1FZC8AFGVA2DL --paths '/*' --profile labvel-dev"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
