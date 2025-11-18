@@ -3,7 +3,6 @@ import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
 // Make expect available globally BEFORE importing jest-dom
-// eslint-disable-next-line no-undef
 global.expect = expect;
 
 // jest-dom adds custom jest matchers for asserting on DOM nodes.
@@ -30,7 +29,6 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Mock IntersectionObserver
-// eslint-disable-next-line no-undef
 global.IntersectionObserver = class IntersectionObserver {
   disconnect() {}
   observe() {}
