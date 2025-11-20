@@ -18,7 +18,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
+  border-top: 4px solid #FF5722;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 20px;
@@ -90,8 +90,8 @@
 
 .schedule-select:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #FF5722;
+  box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.1);
 }
 
 /* Filter Controls */
@@ -118,17 +118,17 @@
 }
 
 .filter-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: #FF5722;
+  color: #FF5722;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.2);
 }
 
 .filter-btn.active {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-color: #667eea;
+  background: linear-gradient(135deg, #FF5722 0%, #B87333 100%);
+  border-color: #FF5722;
   color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 15px rgba(255, 87, 34, 0.3);
 }
 
 /* Schedule Display Card */
@@ -141,7 +141,7 @@
 }
 
 .schedule-header-info {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #FF5722 0%, #B87333 100%);
   color: white;
   padding: 24px;
 }
@@ -273,7 +273,7 @@
 }
 
 .session-mode-badge {
-  background: #667eea;
+  background: #FF5722;
   color: white;
   padding: 4px 12px;
   border-radius: 16px;
@@ -348,7 +348,7 @@
 }
 
 .heat-number {
-  background: #667eea;
+  background: #FF5722;
   color: white;
   padding: 6px 16px;
   border-radius: 20px;
@@ -475,7 +475,7 @@
 }
 
 .time-slot {
-  color: #667eea;
+  color: #FF5722;
   font-weight: 600;
   font-size: 0.9em;
 }
