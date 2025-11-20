@@ -1725,7 +1725,7 @@ function EventDetails() {
           margin: 20px;
           border: 1px solid #e0e0e0;
           border-radius: 8px;
-          background: white;
+          background: #d86732;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
         
