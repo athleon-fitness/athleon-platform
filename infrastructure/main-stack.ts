@@ -162,6 +162,7 @@ export class AthleonStack extends cdk.Stack {
       stage: props.stage,
       eventBus: sharedStack.eventBus,
       sharedLayer: sharedStack.sharedLayer.layer,
+      scoresTable: scoringStack.scoresTable,
     });
 
     // Analytics Domain (event-driven)

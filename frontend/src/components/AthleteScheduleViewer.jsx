@@ -31,6 +31,13 @@ const AthleteScheduleViewer = ({ eventId }) => {
   useEffect(() => {
     if (eventId && currentUser) {
       loadPublishedSchedules();
+      
+      // Auto-refresh every 30 seconds for tournament brackets
+      const interval = setInterval(() => {
+        loadPublishedSchedules();
+      }, 30000);
+      
+      return () => clearInterval(interval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, currentUser]);
@@ -291,19 +298,21 @@ const AthleteScheduleViewer = ({ eventId }) => {
                                 <span className="heat-number">Heat {match.heatNumber || 1}</span>
                               </div>
                               <div className="vs-container">
-                                <div className="athlete-card athlete-1">
+                                <div className={`athlete-card athlete-1 ${match.winnerId === match.athlete1?.userId ? 'winner' : match.winnerId ? 'loser' : ''}`}>
                                   <span className="athlete-name">
-                                    {match.athlete1?.firstName} {match.athlete1?.lastName}
+                                    {match.athlete1?.userId === 'TBD' ? 'TBD' : `${match.athlete1?.firstName || ''} ${match.athlete1?.lastName || ''}`}
                                   </span>
+                                  {match.winnerId === match.athlete1?.userId && <span className="winner-badge">✓ Winner</span>}
                                 </div>
                                 <div className="vs-divider">
                                   <span className="vs-text">VS</span>
                                 </div>
                                 {match.athlete2 ? (
-                                  <div className="athlete-card athlete-2">
+                                  <div className={`athlete-card athlete-2 ${match.winnerId === match.athlete2?.userId ? 'winner' : match.winnerId ? 'loser' : ''}`}>
                                     <span className="athlete-name">
-                                      {match.athlete2.firstName} {match.athlete2.lastName}
+                                      {match.athlete2.userId === 'TBD' ? 'TBD' : `${match.athlete2.firstName || ''} ${match.athlete2.lastName || ''}`}
                                     </span>
+                                    {match.winnerId === match.athlete2?.userId && <span className="winner-badge">✓ Winner</span>}
                                   </div>
                                 ) : (
                                   <div className="bye-card">

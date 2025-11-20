@@ -3,6 +3,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as sfn from 'aws-cdk-lib/aws-stepfunctions';
 import * as tasks from 'aws-cdk-lib/aws-stepfunctions-tasks';
 import { Construct } from 'constructs';
@@ -12,6 +13,7 @@ export interface SchedulingStackProps  {
   stage: string;
   eventBus: events.EventBus;
   sharedLayer: lambda.LayerVersion;
+  scoresTable: dynamodb.Table;
 }
 
 export class SchedulingStack extends Construct {
@@ -90,6 +92,29 @@ export class SchedulingStack extends Construct {
     });
 
     this.schedulesTable.grantReadData(this.publicSchedulesLambda);
+
+    // Auto-advance brackets Lambda
+    const autoAdvanceLambda = createBundledLambda(this, 'AutoAdvanceLambda', 'scheduling', {
+      handler: 'auto-advance-brackets.handler',
+      environment: {
+        SCHEDULES_TABLE: this.schedulesTable.tableName,
+        SCORES_TABLE: props.scoresTable.tableName,
+      },
+      layers: [props.sharedLayer],
+    });
+
+    this.schedulesTable.grantReadWriteData(autoAdvanceLambda);
+    props.scoresTable.grantReadData(autoAdvanceLambda);
+
+    // EventBridge rule to trigger auto-advance on score submission
+    new events.Rule(this, 'AutoAdvanceRule', {
+      eventBus: props.eventBus,
+      eventPattern: {
+        source: ['athleon.scores'],
+        detailType: ['Score Submitted'],
+      },
+      targets: [new targets.LambdaFunction(autoAdvanceLambda)],
+    });
 
     // Outputs
   }

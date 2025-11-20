@@ -144,16 +144,15 @@ async function handleScoreSubmitted(eventDetail) {
     }
   }));
 
-  // Trigger tournament leaderboard updates for affected schedules
+  // Trigger auto-advancement for affected schedules
   for (const schedule of activeSchedules) {
     await eventBridge.send(new PutEventsCommand({
       Entries: [{
         Source: 'tournament.schedule',
-        DetailType: 'Tournament Leaderboard Update Required',
+        DetailType: 'Auto Advance Brackets',
         Detail: JSON.stringify({
           eventId,
           scheduleId: schedule.SK.replace('SCHEDULE#', ''),
-          trigger: 'score_submitted',
           athleteId,
           wodId,
           categoryId,
