@@ -313,12 +313,34 @@ exports.handler = async (event) => {
         }
       }
       
+      // Fetch athlete data to include in score
+      let athleteData = {};
+      if (body.athleteId) {
+        try {
+          const { Item: athlete } = await ddb.send(new GetCommand({
+            TableName: process.env.ATHLETES_TABLE,
+            Key: { userId: body.athleteId }
+          }));
+          if (athlete) {
+            athleteData = {
+              athleteAlias: athlete.alias,
+              athleteName: `${athlete.firstName} ${athlete.lastName}`,
+              firstName: athlete.firstName,
+              lastName: athlete.lastName
+            };
+          }
+        } catch (err) {
+          logger.error('Error fetching athlete data:', err);
+        }
+      }
+      
       const item = {
         eventId: body.eventId,
         scoreId,
         dayId: body.dayId,
         wodId: body.wodId,
         athleteId: body.athleteId,
+        ...athleteData,
         categoryId: body.categoryId,
         score: Number(calculatedScore) || calculatedScore,
         rank: body.rank || 0,

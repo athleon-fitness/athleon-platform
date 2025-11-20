@@ -11,12 +11,14 @@ function PublicEventDetail() {
   const [wods, setWods] = useState([]);
   const [scores, setScores] = useState([]);
   const [schedules, setSchedules] = useState([]);
+  const [athletes, setAthletes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedWod, setSelectedWod] = useState('');
   const [showSchedule, setShowSchedule] = useState(true); // Show by default
   const [athleteSearch, setAthleteSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [leaderboardSearch, setLeaderboardSearch] = useState('');
 
   useEffect(() => {
     fetchEventData();
@@ -52,17 +54,22 @@ function PublicEventDetail() {
         setCategories(categoriesRes || []);
         setWods(wodsRes || []);
         setSchedules(schedulesRes || []);
+        
+        // Try to fetch athletes but don't fail if unauthorized
+        try {
+          const athletesRes = await publicGet(`/athletes?eventId=${eventId}`);
+          setAthletes(athletesRes || []);
+        } catch (err) {
+          console.log('Athletes data not available publicly');
+          setAthletes([]);
+        }
 
         if (categoriesRes && categoriesRes.length > 0) setSelectedCategory(categoriesRes[0].categoryId);
 
         // Fetch public scores if publicLeaderboard is enabled
         if (eventData.publicLeaderboard) {
-          const scoresResponse = await get({
-            apiName: 'CalisthenicsAPI',
-            path: `/public/scores?eventId=${eventId}`
-          }).response;
-          const scoresRes = await scoresResponse.body.json();
-          setScores(scoresRes);
+          const scoresRes = await publicGet(`/public/scores?eventId=${eventId}`);
+          setScores(scoresRes || []);
         }
       } catch (error) {
         console.error('Error fetching event details:', error);
@@ -80,12 +87,8 @@ function PublicEventDetail() {
     if (!canViewScores) return;
 
     try {
-      const scoresResponse = await get({
-        apiName: 'CalisthenicsAPI',
-        path: `/public/scores?eventId=${eventId}`
-      }).response;
-      const scoresRes = await scoresResponse.body.json();
-      setScores(scoresRes);
+      const scoresRes = await publicGet(`/public/scores?eventId=${eventId}`);
+      setScores(scoresRes || []);
     } catch (error) {
       console.error('Error fetching scores:', error);
       setScores([]);
@@ -112,13 +115,38 @@ function PublicEventDetail() {
     if (selectedWod) {
       filteredScores = filteredScores.filter(s => s.wodId === selectedWod);
     }
+    
+    // Filter by athlete search
+    if (leaderboardSearch.trim()) {
+      const searchLower = leaderboardSearch.toLowerCase();
+      filteredScores = filteredScores.filter(s => 
+        s.athleteAlias?.toLowerCase().includes(searchLower) ||
+        s.athleteName?.toLowerCase().includes(searchLower) ||
+        s.firstName?.toLowerCase().includes(searchLower) ||
+        s.lastName?.toLowerCase().includes(searchLower) ||
+        s.athleteId?.toLowerCase().includes(searchLower)
+      );
+    }
 
     return filteredScores
       .sort((a, b) => b.score - a.score)
-      .map((score, index) => ({
-        ...score,
-        rank: index + 1
-      }));
+      .map((score, index) => {
+        // Find athlete data
+        const athlete = athletes.find(a => 
+          a.userId === score.athleteId || 
+          a.athleteId === score.athleteId || 
+          a.email === score.athleteId
+        );
+        
+        return {
+          ...score,
+          rank: index + 1,
+          athleteAlias: score.athleteAlias || athlete?.alias,
+          athleteName: score.athleteName || (athlete ? `${athlete.firstName} ${athlete.lastName}` : null),
+          firstName: score.firstName || athlete?.firstName,
+          lastName: score.lastName || athlete?.lastName
+        };
+      });
   };
 
   if (loading) return <LoadingSpinner size="lg" message="Loading event details..." variant="pulse" />;
@@ -358,6 +386,26 @@ function PublicEventDetail() {
             </div>
           ) : (
             <>
+              <div style={{display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap'}}>
+                <div style={{position: 'relative', flex: 1, minWidth: '200px'}}>
+                  <input
+                    type="text"
+                    placeholder="🔍 Search athlete..."
+                    value={leaderboardSearch}
+                    onChange={(e) => setLeaderboardSearch(e.target.value)}
+                    style={{width: '100%', padding: '10px 36px 10px 12px', border: '2px solid #e0e0e0', borderRadius: '8px', fontSize: '14px'}}
+                  />
+                  {leaderboardSearch && (
+                    <button 
+                      onClick={() => setLeaderboardSearch('')}
+                      style={{position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: '#e0e0e0', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', fontSize: '12px'}}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+              
               {selectedCategory && (
                 <p className="category-filter">
                   Showing: {getCategoryById(selectedCategory).name}
@@ -370,7 +418,7 @@ function PublicEventDetail() {
                     <div key={entry.scoreId} className="score-entry">
                       <div className="rank">#{entry.rank}</div>
                       <div className="athlete-info">
-                        <strong>Athlete {entry.athleteId.substring(0, 8)}</strong>
+                        <strong>{entry.athleteAlias || entry.athleteName || entry.firstName && entry.lastName ? `${entry.firstName} ${entry.lastName}` : entry.athleteId || 'Unknown Athlete'}</strong>
                         {!selectedWod && entry.wodId && (
                           <small>{getWodById(entry.wodId).name}</small>
                         )}
@@ -718,11 +766,19 @@ function PublicEventDetail() {
         .athlete-info {
           flex: 1;
           margin-left: 15px;
+          min-width: 0;
+          overflow: visible;
+        }
+        .athlete-info strong {
+          display: block;
+          word-break: break-word;
+          overflow-wrap: break-word;
         }
         .athlete-info small {
           display: block;
           color: #6c757d;
           font-size: 12px;
+          word-break: break-word;
         }
         .score {
           font-weight: bold;

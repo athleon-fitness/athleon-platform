@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { get, post, put, del } from '../../lib/api';
 import { useParams, useNavigate } from 'react-router-dom';
+import './ScoreEntry.css';
 
 function ScoreEntry({ user: _user }) {
   const { eventId } = useParams();
@@ -31,6 +32,9 @@ function ScoreEntry({ user: _user }) {
   const [exerciseCompletionStatus, setExerciseCompletionStatus] = useState([]);
   const [completionTime, setCompletionTime] = useState('');
   const [validationErrors, setValidationErrors] = useState([]);
+  
+  // WOD selector filter state
+  const [wodScoringTypeFilter, setWodScoringTypeFilter] = useState(null);
   
   // Global advanced scoring system (fallback)
   const globalScoringSystem = {
@@ -484,6 +488,81 @@ function ScoreEntry({ user: _user }) {
     return filtered;
   };
 
+  const getFilteredWods = () => {
+    if (!wodScoringTypeFilter) return wods;
+    
+    return wods.filter(wod => {
+      // Determine scoring system type for this WOD
+      const wodType = getWodScoringType(wod);
+      return wodType === wodScoringTypeFilter;
+    });
+  };
+
+  const getWodScoringType = (wod) => {
+    // If WOD has scoringSystemType property, use it
+    if (wod.scoringSystemType) {
+      return wod.scoringSystemType;
+    }
+    
+    // If no scoring system, return null (will show as "Default")
+    if (!wod.scoringSystemId) {
+      return null;
+    }
+    
+    // Try to infer from scoringSystemId naming convention
+    const id = wod.scoringSystemId.toLowerCase();
+    if (id.includes('classic')) return 'classic';
+    if (id.includes('time') || id.includes('timed')) return 'time-based';
+    if (id.includes('advanced')) return 'advanced';
+    
+    // Default to advanced if we can't determine
+    return 'advanced';
+  };
+
+  const getScoringBadgeInfo = (wod) => {
+    const type = getWodScoringType(wod);
+    
+    if (!type) {
+      return {
+        icon: '⚙️',
+        label: 'Default',
+        className: 'scoring-badge-default',
+        tooltip: 'No scoring system configured - will use default advanced scoring'
+      };
+    }
+    
+    switch (type) {
+      case 'classic':
+        return {
+          icon: '🏆',
+          label: 'Classic',
+          className: 'scoring-badge-blue',
+          tooltip: 'Rank-based scoring system'
+        };
+      case 'advanced':
+        return {
+          icon: '⚡',
+          label: 'Advanced',
+          className: 'scoring-badge-orange',
+          tooltip: 'Exercise-based scoring with quality ratings'
+        };
+      case 'time-based':
+        return {
+          icon: '⏱️',
+          label: 'Time-Based',
+          className: 'scoring-badge-green',
+          tooltip: 'Completion time or reps-based scoring'
+        };
+      default:
+        return {
+          icon: '⚙️',
+          label: 'Default',
+          className: 'scoring-badge-default',
+          tooltip: 'Default scoring system'
+        };
+    }
+  };
+
   return (
     <div className="score-entry">
       <h1>📊 Score Entry</h1>
@@ -580,18 +659,82 @@ function ScoreEntry({ user: _user }) {
               <>
                 <div className="form-row">
                   <div className="form-group">
+                    <label>Filter by Scoring Type</label>
+                    <select
+                      value={wodScoringTypeFilter || ''}
+                      onChange={(e) => setWodScoringTypeFilter(e.target.value || null)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: '1px solid #e1e8ed',
+                        fontSize: '14px',
+                        background: 'white'
+                      }}
+                    >
+                      <option value="">All Scoring Types</option>
+                      <option value="classic">🏆 Classic</option>
+                      <option value="advanced">⚡ Advanced</option>
+                      <option value="time-based">⏱️ Time-Based</option>
+                    </select>
+                    <small style={{display: 'block', color: '#6c757d', marginTop: '4px', fontSize: '12px'}}>
+                      {wodScoringTypeFilter 
+                        ? `Showing ${getFilteredWods().length} of ${wods.length} WODs`
+                        : `Showing all ${wods.length} WODs`
+                      }
+                    </small>
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
                     <label>WOD *</label>
                     <select
                       value={scoreData.wodId}
                       onChange={(e) => setScoreData({...scoreData, wodId: e.target.value})}
                       required
+                      className="wod-selector-with-badges"
                     >
                       <option value="">Select WOD</option>
-                      {wods.map(wod => (
-                        <option key={wod.wodId} value={wod.wodId}>{wod.name}</option>
-                      ))}
+                      {getFilteredWods().map(wod => {
+                        const badgeInfo = getScoringBadgeInfo(wod);
+                        return (
+                          <option 
+                            key={wod.wodId} 
+                            value={wod.wodId}
+                            title={badgeInfo.tooltip}
+                          >
+                            {badgeInfo.icon} {wod.name} - {badgeInfo.label}
+                          </option>
+                        );
+                      })}
                     </select>
                     {wods.length === 0 && <p style={{color: 'orange', fontSize: '12px'}}>No WODs found for this event</p>}
+                    {wods.length > 0 && getFilteredWods().length === 0 && (
+                      <p style={{color: 'orange', fontSize: '12px'}}>
+                        No WODs found with {wodScoringTypeFilter} scoring type
+                      </p>
+                    )}
+                    
+                    {/* Display selected WOD's scoring badge below selector */}
+                    {scoreData.wodId && selectedWod && (
+                      <div style={{
+                        marginTop: '8px',
+                        padding: '8px 12px',
+                        background: '#f8f9fa',
+                        borderRadius: '6px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '13px'
+                      }}>
+                        <span className={`scoring-badge-inline ${getScoringBadgeInfo(selectedWod).className}`}>
+                          {getScoringBadgeInfo(selectedWod).icon} {getScoringBadgeInfo(selectedWod).label}
+                        </span>
+                        <span style={{color: '#6c757d'}}>
+                          {getScoringBadgeInfo(selectedWod).tooltip}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="form-group">
                     <label>Category *</label>
