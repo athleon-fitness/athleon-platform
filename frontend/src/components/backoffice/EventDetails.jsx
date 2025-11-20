@@ -1390,7 +1390,7 @@ function EventDetails() {
           align-items: center;
           margin-bottom: 0;
           padding: 12px 15px;
-          background: #6B7C93;
+          background: linear-gradient(135deg, #FF5722 0%, #B87333 100%);
           border-radius: 8px 8px 0 0;
           flex-wrap: wrap;
           gap: 8px;
@@ -1734,7 +1734,7 @@ function EventDetails() {
           justify-content: space-between;
           align-items: center;
           padding: 15px 20px;
-          background: #6B7C93;
+          background: linear-gradient(135deg, #FF5722 0%, #B87333 100%);
           color: white;
           border-radius: 8px 8px 0 0;
         }
