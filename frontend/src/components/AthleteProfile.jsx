@@ -380,7 +380,9 @@ function AthleteProfile({ user, signOut }) {
                           )}
                           <div className="wod-meta">
                             {wod.format && <span>⏱️ {wod.format}</span>}
-                            {wod.timeCap && <span>🕐 {wod.timeCap}s cap</span>}
+                            {wod.timeCap && (
+                              <span>🕐 {typeof wod.timeCap === 'object' ? `${wod.timeCap.minutes}:${String(wod.timeCap.seconds).padStart(2, '0')}` : wod.timeCap}s cap</span>
+                            )}
                             {wod.type && <span>🎯 {wod.type}</span>}
                           </div>
                         </div>

@@ -250,7 +250,9 @@ function PublicEventDetail() {
                     <p>{wod.description}</p>
                     <div className="wod-meta">
                       <span>⏱️ {wod.format}</span>
-                      {wod.timeCap && <span>🕐 {wod.timeCap}s cap</span>}
+                      {wod.timeCap && (
+                        <span>🕐 {typeof wod.timeCap === 'object' ? `${wod.timeCap.minutes}:${String(wod.timeCap.seconds).padStart(2, '0')}` : wod.timeCap}s cap</span>
+                      )}
                     </div>
                   </div>
                 ))}

@@ -190,7 +190,7 @@ class CompetitionScheduler {
         dayId: day.dayId,
         wods: wods.filter(w => !w.dayId || w.dayId === day.dayId),
         categories, athletes, maxHours: maxDayHours, lunchBreak: lunchBreakHours,
-        competitionMode, athletesPerHeat, numberOfHeats, categoryHeats, athletesEliminatedPerFilter, eliminationRules, categoryEliminationRules, heatWodMapping, startTime, timezone, transitionTime, setupTime
+        competitionMode, athletesPerHeat, numberOfHeats, categoryHeats, athletesEliminatedPerFilter, eliminationRules, categoryEliminationRules, heatWodMapping, concurrentMatches, startTime, timezone, transitionTime, setupTime
       });
       schedule.days.push(daySchedule);
     }
@@ -198,11 +198,11 @@ class CompetitionScheduler {
     // Calculate total duration from all days
     schedule.totalDuration = schedule.days.reduce((total, day) => total + (day.totalDuration || 0), 0);
 
-    // Save schedule to database (commented out for now)
-    // await this.dynamodb.send(new PutCommand({
-    //   TableName: SCHEDULES_TABLE,
-    //   Item: schedule
-    // }));
+    // Save schedule to database
+    await this.dynamodb.send(new PutCommand({
+      TableName: SCHEDULES_TABLE,
+      Item: schedule
+    }));
 
     return schedule;
   }
@@ -217,7 +217,7 @@ class CompetitionScheduler {
       heatWodMapping: config.heatWodMapping
     });
     
-    const { dayId, wods, categories, athletes, competitionMode, athletesPerHeat, numberOfHeats, categoryHeats, athletesEliminatedPerFilter, eliminationRules, categoryEliminationRules, heatWodMapping, startTime, timezone, transitionTime, setupTime } = config;
+    const { dayId, wods, categories, athletes, competitionMode, athletesPerHeat, numberOfHeats, categoryHeats, athletesEliminatedPerFilter, eliminationRules, categoryEliminationRules, heatWodMapping, concurrentMatches, startTime, timezone, transitionTime, setupTime } = config;
     
     const sessions = [];
     let currentTime = this.timeToMinutes(startTime);
@@ -586,7 +586,10 @@ class CompetitionScheduler {
     await this.dynamodb.send(new UpdateCommand({
       TableName: SCHEDULES_TABLE,
       Key: { eventId, scheduleId },
-      UpdateExpression: 'SET published = :published, publishedAt = :publishedAt',
+      UpdateExpression: 'SET #published = :published, publishedAt = :publishedAt',
+      ExpressionAttributeNames: {
+        '#published': 'published'
+      },
       ExpressionAttributeValues: {
         ':published': true,
         ':publishedAt': new Date().toISOString()
@@ -599,7 +602,10 @@ class CompetitionScheduler {
     await this.dynamodb.send(new UpdateCommand({
       TableName: SCHEDULES_TABLE,
       Key: { eventId, scheduleId },
-      UpdateExpression: 'SET published = :published REMOVE publishedAt',
+      UpdateExpression: 'SET #published = :published REMOVE publishedAt',
+      ExpressionAttributeNames: {
+        '#published': 'published'
+      },
       ExpressionAttributeValues: {
         ':published': false
       }
@@ -986,12 +992,12 @@ module.exports = {
         // Check for publish/unpublish actions
         const action = pathParts[2]; // publish or unpublish
         
-        if (action === 'publish' && httpMethod === 'POST') {
+        if (action === 'publish' && (httpMethod === 'POST' || httpMethod === 'PUT')) {
           const result = await scheduler.publishSchedule(eventId, scheduleId);
           return { statusCode: 200, headers, body: JSON.stringify(result) };
         }
         
-        if (action === 'unpublish' && httpMethod === 'POST') {
+        if (action === 'unpublish' && (httpMethod === 'POST' || httpMethod === 'PUT')) {
           const result = await scheduler.unpublishSchedule(eventId, scheduleId);
           return { statusCode: 200, headers, body: JSON.stringify(result) };
         }

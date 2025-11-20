@@ -2,7 +2,7 @@
 
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
-const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand, AdminGetUserCommand } = require('@aws-sdk/client-cognito-identity-provider');
 
 const ddbClient = new DynamoDBClient({ region: 'us-east-2' });
 const ddb = DynamoDBDocumentClient.from(ddbClient);
@@ -45,7 +45,7 @@ const athletes = [
 
 async function createCognitoUser(athlete) {
   try {
-    await cognitoClient.send(new AdminCreateUserCommand({
+    const createResult = await cognitoClient.send(new AdminCreateUserCommand({
       UserPoolId: USER_POOL_ID,
       Username: athlete.email,
       UserAttributes: [
@@ -66,14 +66,19 @@ async function createCognitoUser(athlete) {
       Permanent: true
     }));
 
-    return true;
+    return { success: true, userId: createResult.User.Username };
   } catch (error) {
     if (error.name === 'UsernameExistsException') {
       console.log(`⚠️  User already exists: ${athlete.email}`);
-      return true;
+      const userResult = await cognitoClient.send(new AdminGetUserCommand({
+        UserPoolId: USER_POOL_ID,
+        Username: athlete.email
+      }));
+      const sub = userResult.UserAttributes.find(attr => attr.Name === 'sub')?.Value;
+      return { success: true, userId: sub };
     }
     console.error(`❌ Error creating ${athlete.email}:`, error.message);
-    return false;
+    return { success: false };
   }
 }
 
@@ -97,20 +102,27 @@ async function seed20Athletes() {
 
     console.log(`📅 Found demo event: ${demoEvent.name}`);
 
-    // Create Cognito users
+    // Create Cognito users and get their UUIDs
     console.log('👥 Creating Cognito users...');
+    const athleteUserIds = {};
     let cognitoSuccess = 0;
     for (const athlete of athletes) {
-      const success = await createCognitoUser(athlete);
-      if (success) cognitoSuccess++;
+      const result = await createCognitoUser(athlete);
+      if (result.success) {
+        cognitoSuccess++;
+        athleteUserIds[athlete.email] = result.userId;
+      }
     }
     console.log(`✅ Created ${cognitoSuccess}/20 Cognito users`);
 
     // Create athlete profiles
     console.log('📝 Creating athlete profiles...');
     for (const athlete of athletes) {
+      const userId = athleteUserIds[athlete.email];
+      if (!userId) continue;
+
       const profile = {
-        userId: athlete.email,
+        userId,
         firstName: athlete.firstName,
         lastName: athlete.lastName,
         alias: athlete.alias,
@@ -133,8 +145,11 @@ async function seed20Athletes() {
     // Register for demo event
     console.log('📋 Registering athletes for demo event...');
     for (const athlete of athletes) {
+      const userId = athleteUserIds[athlete.email];
+      if (!userId) continue;
+
       const registration = {
-        userId: athlete.email,
+        userId,
         eventId: demoEvent.eventId,
         categoryId: athlete.categoryId,
         registeredAt: new Date().toISOString(),

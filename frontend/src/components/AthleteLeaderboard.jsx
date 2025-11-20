@@ -143,16 +143,15 @@ function AthleteLeaderboard({ userProfile }) {
     if (selectedEvent) {
       fetchEventScores();
       fetchPublishedSchedules();
-      fetchLeaderboard();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedEvent, leaderboardType, selectedSchedule]);
+  }, [selectedEvent]);
 
   useEffect(() => {
-    if (allScores.length > 0) {
+    if (selectedEvent && selectedCategory && allScores.length > 0) {
       calculateLeaderboard();
     }
-  }, [selectedCategory, athletes, allScores, calculateLeaderboard]);
+  }, [selectedEvent, selectedCategory, allScores, athletes, calculateLeaderboard]);
 
   const isCurrentUser = (athleteId) => {
     return userProfile?.athleteId === athleteId;

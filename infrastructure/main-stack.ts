@@ -259,6 +259,10 @@ export class AthleonStack extends cdk.Stack {
       authorizer: networkStack.authorizer,
     });
 
+    // Leaderboard
+    const leaderboard = networkStack.api.root.addResource('leaderboard');
+    leaderboard.addMethod('GET', new apigateway.LambdaIntegration(scoringStack.leaderboardLambda));
+
     // Exercises
     const exercises = networkStack.api.root.addResource('exercises');
     exercises.addMethod('ANY', new apigateway.LambdaIntegration(scoringStack.exercisesLambda), {

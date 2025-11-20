@@ -469,6 +469,31 @@ exports.handler = async (event) => {
     // - Event days: Not implemented yet (would be part of Scheduling domain)
     // - Scoring systems: Call /scoring-systems API directly
 
+
+    // GET /competitions/{eventId}/days - Get event days (returns empty array if none exist)
+    if (eventId && pathParts[1] === 'days' && method === 'GET') {
+      try {
+        const { QueryCommand } = require('@aws-sdk/lib-dynamodb');
+        const EVENT_DAYS_TABLE = process.env.EVENT_DAYS_TABLE;
+        
+        if (!EVENT_DAYS_TABLE) {
+          return createResponse(200, [], origin);
+        }
+        
+        const { Items } = await ddb.send(new QueryCommand({
+          TableName: EVENT_DAYS_TABLE,
+          KeyConditionExpression: 'eventId = :eventId',
+          ExpressionAttributeValues: {
+            ':eventId': eventId
+          }
+        }));
+        
+        return createResponse(200, Items || [], origin);
+      } catch (error) {
+        logger.error('Error fetching event days:', error);
+        return createResponse(200, [], origin);
+      }
+    }
     // POST /competitions/{eventId}/upload-url - Generate S3 upload URL
     if (eventId && pathParts[1] === 'upload-url' && method === 'POST') {
       // Require organizer or super_admin role

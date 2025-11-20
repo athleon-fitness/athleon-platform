@@ -39,7 +39,7 @@ function Leaderboard() {
     if (selectedEvent && (selectedWod || view === 'general')) {
       fetchScores();
     }
-  }, [selectedWod, selectedCategory]);
+  }, [selectedEvent, selectedWod, selectedCategory, view]);
 
   const fetchEvents = async () => {
     if (!selectedOrganization) return;
@@ -105,9 +105,32 @@ function Leaderboard() {
     return minutes * 60 + seconds;
   };
 
+  // Helper function to get display score from rawData if score is missing
+  const getDisplayScore = (scoreEntry) => {
+    // If score exists and is not empty, use it
+    if (scoreEntry.score && scoreEntry.score !== '' && scoreEntry.score !== '0') {
+      return Number(scoreEntry.score);
+    }
+    
+    // Fallback to rawData
+    if (scoreEntry.rawData) {
+      const { exercises, timeTaken } = scoreEntry.rawData;
+      if (timeTaken) {
+        // Time-based: return time in seconds for sorting
+        return parseTimeToSeconds(timeTaken);
+      }
+      if (exercises) {
+        // Rep-based: sum all reps
+        return exercises.reduce((sum, ex) => sum + (parseInt(ex.reps) || 0), 0);
+      }
+    }
+    
+    return 0;
+  };
+
   // Helper function to check if a score is time-based
   const isTimeBasedScore = (score) => {
-    return score.breakdown && score.breakdown.allCompleted !== undefined;
+    return score.rawData?.timeTaken || (score.breakdown && score.breakdown.allCompleted !== undefined);
   };
 
   const getWodLeaderboard = () => {
@@ -122,29 +145,17 @@ function Leaderboard() {
     const hasTimeBasedScores = filtered.some(isTimeBasedScore);
     
     if (hasTimeBasedScores) {
-      // Time-based ranking: completed first (by time), then incomplete (by exercises then reps)
-      const completed = filtered.filter(s => s.breakdown?.allCompleted === true);
-      const incomplete = filtered.filter(s => s.breakdown?.allCompleted !== true);
-      
-      // Sort completed by time (ascending - faster is better)
-      completed.sort((a, b) => {
-        const timeA = parseTimeToSeconds(a.breakdown?.completionTime);
-        const timeB = parseTimeToSeconds(b.breakdown?.completionTime);
+      // For time-based, sort by time (ascending - faster is better)
+      filtered.sort((a, b) => {
+        const timeA = a.rawData?.timeTaken ? parseTimeToSeconds(a.rawData.timeTaken) : 999999;
+        const timeB = b.rawData?.timeTaken ? parseTimeToSeconds(b.rawData.timeTaken) : 999999;
         return timeA - timeB;
       });
-      
-      // Sort incomplete by completed exercises (descending), then total reps (descending)
-      incomplete.sort((a, b) => {
-        const completedDiff = (b.breakdown?.completedExercises || 0) - (a.breakdown?.completedExercises || 0);
-        if (completedDiff !== 0) return completedDiff;
-        return (b.breakdown?.totalReps || 0) - (a.breakdown?.totalReps || 0);
-      });
-      
-      return [...completed, ...incomplete];
+      return filtered;
     }
     
     // Default sorting for non-time-based scores
-    return filtered.sort((a, b) => b.score - a.score);
+    return filtered.sort((a, b) => getDisplayScore(b) - getDisplayScore(a));
   };
 
   const getGeneralLeaderboard = () => {
@@ -207,7 +218,14 @@ function Leaderboard() {
     return athleteId;
   };
 
-  const leaderboard = view === 'wod' ? getWodLeaderboard() : getGeneralLeaderboard();
+  const leaderboard = React.useMemo(() => {
+    if (view === 'wod') {
+      return selectedWod ? getWodLeaderboard() : [];
+    }
+    return selectedEvent ? getGeneralLeaderboard() : [];
+  }, [view, selectedWod, selectedEvent, selectedCategory, scores, wods, categories]);
+
+  const showLeaderboard = (view === 'wod' && selectedWod) || (view === 'general' && selectedEvent);
 
   return (
     <div className="leaderboard">
@@ -286,6 +304,10 @@ function Leaderboard() {
 
       {loading ? (
         <LoadingSpinner size="md" message="Loading leaderboard..." variant="bars" />
+      ) : !showLeaderboard ? (
+        <div className="no-data">
+          {view === 'wod' ? 'Please select an event and WOD' : 'Please select an event'}
+        </div>
       ) : leaderboard.length === 0 ? (
         <div className="no-data">No scores available</div>
       ) : (
@@ -333,8 +355,13 @@ function Leaderboard() {
                       {view === 'wod' ? (
                         <td className="score-cell">
                           {isTimeBased ? (
-                            // Time-based score display
-                            entry.breakdown?.allCompleted ? (
+                            // Time-based score display from rawData
+                            entry.rawData?.timeTaken ? (
+                              <span className="time-based-score completed">
+                                <span className="clock-icon">⏱️</span>
+                                <span className="time-value">{entry.rawData.timeTaken}</span>
+                              </span>
+                            ) : entry.breakdown?.allCompleted ? (
                               <span className="time-based-score completed">
                                 <span className="clock-icon">⏱️</span>
                                 <span className="time-value">{entry.breakdown.completionTime}</span>
@@ -349,7 +376,7 @@ function Leaderboard() {
                             )
                           ) : (
                             // Regular score display
-                            entry.score
+                            getDisplayScore(entry)
                           )}
                         </td>
                       ) : (

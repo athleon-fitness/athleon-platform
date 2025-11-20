@@ -19,6 +19,7 @@ export class ScoringStack extends Construct {
   public readonly scoresLambda: lambda.Function;
   public readonly exercisesLambda: lambda.Function;
   public readonly scoringSystemsLambda: lambda.Function;
+  public readonly leaderboardLambda: lambda.Function;
   public readonly scoresTable: dynamodb.Table;
   public readonly scoringSystemsTable: dynamodb.Table;
   public readonly leaderboardCacheTable: dynamodb.Table;
@@ -103,7 +104,7 @@ export class ScoringStack extends Construct {
     }
 
     // Leaderboard API Lambda
-    const leaderboardLambda = new lambda.Function(this, 'LeaderboardLambda', {
+    this.leaderboardLambda = new lambda.Function(this, 'LeaderboardLambda', {
       runtime: lambda.Runtime.NODEJS_18_X,
       handler: 'leaderboard-api.handler',
       code: lambda.Code.fromAsset('lambda/scoring'),
@@ -115,8 +116,8 @@ export class ScoringStack extends Construct {
       },
     });
 
-    this.leaderboardCacheTable.grantReadData(leaderboardLambda);
-    this.scoresTable.grantReadData(leaderboardLambda);
+    this.leaderboardCacheTable.grantReadData(this.leaderboardLambda);
+    this.scoresTable.grantReadData(this.leaderboardLambda);
 
     // Leaderboard Calculator Lambda
     const calculatorLambda = new lambda.Function(this, 'LeaderboardCalculator', {
