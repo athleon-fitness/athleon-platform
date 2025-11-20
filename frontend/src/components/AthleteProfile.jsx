@@ -66,33 +66,6 @@ function AthleteProfile({ user, signOut }) {
     setEventDetails({ categories: [], wods: [], scores: [], athletes: [] });
   };
 
-  const fetchData = useCallback(async () => {
-    try {
-      setLoading(true);
-      await fetchProfile();
-      await fetchEvents();
-      await fetchCategories();
-      await fetchRegistrations();
-      // fetchScores will be called after events are loaded
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchProfile, fetchEvents, fetchCategories, fetchRegistrations]);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  // Call fetchScores when events are loaded
-  useEffect(() => {
-    if (events.length > 0) {
-      fetchScores();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
-
   const fetchProfile = useCallback(async () => {
     try {
       const response = await get('/athletes');
@@ -155,6 +128,76 @@ function AthleteProfile({ user, signOut }) {
     }
   }, [user]);
 
+  const fetchScores = useCallback(async () => {
+    try {
+      // Get all scores from all events
+      let allScoresResponse = [];
+      let allWodsResponse = [];
+      
+      // Fetch scores and WODs for each event
+      for (const event of events) {
+        try {
+          const [eventScores, eventWods] = await Promise.all([
+            get(`/public/scores?eventId=${event.eventId}`),
+            get(`/wods?eventId=${event.eventId}`)
+          ]);
+          allScoresResponse = [...allScoresResponse, ...(eventScores || [])];
+          allWodsResponse = [...allWodsResponse, ...(eventWods || [])];
+        } catch (error) {
+          console.error(`Error fetching data for event ${event.eventId}:`, error);
+        }
+      }
+      
+      setAllScores(allScoresResponse);
+      setWods(allWodsResponse);
+      
+      // Find athlete's scores using multiple possible IDs
+      const possibleAthleteIds = [
+        profile?.athleteId,
+        user?.attributes?.sub,
+        user?.attributes?.email
+      ].filter(Boolean);
+      
+      const athleteScores = allScoresResponse.filter(score => {
+        if (!score || !score.athleteId) return false;
+        const actualAthleteId = score.originalAthleteId || (score.athleteId.includes('#') ? score.athleteId.split('#')[0] : score.athleteId);
+        return possibleAthleteIds.includes(actualAthleteId);
+      });
+      
+      setScores(athleteScores);
+    } catch (error) {
+      console.error('Error fetching scores:', error);
+      setScores([]);
+      setAllScores([]);
+    }
+  }, [events, profile, user]);
+
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      await fetchProfile();
+      await fetchEvents();
+      await fetchCategories();
+      await fetchRegistrations();
+      // fetchScores will be called after events are loaded
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchProfile, fetchEvents, fetchCategories, fetchRegistrations]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Call fetchScores when events are loaded
+  useEffect(() => {
+    if (events.length > 0) {
+      fetchScores();
+    }
+  }, [events, fetchScores]);
+
   const handleEditProfile = () => {
     setEditForm({...profile});
     setEditMode(true);
@@ -200,50 +243,6 @@ function AthleteProfile({ user, signOut }) {
   const isRegisteredForEvent = (eventId) => {
     return registrations.some(reg => reg.eventId === eventId || reg.eventId === eventId);
   };
-
-  const fetchScores = useCallback(async () => {
-    try {
-      // Get all scores from all events
-      let allScoresResponse = [];
-      let allWodsResponse = [];
-      
-      // Fetch scores and WODs for each event
-      for (const event of events) {
-        try {
-          const [eventScores, eventWods] = await Promise.all([
-            get(`/public/scores?eventId=${event.eventId}`),
-            get(`/wods?eventId=${event.eventId}`)
-          ]);
-          allScoresResponse = [...allScoresResponse, ...(eventScores || [])];
-          allWodsResponse = [...allWodsResponse, ...(eventWods || [])];
-        } catch (error) {
-          console.error(`Error fetching data for event ${event.eventId}:`, error);
-        }
-      }
-      
-      setAllScores(allScoresResponse);
-      setWods(allWodsResponse);
-      
-      // Find athlete's scores using multiple possible IDs
-      const possibleAthleteIds = [
-        profile?.athleteId,
-        user?.attributes?.sub,
-        user?.attributes?.email
-      ].filter(Boolean);
-      
-      const athleteScores = allScoresResponse.filter(score => {
-        if (!score || !score.athleteId) return false;
-        const actualAthleteId = score.originalAthleteId || (score.athleteId.includes('#') ? score.athleteId.split('#')[0] : score.athleteId);
-        return possibleAthleteIds.includes(actualAthleteId);
-      });
-      
-      setScores(athleteScores);
-    } catch (error) {
-      console.error('Error fetching scores:', error);
-      setScores([]);
-      setAllScores([]);
-    }
-  }, [events, profile, user]);
 
   const calculatePersonalBests = () => {
     if (!scores.length) return {};
