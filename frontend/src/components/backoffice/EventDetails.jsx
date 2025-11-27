@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { get, post, put, del } from '../../lib/api';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import CompetitionScheduler from '../CompetitionScheduler';
 import ScoringSystemManager from './ScoringSystemManager';
 import LoadingSpinner from '../common/Loading/LoadingSpinner';
+import Modal from '../common/Modal';
+import ScheduleEditor from './ScheduleEditor/ScheduleEditor';
 
 function EventDetails() {
   const { eventId, scheduleId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
   const [selectedSchedule, setSelectedSchedule] = useState(null);
   const [scheduleAthletes, setScheduleAthletes] = useState({});
   const [scheduleCategories, setScheduleCategories] = useState({});
@@ -26,6 +30,7 @@ function EventDetails() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [showScheduleEditor, setShowScheduleEditor] = useState(false);
 
   // Global advanced scoring system
   const globalScoringSystem = {
@@ -416,6 +421,27 @@ function EventDetails() {
               <span>←</span> Back to Event
             </button>
             <h2>Schedule Details - {selectedSchedule.config?.competitionMode}</h2>
+            <button 
+              onClick={() => setShowScheduleEditor(true)} 
+              className="btn-edit-schedule"
+              style={{
+                background: 'linear-gradient(135deg, #EE5F32 0%, #B87333 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '10px 20px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '600',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s',
+                marginLeft: 'auto'
+              }}
+            >
+              ✏️ Edit Schedule
+            </button>
           </div>
           
           <div className="schedule-info-card">
@@ -1964,6 +1990,37 @@ function EventDetails() {
           font-size: 12px;
         }
       `}</style>
+
+      {/* Schedule Editor Modal */}
+      {showScheduleEditor && scheduleId && (
+        <Modal
+          isOpen={showScheduleEditor}
+          onClose={() => {
+            setShowScheduleEditor(false);
+            // Invalidate queries to refresh schedule data
+            queryClient.invalidateQueries(['schedule', eventId, scheduleId]);
+            // Refetch schedule details
+            fetchScheduleById(scheduleId);
+          }}
+          title="Edit Schedule"
+          size="large"
+        >
+          <ScheduleEditor
+            eventId={eventId}
+            scheduleId={scheduleId}
+            onClose={() => {
+              setShowScheduleEditor(false);
+              // Show success message
+              setMessage({ text: 'Schedule updated successfully!', type: 'success' });
+              setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+              // Invalidate queries to refresh schedule data
+              queryClient.invalidateQueries(['schedule', eventId, scheduleId]);
+              // Refetch schedule details
+              fetchScheduleById(scheduleId);
+            }}
+          />
+        </Modal>
+      )}
     </div>
   );
 }

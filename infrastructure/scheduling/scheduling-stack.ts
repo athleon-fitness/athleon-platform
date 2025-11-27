@@ -56,12 +56,46 @@ export class SchedulingStack extends Construct {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
+    // Audit Log Table
+    const auditLogTable = new dynamodb.Table(this, 'AuditLogTable', {
+      partitionKey: { name: 'eventId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'auditId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // GSI for querying audit logs by scheduleId and timestamp
+    auditLogTable.addGlobalSecondaryIndex({
+      indexName: 'scheduleId-timestamp-index',
+      partitionKey: { name: 'scheduleId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'timestamp', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
+    // Schedule Versions Table
+    const scheduleVersionsTable = new dynamodb.Table(this, 'ScheduleVersionsTable', {
+      partitionKey: { name: 'eventId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'versionId', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // GSI for querying versions by scheduleId and creation time
+    scheduleVersionsTable.addGlobalSecondaryIndex({
+      indexName: 'scheduleId-createdAt-index',
+      partitionKey: { name: 'scheduleId', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'createdAt', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
+    });
+
     // Scheduler Lambda (DDD)
     this.schedulerLambda = createBundledLambda(this, 'SchedulerLambda', 'scheduling', {
       environment: {
         SCHEDULES_TABLE: this.schedulesTable.tableName,
         HEATS_TABLE: this.heatsTable.tableName,
         CLASSIFICATION_FILTERS_TABLE: this.classificationFiltersTable.tableName,
+        AUDIT_LOG_TABLE: auditLogTable.tableName,
+        SCHEDULE_VERSIONS_TABLE: scheduleVersionsTable.tableName,
         DOMAIN_EVENT_BUS: this.schedulingEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
       },
@@ -71,6 +105,8 @@ export class SchedulingStack extends Construct {
     this.schedulesTable.grantReadWriteData(this.schedulerLambda);
     this.heatsTable.grantReadWriteData(this.schedulerLambda);
     this.classificationFiltersTable.grantReadWriteData(this.schedulerLambda);
+    auditLogTable.grantReadWriteData(this.schedulerLambda);
+    scheduleVersionsTable.grantReadWriteData(this.schedulerLambda);
     this.schedulingEventBus.grantPutEventsTo(this.schedulerLambda);
     props.eventBus.grantPutEventsTo(this.schedulerLambda);
 

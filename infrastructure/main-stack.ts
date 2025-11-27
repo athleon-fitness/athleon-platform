@@ -34,7 +34,7 @@ export class AthleonStack extends cdk.Stack {
     // 1. Shared Infrastructure
     const sharedStack = new SharedStack(this, 'Shared', { 
       stage: props.stage,
-      config: props.config 
+      config: props.config
     });
 
     // 1.5. AppConfig for Feature Flags
@@ -71,6 +71,9 @@ export class AthleonStack extends cdk.Stack {
     const frontendStack = new FrontendStack(this, 'Frontend', {
       stage: props.stage,
       domain: props.config.frontend.customDomain ? props.config.domain : undefined,
+      hostedZoneId: props.config?.dns?.hostedZoneId,
+      skipDnsRecords: props.config?.dns?.skipDnsRecords || !!props.config?.dns?.hostedZoneId,  // Skip DNS records for cross-account or when explicitly set
+      certificateParameterNames: props.config.frontend.customDomain ? props.config?.dns?.certificateParameterNames : undefined,
       enableWaf: props.config.frontend?.waf?.enabled,
       rateLimiting: props.config.frontend?.waf?.rateLimiting,
       eventImagesBucket: sharedStack.eventImagesBucket,
@@ -82,7 +85,8 @@ export class AthleonStack extends cdk.Stack {
       userPool: sharedStack.userPool,
       certificate: props.config.frontend.customDomain ? frontendStack.apiCertificate : undefined,
       apiDomain: props.config.frontend.customDomain ? `api.${props.config.domain}` : undefined,
-      hostedZone: props.config.frontend.customDomain ? frontendStack.hostedZone : undefined,
+      // Don't pass hostedZone for cross-account scenarios (DNS records created manually)
+      hostedZone: props.config.frontend.customDomain && !props.config?.dns?.hostedZoneId ? frontendStack.hostedZone : undefined,
     });
 
     // 3. Organizations (RBAC foundation)
@@ -108,6 +112,7 @@ export class AthleonStack extends cdk.Stack {
     // 4. Domain Stacks
     const scoringStack = new ScoringStack(this, 'Scoring', {
       stage: props.stage,
+      config: props.config,
       eventBus: sharedStack.eventBus,
       sharedLayer: sharedStack.sharedLayer,
     });
@@ -126,6 +131,7 @@ export class AthleonStack extends cdk.Stack {
       config: props.config,
       eventBus: sharedStack.eventBus,
       sharedLayer: sharedStack.sharedLayer,
+      organizationsTable: organizationsStack.organizationsTable,
       organizationEventsTable: organizationsStack.organizationEventsTable,
       organizationMembersTable: organizationsStack.organizationMembersTable,
       scoresTable: scoringStack.scoresTable,

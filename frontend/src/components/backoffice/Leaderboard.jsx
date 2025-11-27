@@ -185,7 +185,11 @@ function Leaderboard() {
             athleteId: score.athleteId,
             categoryId: score.categoryId,
             totalPoints: 0,
-            wodResults: []
+            wodResults: [],
+            // Preserve first score's breakdown for details view
+            breakdown: score.breakdown,
+            rawData: score.rawData,
+            scoreId: score.scoreId
           };
         }
         athletePoints[score.athleteId].totalPoints += points;
@@ -194,7 +198,9 @@ function Leaderboard() {
           wodName: wod?.name || score.wodId,
           position: idx + 1,
           points,
-          score: score.score
+          score: score.score,
+          breakdown: score.breakdown,
+          rawData: score.rawData
         });
       });
     });
@@ -398,7 +404,7 @@ function Leaderboard() {
                         </>
                       )}
                       <td className="actions-cell">
-                        {entry.breakdown && (
+                        {(entry.breakdown || entry.rawData || entry.score) && (
                           <button 
                             className="view-details-btn"
                             onClick={() => setExpandedScore(isExpanded ? null : entry.athleteId)}
@@ -409,13 +415,40 @@ function Leaderboard() {
                         )}
                       </td>
                     </tr>
-                    {isExpanded && entry.breakdown && (
+                    {isExpanded && (
                       <tr className="expanded-row">
                         <td colSpan={view === 'wod' ? 5 : 6} style={{padding: '15px', background: '#f8f9fa'}}>
-                          {isTimeBased ? (
-                            <ScoreDetails score={entry} />
+                          {entry.breakdown ? (
+                            isTimeBased ? (
+                              <ScoreDetails score={entry} />
+                            ) : (
+                              <ScoreBreakdown score={entry} />
+                            )
                           ) : (
-                            <ScoreBreakdown score={entry} />
+                            <div style={{padding: '10px'}}>
+                              <h4>Score Details</h4>
+                              <p><strong>Score:</strong> {entry.score || entry.totalPoints}</p>
+                              {entry.rawData && (
+                                <div>
+                                  <p><strong>Raw Data:</strong></p>
+                                  <pre style={{background: '#fff', padding: '10px', borderRadius: '4px', overflow: 'auto'}}>
+                                    {JSON.stringify(entry.rawData, null, 2)}
+                                  </pre>
+                                </div>
+                              )}
+                              {entry.wodResults && (
+                                <div style={{marginTop: '10px'}}>
+                                  <p><strong>WOD Results:</strong></p>
+                                  <ul>
+                                    {entry.wodResults.map((wod, idx) => (
+                                      <li key={idx}>
+                                        {wod.wodName}: Position #{wod.position} ({wod.points} pts)
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </td>
                       </tr>

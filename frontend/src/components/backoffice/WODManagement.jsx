@@ -11,6 +11,8 @@ function WODManagement({ user: userProp }) {
   const user = userProp || userFromAuth; // Use prop if available, fallback to auth
   const { selectedOrganization } = useOrganization();
   const [wods, setWods] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [selectedEventFilter, setSelectedEventFilter] = useState('all');
   const [categories, setCategories] = useState([]);
   const [exercises, setExercises] = useState([]);
   const [scoringSystems, setScoringSystems] = useState([]);
@@ -55,10 +57,11 @@ function WODManagement({ user: userProp }) {
     fetchWods();
     fetchCategories();
     fetchExercises();
+    fetchEvents();
     if (eventId) {
       fetchScoringSystems();
     }
-  }, [eventId]);
+  }, [eventId, selectedEventFilter]);
 
   useEffect(() => {
     calculateMaxScore();
@@ -69,11 +72,27 @@ function WODManagement({ user: userProp }) {
       let url = '/wods';
       if (eventId) {
         url += `?eventId=${eventId}&includeShared=true`;
+      } else if (selectedEventFilter && selectedEventFilter !== 'all') {
+        url += `?eventId=${selectedEventFilter}&includeShared=true`;
       }
       const response = await get(url);
       setWods(response || []);
     } catch (error) {
       console.error('Error fetching WODs:', error);
+    }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const isSuperAdmin = user?.attributes?.email === 'admin@athleon.fitness';
+      const orgId = isSuperAdmin ? 'all' : selectedOrganization?.organizationId;
+      
+      if (!orgId) return;
+      
+      const response = await get(`/competitions?organizationId=${orgId}`);
+      setEvents(response || []);
+    } catch (error) {
+      console.error('Error fetching events:', error);
     }
   };
 
@@ -333,6 +352,7 @@ function WODManagement({ user: userProp }) {
           wodData.eventId = 'transversal';
           wodData.isTransversal = true;
           wodData.isShared = true;
+          delete wodData.organizationId; // Remove organizationId for transversal WODs
         } else if (selectedOrganization?.organizationId && selectedOrganization.organizationId !== 'all') {
           // Organization owner/admin creates organization template
           wodData.eventId = 'template';
@@ -511,20 +531,44 @@ function WODManagement({ user: userProp }) {
       </div>
 
       <div style={{marginBottom: '20px'}}>
-        <input
-          type="text"
-          placeholder="🔍 Search WODs..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            width: '100%',
-            maxWidth: '500px',
-            padding: '12px 16px',
-            border: '1px solid #e0e0e0',
-            borderRadius: '8px',
-            fontSize: '14px'
-          }}
-        />
+        <div style={{display: 'flex', gap: '15px', marginBottom: '15px'}}>
+          <input
+            type="text"
+            placeholder="🔍 Search WODs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              flex: 1,
+              maxWidth: '500px',
+              padding: '12px 16px',
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              fontSize: '14px'
+            }}
+          />
+          {!eventId && (
+            <select
+              value={selectedEventFilter}
+              onChange={(e) => setSelectedEventFilter(e.target.value)}
+              style={{
+                padding: '12px 16px',
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px',
+                fontSize: '14px',
+                minWidth: '200px'
+              }}
+            >
+              <option value="all">All WODs</option>
+              <option value="template">Templates Only</option>
+              <option value="transversal">Transversal WODs</option>
+              {events.map(event => (
+                <option key={event.eventId} value={event.eventId}>
+                  {event.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
         <div style={{marginTop: '10px', color: '#666', fontSize: '14px'}}>
           Showing {filteredWods.length} of {wods.length} WODs
         </div>

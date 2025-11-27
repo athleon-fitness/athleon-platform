@@ -73,7 +73,7 @@ export class CompetitionsStack extends Construct {
         SCORING_SYSTEMS_TABLE: props.scoringSystemsTable.tableName,
         CATEGORIES_TABLE: props.categoriesTable?.tableName || '',
         WODS_TABLE: props.wodsTable?.tableName || '',
-        ATHLETES_TABLE: props.athleteEventsTable?.tableName || '',
+        ATHLETE_EVENTS_TABLE: props.athleteEventsTable?.tableName || '',
         EVENT_BUS_NAME: this.competitionsEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
         ...props.lambdaEnvironment,

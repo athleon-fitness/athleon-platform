@@ -1273,3 +1273,270 @@
     justify-content: flex-start;
   }
 }
+
+/* Breaks Section Styles */
+.breaks-section {
+  margin-top: 30px;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  border: 2px dashed #e0e0e0;
+}
+
+.breaks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.breaks-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 18px;
+}
+
+.breaks-description {
+  color: #7f8c8d;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.btn-add-break {
+  background: #27ae60;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.btn-add-break:hover {
+  background: #229954;
+}
+
+.breaks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.break-item {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.break-fields {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1.5fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.break-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.break-field label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 5px;
+}
+
+.break-field input,
+.break-field select {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.break-field input:focus,
+.break-field select:focus {
+  outline: none;
+  border-color: #3498db;
+}
+
+.btn-remove-break {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.btn-remove-break:hover {
+  background: #c0392b;
+}
+
+.no-breaks-message {
+  text-align: center;
+  padding: 30px;
+  color: #7f8c8d;
+}
+
+.no-breaks-message p {
+  margin: 0;
+  font-size: 14px;
+}
+
+@media (max-width: 1024px) {
+  .break-fields {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  
+  .btn-remove-break {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 768px) {
+  .breaks-section {
+    padding: 15px;
+  }
+  
+  .breaks-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .break-fields {
+    grid-template-columns: 1fr;
+  }
+  
+  .btn-remove-break {
+    grid-column: 1;
+    justify-self: start;
+    margin-top: 10px;
+  }
+}
+
+/* Break Display in Schedule View */
+.break-item-display {
+  background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+  border: 2px solid #ff9800;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.break-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.break-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.break-info h6 {
+  margin: 0;
+  color: #e65100;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.break-badge {
+  background: #ff9800;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.break-time {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #e65100;
+  font-weight: 500;
+}
+
+.break-time .start-time {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.break-time .duration {
+  background: rgba(230, 81, 0, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.break-time .end-time {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .break-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .break-time {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+/* Breaks Review Section */
+.breaks-review {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.breaks-review h5 {
+  margin: 0 0 10px 0;
+  color: #555;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.break-review-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #fff5e6;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.break-name {
+  font-weight: 500;
+  color: #e65100;
+}
+
+.break-time-review {
+  font-size: 14px;
+  color: #666;
+}

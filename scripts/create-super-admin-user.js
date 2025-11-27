@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand, AdminGetUserCommand } = require('@aws-sdk/client-cognito-identity-provider');
+const { CognitoIdentityProviderClient, AdminCreateUserCommand, AdminSetUserPasswordCommand, AdminGetUserCommand, AdminUpdateUserAttributesCommand } = require('@aws-sdk/client-cognito-identity-provider');
 
 const SUPER_ADMIN_EMAIL = 'admin@athleon.fitness';
 
@@ -40,18 +40,27 @@ async function createSuperAdmin(config) {
   log('👑 Creating super admin user...\n');
 
   try {
-    // Create user with super_admin role
+    // Create user WITHOUT role first (to bypass PreSignUp validation)
     log(`📧 Creating user: ${email}`);
     const createResult = await cognitoClient.send(new AdminCreateUserCommand({
       UserPoolId: userPoolId,
       Username: email,
       UserAttributes: [
         { Name: 'email', Value: email },
-        { Name: 'email_verified', Value: 'true' },
-        { Name: 'custom:role', Value: 'super_admin' }
+        { Name: 'email_verified', Value: 'true' }
       ],
       TemporaryPassword: password,
       MessageAction: 'SUPPRESS' // Don't send welcome email
+    }));
+
+    // Update user with super_admin role AFTER creation
+    log('👑 Setting super_admin role...');
+    await cognitoClient.send(new AdminUpdateUserAttributesCommand({
+      UserPoolId: userPoolId,
+      Username: email,
+      UserAttributes: [
+        { Name: 'custom:role', Value: 'super_admin' }
+      ]
     }));
 
     // Set permanent password if not forcing password change
@@ -121,8 +130,27 @@ async function createSuperAdmin(config) {
 
 // CLI execution
 if (require.main === module) {
-  const client = new CognitoIdentityProviderClient({ region: 'us-east-2' });
-  const USER_POOL_ID = process.env.USER_POOL_ID || 'us-east-2_hVzMW4EYB';
+  const environment = process.env.ENVIRONMENT || 'development';
+  
+  // Environment-specific configuration
+  const envConfig = {
+    development: {
+      region: 'us-east-2',
+      userPoolId: 'us-east-2_hVzMW4EYB'
+    },
+    staging: {
+      region: 'us-east-2',
+      userPoolId: process.env.USER_POOL_ID
+    },
+    production: {
+      region: 'us-east-1',
+      userPoolId: 'us-east-1_KHhuqqyxc'
+    }
+  };
+
+  const config = envConfig[environment] || envConfig.development;
+  const client = new CognitoIdentityProviderClient({ region: config.region });
+  const USER_POOL_ID = process.env.USER_POOL_ID || config.userPoolId;
   const PERMANENT_PASSWORD = process.env.SUPER_ADMIN_PASSWORD || 'SuperAdmin123!';
 
   createSuperAdmin({

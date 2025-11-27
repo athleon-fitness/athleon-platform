@@ -10,6 +10,7 @@ import { createBundledLambda } from '../shared/lambda-bundling';
 
 export interface ScoringStackProps  {
   stage: string;
+  config: any;
   eventBus: events.EventBus;
   sharedLayer: AthleonSharedLayer;
   wodsTable?: dynamodb.Table;  // Cross-context read-only access for time cap validation
@@ -89,6 +90,7 @@ export class ScoringStack extends Construct {
         SCORING_SYSTEMS_TABLE: this.scoringSystemsTable.tableName,
         DOMAIN_EVENT_BUS: this.scoringEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
+        ALLOWED_ORIGINS: props.config.lambda.environment.ALLOWED_ORIGINS || '*',
         ...(props.wodsTable && { WODS_TABLE: props.wodsTable.tableName }),
       },
     });
@@ -113,6 +115,7 @@ export class ScoringStack extends Construct {
       environment: {
         LEADERBOARD_TABLE: this.leaderboardCacheTable.tableName,
         SCORES_TABLE: this.scoresTable.tableName,
+        ALLOWED_ORIGINS: props.config.lambda.environment.ALLOWED_ORIGINS || '*',
       },
     });
 
@@ -155,6 +158,7 @@ export class ScoringStack extends Construct {
       memorySize: 256,
       environment: {
         SCORING_SYSTEMS_TABLE: this.scoringSystemsTable.tableName,
+        ALLOWED_ORIGINS: props.config.lambda.environment.ALLOWED_ORIGINS || '*',
       },
     });
 
@@ -170,6 +174,7 @@ export class ScoringStack extends Construct {
       memorySize: 256,
       environment: {
         EXERCISE_LIBRARY_TABLE: this.exerciseLibraryTable.tableName,
+        ALLOWED_ORIGINS: props.config.lambda.environment.ALLOWED_ORIGINS || '*',
       },
     });
 

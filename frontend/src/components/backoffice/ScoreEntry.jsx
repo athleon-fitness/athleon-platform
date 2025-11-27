@@ -1693,7 +1693,6 @@ function ScoreEntry({ user: _user }) {
                               </div>
                             </div>
                           </div>
-                            </div>
                           </ScoringSystemTransition>
                         )}
                       </>

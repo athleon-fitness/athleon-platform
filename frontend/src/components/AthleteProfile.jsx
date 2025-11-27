@@ -507,11 +507,39 @@ function AthleteProfile({ user, signOut }) {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Phone Number</label>
+                  <label>Telephone Number</label>
                   <input 
                     type="tel"
-                    value={editForm.phone || ''} 
-                    onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                    value={editForm.telephoneNumber || ''} 
+                    onChange={(e) => setEditForm({...editForm, telephoneNumber: e.target.value})}
+                    placeholder="+1234567890"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>City</label>
+                  <input 
+                    type="text"
+                    value={editForm.city || ''} 
+                    onChange={(e) => setEditForm({...editForm, city: e.target.value})}
+                    placeholder="City of residence"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Social Security</label>
+                  <input 
+                    type="text"
+                    value={editForm.socialSecurity || ''} 
+                    onChange={(e) => setEditForm({...editForm, socialSecurity: e.target.value})}
+                    placeholder="Social security number"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Document ID</label>
+                  <input 
+                    type="text"
+                    value={editForm.documentId || ''} 
+                    onChange={(e) => setEditForm({...editForm, documentId: e.target.value})}
+                    placeholder="National ID or passport number"
                   />
                 </div>
                 <div className="form-group">

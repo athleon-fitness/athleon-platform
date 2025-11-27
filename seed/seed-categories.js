@@ -4,10 +4,11 @@ const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
 const isLocal = process.argv.includes('--local');
 const profile = process.argv.find(arg => arg.startsWith('--profile='))?.split('=')[1] || 'labvel-dev';
+const region = process.env.AWS_REGION || 'us-east-2';
 
 const clientConfig = isLocal 
-  ? { endpoint: 'http://localhost:8000', region: 'us-east-2' }
-  : { region: 'us-east-2' };
+  ? { endpoint: 'http://localhost:8000', region }
+  : { region };
 
 const client = new DynamoDBClient(clientConfig);
 const dynamodb = DynamoDBDocumentClient.from(client);

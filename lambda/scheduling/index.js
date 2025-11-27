@@ -1,10 +1,22 @@
 const { DynamoDBDocumentClient, QueryCommand, PutCommand, GetCommand, UpdateCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
 const logger = require('/opt/nodejs/utils/logger');
+const { verifyToken, isSuperAdmin, checkOrganizationAccess, getCorsHeaders } = require('/opt/nodejs/utils/auth');
+
+// Import schedule editing services
+const AuditLogger = require('./services/AuditLogger');
+const VersionManager = require('./services/VersionManager');
+const AthleteStatusManager = require('./services/AthleteStatusManager');
+const ScheduleEditorService = require('./services/ScheduleEditorService');
+const SessionModifier = require('./services/SessionModifier');
+const ValidationEngine = require('./services/ValidationEngine');
+const ReferentialIntegrity = require('./services/ReferentialIntegrity');
 
 const SCHEDULES_TABLE = process.env.SCHEDULES_TABLE;
 const HEATS_TABLE = process.env.HEATS_TABLE;
 const CLASSIFICATION_FILTERS_TABLE = process.env.CLASSIFICATION_FILTERS_TABLE;
 const SCORES_TABLE = process.env.SCORES_TABLE;
+const AUDIT_LOG_TABLE = process.env.AUDIT_LOG_TABLE;
+const SCHEDULE_VERSIONS_TABLE = process.env.SCHEDULE_VERSIONS_TABLE;
 
 // Competition scheduler with CRUD operations and detailed time management
 class CompetitionScheduler {
@@ -73,7 +85,8 @@ class CompetitionScheduler {
       startTime = '08:00',
       timezone = 'UTC',
       transitionTime = 5, // minutes between heats
-      setupTime = 10 // minutes between WODs
+      setupTime = 10, // minutes between WODs
+      breaks = [] // Dynamic breaks: [{name, startTime, duration, type}]
     } = config;
 
     logger.info('Schedule generation input validation', {
@@ -190,7 +203,7 @@ class CompetitionScheduler {
         dayId: day.dayId,
         wods: wods.filter(w => !w.dayId || w.dayId === day.dayId),
         categories, athletes, maxHours: maxDayHours, lunchBreak: lunchBreakHours,
-        competitionMode, athletesPerHeat, numberOfHeats, categoryHeats, athletesEliminatedPerFilter, eliminationRules, categoryEliminationRules, heatWodMapping, concurrentMatches, startTime, timezone, transitionTime, setupTime
+        competitionMode, athletesPerHeat, numberOfHeats, categoryHeats, athletesEliminatedPerFilter, eliminationRules, categoryEliminationRules, heatWodMapping, concurrentMatches, startTime, timezone, transitionTime, setupTime, breaks
       });
       schedule.days.push(daySchedule);
     }
@@ -214,13 +227,69 @@ class CompetitionScheduler {
       competitionMode: config.competitionMode,
       numberOfHeats: config.numberOfHeats,
       athletesEliminatedPerFilter: config.athletesEliminatedPerFilter,
-      heatWodMapping: config.heatWodMapping
+      heatWodMapping: config.heatWodMapping,
+      breaksCount: config.breaks?.length || 0
     });
     
-    const { dayId, wods, categories, athletes, competitionMode, athletesPerHeat, numberOfHeats, categoryHeats, athletesEliminatedPerFilter, eliminationRules, categoryEliminationRules, heatWodMapping, concurrentMatches, startTime, timezone, transitionTime, setupTime } = config;
+    const { dayId, wods, categories, athletes, competitionMode, athletesPerHeat, numberOfHeats, categoryHeats, athletesEliminatedPerFilter, eliminationRules, categoryEliminationRules, heatWodMapping, concurrentMatches, startTime, timezone, transitionTime, setupTime, breaks } = config;
+    
+    // Ensure breaks is always an array (backwards compatibility)
+    const scheduledBreaksConfig = Array.isArray(breaks) ? breaks : [];
     
     const sessions = [];
+    const scheduledBreaks = [];
     let currentTime = this.timeToMinutes(startTime);
+    
+    // Helper function to check if we need to insert a break
+    const checkAndInsertBreak = (currentTimeMinutes) => {
+      for (const breakItem of scheduledBreaksConfig) {
+        const breakStartMinutes = this.timeToMinutes(breakItem.startTime);
+        const breakEndMinutes = breakStartMinutes + breakItem.duration;
+        
+        // If current time overlaps with break time, skip to after break
+        if (currentTimeMinutes >= breakStartMinutes && currentTimeMinutes < breakEndMinutes) {
+          logger.info('Skipping to after break', {
+            breakName: breakItem.name,
+            breakStart: breakItem.startTime,
+            breakDuration: breakItem.duration,
+            currentTime: this.minutesToTime(currentTimeMinutes),
+            newTime: this.minutesToTime(breakEndMinutes)
+          });
+          
+          // Add break to scheduled breaks if not already added
+          if (!scheduledBreaks.find(b => b.startTime === breakItem.startTime)) {
+            scheduledBreaks.push({
+              ...breakItem,
+              startTimeMinutes: breakStartMinutes,
+              endTime: this.minutesToTime(breakEndMinutes)
+            });
+          }
+          
+          return breakEndMinutes;
+        }
+        
+        // If we're about to schedule something that would overlap with a break, pause before it
+        if (currentTimeMinutes < breakStartMinutes && currentTimeMinutes + 30 > breakStartMinutes) {
+          logger.info('Pausing before break', {
+            breakName: breakItem.name,
+            breakStart: breakItem.startTime,
+            currentTime: this.minutesToTime(currentTimeMinutes)
+          });
+          
+          // Add break to scheduled breaks if not already added
+          if (!scheduledBreaks.find(b => b.startTime === breakItem.startTime)) {
+            scheduledBreaks.push({
+              ...breakItem,
+              startTimeMinutes: breakStartMinutes,
+              endTime: this.minutesToTime(breakEndMinutes)
+            });
+          }
+          
+          return breakEndMinutes;
+        }
+      }
+      return currentTimeMinutes;
+    };
     
     if (competitionMode === 'VERSUS') {
       logger.info('Processing VERSUS mode', { categoriesCount: categories.length });
@@ -365,6 +434,9 @@ class CompetitionScheduler {
           
           sessions.push(session);
           currentTime += session.duration + transitionTime;
+          
+          // Check if we need to insert a break
+          currentTime = checkAndInsertBreak(currentTime);
         }
       }
     } else {
@@ -398,6 +470,9 @@ class CompetitionScheduler {
             sessions.push(session);
             currentTime += session.duration + transitionTime;
             
+            // Check if we need to insert a break
+            currentTime = checkAndInsertBreak(currentTime);
+            
           } else {
             // Traditional heats
             const heats = this.createHeats(categoryAthletes, athletesPerHeat);
@@ -416,15 +491,22 @@ class CompetitionScheduler {
             };
             sessions.push(session);
             currentTime += session.duration + transitionTime;
+            
+            // Check if we need to insert a break
+            currentTime = checkAndInsertBreak(currentTime);
           }
         }
         currentTime += setupTime; // Setup time between WODs
+        
+        // Check if we need to insert a break after WOD setup
+        currentTime = checkAndInsertBreak(currentTime);
       }
     }
 
     return {
       dayId, 
       sessions,
+      breaks: scheduledBreaks,
       totalDuration: (currentTime - this.timeToMinutes(config.startTime)) / 60,
       withinTimeLimit: (currentTime - this.timeToMinutes(config.startTime)) <= (config.maxHours * 60)
     };
@@ -813,6 +895,27 @@ class CompetitionScheduler {
   }
 }
 
+// Helper function to verify organizer access
+async function verifyOrganizerAccess(event, eventId, dynamodb) {
+  const user = verifyToken(event);
+  if (!user) {
+    return { authorized: false, statusCode: 401, error: 'Unauthorized - Invalid token' };
+  }
+
+  // Super admin has access to everything
+  if (isSuperAdmin(user.email)) {
+    return { authorized: true, user };
+  }
+
+  // Check organization membership
+  const access = await checkOrganizationAccess(user.userId, eventId);
+  if (!access.hasAccess) {
+    return { authorized: false, statusCode: 403, error: 'Forbidden - Not a member of event organization' };
+  }
+
+  return { authorized: true, user, organizationId: access.organizationId };
+}
+
 // Lambda handler with CRUD operations
 exports.handler = async (event) => {
   const headers = {
@@ -939,28 +1042,15 @@ exports.handler = async (event) => {
 module.exports = { 
   CompetitionScheduler,
   handler: async (event) => {
-    const headers = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-      'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-      'Content-Type': 'application/json'
-    };
+    const headers = getCorsHeaders(event);
 
     if (event.httpMethod === 'OPTIONS') {
       return { statusCode: 200, headers, body: '' };
     }
 
     try {
-      const { httpMethod, resource, pathParameters, body, queryStringParameters } = event;
+      const { httpMethod, pathParameters, body, queryStringParameters } = event;
       const requestBody = body ? JSON.parse(body) : {};
-      
-      // Debug logging
-      console.log('Scheduler Debug:', {
-        httpMethod,
-        resource,
-        pathParameters,
-        path: event.path
-      });
       
       // Initialize DynamoDB client
       const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
@@ -969,17 +1059,326 @@ module.exports = {
       
       const scheduler = new CompetitionScheduler(dynamodb);
 
-      // Handle proxy pattern - extract eventId and scheduleId from proxy parameter
+      // Initialize schedule editing services
+      const auditLogger = new AuditLogger(dynamodb);
+      const versionManager = new VersionManager(dynamodb);
+      const athleteStatusManager = new AthleteStatusManager(dynamodb);
+      const sessionModifier = new SessionModifier(dynamodb);
+      const validationEngine = new ValidationEngine(dynamodb);
+      const scheduleEditorService = new ScheduleEditorService(dynamodb, auditLogger, versionManager, athleteStatusManager, sessionModifier);
+
+      // Handle proxy pattern - extract path parts
       const proxy = pathParameters?.proxy;
       const pathParts = proxy ? proxy.split('/') : [];
       const eventId = pathParts[0];
       const scheduleId = pathParts[1];
+      const action = pathParts[2]; // Could be 'athletes', 'substitute', 'swap', 'sessions', 'heats', 'validate', 'audit-log', 'revert', 'versions', 'publish', 'unpublish'
+      const subResource = pathParts[3]; // Could be athleteId, sessionId, heatId, etc.
 
-      console.log('Parsed path:', { proxy, pathParts, eventId, scheduleId });
+      logger.info('Scheduler request', { httpMethod, proxy, pathParts, eventId, scheduleId, action, subResource });
 
-      // Handle different endpoints based on path structure
+      // ===== SCHEDULE EDITING ROUTES =====
+      
+      // PUT /scheduler/{eventId}/{scheduleId}/athletes/{athleteId}
+      if (eventId && scheduleId && action === 'athletes' && subResource && httpMethod === 'PUT') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const athleteId = subResource;
+        const { newStatus } = requestBody;
+
+        if (!newStatus) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'newStatus is required' }) };
+        }
+
+        // Get current schedule
+        const schedule = await scheduler.getSchedule(eventId, scheduleId);
+        if (!schedule) {
+          return { statusCode: 404, headers, body: JSON.stringify({ error: 'Schedule not found' }) };
+        }
+
+        // Create version snapshot
+        await versionManager.createVersion(eventId, scheduleId, schedule, 'Athlete status update', authCheck.user.userId);
+
+        // Update athlete status
+        const result = await athleteStatusManager.updateStatus(athleteId, scheduleId, newStatus, eventId);
+
+        // Log audit entry
+        await auditLogger.logChange(eventId, scheduleId, 'ATHLETE_STATUS', {
+          athleteId,
+          oldValue: result.oldStatus,
+          newValue: newStatus,
+          affectedEntities: result.affectedSessions,
+          userEmail: authCheck.user.email
+        }, authCheck.user.userId);
+
+        // Mark schedule as modified if published
+        if (schedule.published) {
+          await scheduler.updateSchedule(eventId, scheduleId, { modified: true, lastModifiedAt: new Date().toISOString(), lastModifiedBy: authCheck.user.userId });
+        }
+
+        // Get updated schedule
+        const updatedSchedule = await scheduler.getSchedule(eventId, scheduleId);
+        return { statusCode: 200, headers, body: JSON.stringify(updatedSchedule) };
+      }
+
+      // POST /scheduler/{eventId}/{scheduleId}/substitute
+      if (eventId && scheduleId && action === 'substitute' && httpMethod === 'POST') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const { sessionId, oldAthleteId, newAthleteId } = requestBody;
+
+        if (!sessionId || !oldAthleteId || !newAthleteId) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'sessionId, oldAthleteId, and newAthleteId are required' }) };
+        }
+
+        // Get current schedule
+        const schedule = await scheduler.getSchedule(eventId, scheduleId);
+        if (!schedule) {
+          return { statusCode: 404, headers, body: JSON.stringify({ error: 'Schedule not found' }) };
+        }
+
+        // Create version snapshot
+        await versionManager.createVersion(eventId, scheduleId, schedule, 'Athlete substitution', authCheck.user.userId);
+
+        // Substitute athlete
+        const updatedSession = await scheduleEditorService.substituteAthlete(eventId, scheduleId, sessionId, oldAthleteId, newAthleteId, authCheck.user.userId, authCheck.user.email);
+
+        return { statusCode: 200, headers, body: JSON.stringify(updatedSession) };
+      }
+
+      // POST /scheduler/{eventId}/{scheduleId}/swap
+      if (eventId && scheduleId && action === 'swap' && httpMethod === 'POST') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const { sessionId, athlete1Id, athlete2Id } = requestBody;
+
+        if (!sessionId || !athlete1Id || !athlete2Id) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'sessionId, athlete1Id, and athlete2Id are required' }) };
+        }
+
+        // Get current schedule
+        const schedule = await scheduler.getSchedule(eventId, scheduleId);
+        if (!schedule) {
+          return { statusCode: 404, headers, body: JSON.stringify({ error: 'Schedule not found' }) };
+        }
+
+        // Create version snapshot
+        await versionManager.createVersion(eventId, scheduleId, schedule, 'Athlete swap', authCheck.user.userId);
+
+        // Swap athletes
+        const updatedSession = await scheduleEditorService.swapAthletes(eventId, scheduleId, sessionId, athlete1Id, athlete2Id, authCheck.user.userId, authCheck.user.email);
+
+        return { statusCode: 200, headers, body: JSON.stringify(updatedSession) };
+      }
+
+      // PUT /scheduler/{eventId}/{scheduleId}/sessions/{sessionId}/time
+      if (eventId && scheduleId && action === 'sessions' && subResource && pathParts[4] === 'time' && httpMethod === 'PUT') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const sessionId = subResource;
+        const { newStartTime } = requestBody;
+
+        if (!newStartTime) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'newStartTime is required' }) };
+        }
+
+        // Get current schedule
+        const schedule = await scheduler.getSchedule(eventId, scheduleId);
+        if (!schedule) {
+          return { statusCode: 404, headers, body: JSON.stringify({ error: 'Schedule not found' }) };
+        }
+
+        // Create version snapshot
+        await versionManager.createVersion(eventId, scheduleId, schedule, 'Session time adjustment', authCheck.user.userId);
+
+        // Adjust session time
+        const updatedSchedule = await scheduleEditorService.adjustSessionTime(eventId, scheduleId, sessionId, newStartTime, authCheck.user.userId, authCheck.user.email);
+
+        return { statusCode: 200, headers, body: JSON.stringify(updatedSchedule) };
+      }
+
+      // POST /scheduler/{eventId}/{scheduleId}/heats
+      if (eventId && scheduleId && action === 'heats' && !subResource && httpMethod === 'POST') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const { sessionId } = requestBody;
+
+        if (!sessionId) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'sessionId is required' }) };
+        }
+
+        // Get current schedule
+        const schedule = await scheduler.getSchedule(eventId, scheduleId);
+        if (!schedule) {
+          return { statusCode: 404, headers, body: JSON.stringify({ error: 'Schedule not found' }) };
+        }
+
+        // Create version snapshot
+        await versionManager.createVersion(eventId, scheduleId, schedule, 'Heat addition', authCheck.user.userId);
+
+        // Add heat
+        const updatedSession = await scheduleEditorService.addHeat(eventId, scheduleId, sessionId, authCheck.user.userId, authCheck.user.email);
+
+        return { statusCode: 200, headers, body: JSON.stringify(updatedSession) };
+      }
+
+      // DELETE /scheduler/{eventId}/{scheduleId}/heats/{heatId}
+      if (eventId && scheduleId && action === 'heats' && subResource && httpMethod === 'DELETE') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const heatId = subResource;
+        const { sessionId, forceRemove } = requestBody;
+
+        if (!sessionId) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'sessionId is required' }) };
+        }
+
+        // Get current schedule
+        const schedule = await scheduler.getSchedule(eventId, scheduleId);
+        if (!schedule) {
+          return { statusCode: 404, headers, body: JSON.stringify({ error: 'Schedule not found' }) };
+        }
+
+        // Create version snapshot
+        await versionManager.createVersion(eventId, scheduleId, schedule, 'Heat removal', authCheck.user.userId);
+
+        // Remove heat
+        const result = await scheduleEditorService.removeHeat(eventId, scheduleId, sessionId, heatId, forceRemove, authCheck.user.userId, authCheck.user.email);
+
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      }
+
+      // POST /scheduler/{eventId}/{scheduleId}/heats/move
+      if (eventId && scheduleId && action === 'heats' && subResource === 'move' && httpMethod === 'POST') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const { sessionId, athleteId, targetHeatId } = requestBody;
+
+        if (!sessionId || !athleteId || !targetHeatId) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'sessionId, athleteId, and targetHeatId are required' }) };
+        }
+
+        // Get current schedule
+        const schedule = await scheduler.getSchedule(eventId, scheduleId);
+        if (!schedule) {
+          return { statusCode: 404, headers, body: JSON.stringify({ error: 'Schedule not found' }) };
+        }
+
+        // Create version snapshot
+        await versionManager.createVersion(eventId, scheduleId, schedule, 'Athlete moved between heats', authCheck.user.userId);
+
+        // Move athlete to heat
+        const updatedSession = await scheduleEditorService.moveAthleteToHeat(eventId, scheduleId, sessionId, athleteId, targetHeatId, authCheck.user.userId, authCheck.user.email);
+
+        return { statusCode: 200, headers, body: JSON.stringify(updatedSession) };
+      }
+
+      // GET /scheduler/{eventId}/{scheduleId}/validate
+      if (eventId && scheduleId && action === 'validate' && httpMethod === 'GET') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        // Validate schedule
+        const validationResults = await validationEngine.validateSchedule(eventId, scheduleId);
+
+        return { statusCode: 200, headers, body: JSON.stringify(validationResults) };
+      }
+
+      // GET /scheduler/{eventId}/{scheduleId}/audit-log
+      if (eventId && scheduleId && action === 'audit-log' && httpMethod === 'GET') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const filters = {
+          startDate: queryStringParameters?.startDate,
+          endDate: queryStringParameters?.endDate,
+          changeType: queryStringParameters?.changeType,
+          userId: queryStringParameters?.userId
+        };
+
+        // Get audit log
+        const auditLog = await auditLogger.getAuditLog(eventId, scheduleId, filters);
+
+        return { statusCode: 200, headers, body: JSON.stringify(auditLog) };
+      }
+
+      // POST /scheduler/{eventId}/{scheduleId}/revert
+      if (eventId && scheduleId && action === 'revert' && httpMethod === 'POST') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        const { versionId } = requestBody;
+
+        if (!versionId) {
+          return { statusCode: 400, headers, body: JSON.stringify({ error: 'versionId is required' }) };
+        }
+
+        // Revert to version
+        const restoredSchedule = await versionManager.revertToVersion(eventId, scheduleId, versionId, authCheck.user.userId);
+
+        // Unpublish schedule if currently published
+        if (restoredSchedule.published) {
+          await scheduler.unpublishSchedule(eventId, scheduleId);
+        }
+
+        return { statusCode: 200, headers, body: JSON.stringify(restoredSchedule) };
+      }
+
+      // GET /scheduler/{eventId}/{scheduleId}/versions
+      if (eventId && scheduleId && action === 'versions' && httpMethod === 'GET') {
+        const authCheck = await verifyOrganizerAccess(event, eventId, dynamodb);
+        if (!authCheck.authorized) {
+          return { statusCode: authCheck.statusCode, headers, body: JSON.stringify({ error: authCheck.error }) };
+        }
+
+        // Get version history
+        const versions = await versionManager.getVersionHistory(eventId, scheduleId);
+
+        return { statusCode: 200, headers, body: JSON.stringify(versions) };
+      }
+
+      // ===== ORIGINAL SCHEDULER ROUTES =====
+
+      // Publish/unpublish actions
+      if (eventId && scheduleId && action === 'publish' && (httpMethod === 'POST' || httpMethod === 'PUT')) {
+        const result = await scheduler.publishSchedule(eventId, scheduleId);
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      }
+      
+      if (eventId && scheduleId && action === 'unpublish' && (httpMethod === 'POST' || httpMethod === 'PUT')) {
+        const result = await scheduler.unpublishSchedule(eventId, scheduleId);
+        return { statusCode: 200, headers, body: JSON.stringify(result) };
+      }
+
+      // /scheduler/{eventId}
       if (eventId && !scheduleId) {
-        // /scheduler/{eventId}
         if (httpMethod === 'POST') {
           const schedule = await scheduler.generateSchedule(eventId, requestBody);
           return { statusCode: 201, headers, body: JSON.stringify(schedule) };
@@ -988,21 +1387,16 @@ module.exports = {
           const schedules = await scheduler.listSchedules(eventId);
           return { statusCode: 200, headers, body: JSON.stringify(schedules) };
         }
-      } else if (eventId && scheduleId && scheduleId !== 'save') {
-        // Check for publish/unpublish actions
-        const action = pathParts[2]; // publish or unpublish
-        
-        if (action === 'publish' && (httpMethod === 'POST' || httpMethod === 'PUT')) {
-          const result = await scheduler.publishSchedule(eventId, scheduleId);
-          return { statusCode: 200, headers, body: JSON.stringify(result) };
-        }
-        
-        if (action === 'unpublish' && (httpMethod === 'POST' || httpMethod === 'PUT')) {
-          const result = await scheduler.unpublishSchedule(eventId, scheduleId);
-          return { statusCode: 200, headers, body: JSON.stringify(result) };
-        }
-        
-        // /scheduler/{eventId}/{scheduleId}
+      }
+
+      // /scheduler/{eventId}/save
+      if (eventId && scheduleId === 'save' && httpMethod === 'POST') {
+        const saved = await scheduler.saveSchedule(eventId, requestBody);
+        return { statusCode: 200, headers, body: JSON.stringify(saved) };
+      }
+
+      // /scheduler/{eventId}/{scheduleId}
+      if (eventId && scheduleId && !action) {
         if (httpMethod === 'GET') {
           const schedule = await scheduler.getSchedule(eventId, scheduleId);
           return { 
@@ -1019,21 +1413,15 @@ module.exports = {
           const result = await scheduler.deleteSchedule(eventId, scheduleId);
           return { statusCode: 200, headers, body: JSON.stringify(result) };
         }
-      } else if (eventId && pathParts[1] === 'save') {
-        // /scheduler/{eventId}/save
-        if (httpMethod === 'POST') {
-          const saved = await scheduler.saveSchedule(eventId, requestBody);
-          return { statusCode: 200, headers, body: JSON.stringify(saved) };
-        }
       }
 
       return { statusCode: 404, headers, body: JSON.stringify({ error: 'Not found' }) };
 
     } catch (error) {
-      console.error('Scheduler error:', error);
+      logger.error('Scheduler error:', { error: error.message, stack: error.stack });
       return {
         statusCode: 500,
-        headers,
+        headers: getCorsHeaders(event),
         body: JSON.stringify({ error: error.message })
       };
     }

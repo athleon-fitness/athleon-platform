@@ -7,11 +7,18 @@ import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as targets from 'aws-cdk-lib/aws-route53-targets';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 
 export interface FrontendStackProps {
   stage: string;
   domain?: string;
+  hostedZoneId?: string;
+  skipDnsRecords?: boolean;  // Skip DNS record creation for cross-account scenarios
+  certificateParameterNames?: {
+    cloudfront?: string;
+    api?: string;
+  };
   enableWaf?: boolean;
   rateLimiting?: number;
   eventImagesBucket: s3.Bucket;
@@ -27,27 +34,62 @@ export class FrontendStack extends Construct {
   constructor(scope: Construct, id: string, props: FrontendStackProps) {
     super(scope, id);
 
-    // Create certificates for custom domain
+    // Setup custom domain with certificates and hosted zone
     if (props.domain) {
-      // Lookup existing hosted zone
-      this.hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
-        domainName: props.domain,
-      });
+      // Lookup hosted zone (same account scenario)
+      if (!props.skipDnsRecords) {
+        if (props.hostedZoneId) {
+          this.hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, 'HostedZone', {
+            hostedZoneId: props.hostedZoneId,
+            zoneName: props.domain,
+          });
+        } else {
+          this.hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
+            domainName: props.domain,
+          });
+        }
+      }
 
-      // Certificate for CloudFront (must be in us-east-1)
-      this.cloudfrontCertificate = new acm.DnsValidatedCertificate(this, 'CloudFrontCertificate', {
-        domainName: props.domain,
-        subjectAlternativeNames: [`*.${props.domain}`],
-        hostedZone: this.hostedZone,
-        region: 'us-east-1',
-      });
+      // Create or import certificates
+      if (props.certificateParameterNames) {
+        // Import from Parameter Store (cross-account scenario)
+        if (props.certificateParameterNames.cloudfront) {
+          const certArn = ssm.StringParameter.valueForStringParameter(
+            this,
+            props.certificateParameterNames.cloudfront
+          );
+          this.cloudfrontCertificate = acm.Certificate.fromCertificateArn(
+            this,
+            'CloudFrontCertificate',
+            certArn
+          ) as acm.Certificate;
+        }
 
-      // Certificate for API Gateway (in current region us-east-2)
-      this.apiCertificate = new acm.Certificate(this, 'ApiCertificate', {
-        domainName: `api.${props.domain}`,
-        validation: acm.CertificateValidation.fromDns(this.hostedZone),
-        certificateName: `${props.stage}-api-cert`,
-      });
+        if (props.certificateParameterNames.api) {
+          const certArn = ssm.StringParameter.valueForStringParameter(
+            this,
+            props.certificateParameterNames.api
+          );
+          this.apiCertificate = acm.Certificate.fromCertificateArn(
+            this,
+            'ApiCertificate',
+            certArn
+          ) as acm.Certificate;
+        }
+      } else if (this.hostedZone) {
+        // Create certificates (same account scenario)
+        // CloudFront requires certificate in us-east-1
+        this.cloudfrontCertificate = new acm.DnsValidatedCertificate(this, 'CloudFrontCertificate', {
+          domainName: props.domain,
+          hostedZone: this.hostedZone,
+          region: 'us-east-1',  // CloudFront requirement
+        });
+
+        this.apiCertificate = new acm.Certificate(this, 'ApiCertificate', {
+          domainName: `api.${props.domain}`,
+          validation: acm.CertificateValidation.fromDns(this.hostedZone),
+        });
+      }
     }
 
     // S3 bucket for static website
@@ -63,7 +105,7 @@ export class FrontendStack extends Construct {
 
     // Dynamic CSP policy based on environment
     const apiDomain = props.domain ? `https://api.${props.domain}` : `https://api.${props.stage}.athleon.fitness`;
-    const cognitoRegion = process.env.CDK_DEFAULT_REGION || 'us-east-2';
+    const cognitoRegion = cdk.Stack.of(this).region;
     const s3BucketDomain = `https://athleon-event-images-${props.stage}.s3.${cognitoRegion}.amazonaws.com`;
     
     const cspPolicy = [
@@ -166,20 +208,12 @@ function handler(event) {
       // Remove error responses - let the function handle routing
     });
 
-    // Grant CloudFront access to event images bucket
-    props.eventImagesBucket.addToResourcePolicy(new iam.PolicyStatement({
-      actions: ['s3:GetObject'],
-      resources: [props.eventImagesBucket.arnForObjects('*')],
-      principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
-      conditions: {
-        StringEquals: {
-          'AWS:SourceArn': `arn:aws:cloudfront::${cdk.Stack.of(this).account}:distribution/${this.distribution.distributionId}`,
-        },
-      },
-    }));
+    // Note: Bucket policy for CloudFront access is added in SharedStack
+    // to avoid circular dependency with distribution.distributionId
 
     // Create Route 53 A Record for custom domain
-    if (props.domain && this.hostedZone) {
+    // Skip for cross-account scenarios (create manually instead)
+    if (props.domain && this.hostedZone && !props.skipDnsRecords) {
       new route53.ARecord(this, 'AliasRecord', {
         zone: this.hostedZone,
         recordName: props.domain,

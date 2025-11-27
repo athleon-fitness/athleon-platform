@@ -6,6 +6,7 @@ function ScoringSystemManager({ eventId }) {
   const [_exercises, setExercises] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: 'classic',
@@ -55,10 +56,11 @@ useEffect(() => {
   const createScoringSystem = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
+    if (!validateForm() || isSubmitting) {
       return;
     }
     
+    setIsSubmitting(true);
     try {
       // Prepare the payload based on scoring type
       const payload = {
@@ -88,6 +90,8 @@ useEffect(() => {
     } catch (error) {
       console.error('Error creating scoring system:', error);
       setErrors({ submit: 'Failed to create scoring system. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -106,8 +110,8 @@ useEffect(() => {
   const deleteScoringSystem = async (scoringSystemId) => {
     if (!window.confirm('Delete this scoring system?')) return;
     try {
-      // Use proper scoring domain API endpoint
-      await del(`/scoring-systems/${scoringSystemId}`);
+      // Use proper scoring domain API endpoint with eventId
+      await del(`/scoring-systems/${scoringSystemId}?eventId=${eventId}`);
       fetchScoringSystems();
     } catch (error) {
       console.error('Error deleting scoring system:', error);

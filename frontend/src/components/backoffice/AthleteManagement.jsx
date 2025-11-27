@@ -25,7 +25,11 @@ function AthleteManagement({ user: userProp }) {
     email: '',
     alias: '',
     age: '',
-    categoryId: ''
+    categoryId: '',
+    telephoneNumber: '',
+    city: '',
+    socialSecurity: '',
+    documentId: ''
   });
 
   useEffect(() => {
@@ -277,7 +281,11 @@ function AthleteManagement({ user: userProp }) {
       email: '',
       alias: '',
       age: '',
-      categoryId: ''
+      categoryId: '',
+      telephoneNumber: '',
+      city: '',
+      socialSecurity: '',
+      documentId: ''
     });
     setShowModal(true);
   };
@@ -290,7 +298,11 @@ function AthleteManagement({ user: userProp }) {
       email: athlete.email,
       alias: athlete.alias || '',
       age: athlete.age || '',
-      categoryId: athlete.categoryId || ''
+      categoryId: athlete.categoryId || '',
+      telephoneNumber: athlete.telephoneNumber || '',
+      city: athlete.city || '',
+      socialSecurity: athlete.socialSecurity || '',
+      documentId: athlete.documentId || ''
     });
     setShowModal(true);
   };
@@ -383,6 +395,10 @@ function AthleteManagement({ user: userProp }) {
             alias: rows[i][3] || '',
             age: rows[i][4] ? parseInt(rows[i][4]) : 0,
             categoryId: rows[i][5] || '',
+            telephoneNumber: rows[i][6] || '',
+            city: rows[i][7] || '',
+            socialSecurity: rows[i][8] || '',
+            documentId: rows[i][9] || '',
             createdAt: new Date().toISOString()
           };
 
@@ -785,6 +801,46 @@ function AthleteManagement({ user: userProp }) {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label>Telephone Number</label>
+                <input
+                  type="tel"
+                  value={formData.telephoneNumber}
+                  onChange={(e) => setFormData({...formData, telephoneNumber: e.target.value})}
+                  placeholder="+1234567890"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>City</label>
+                <input
+                  type="text"
+                  value={formData.city}
+                  onChange={(e) => setFormData({...formData, city: e.target.value})}
+                  placeholder="City of residence"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Social Security</label>
+                <input
+                  type="text"
+                  value={formData.socialSecurity}
+                  onChange={(e) => setFormData({...formData, socialSecurity: e.target.value})}
+                  placeholder="Social security number"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Document ID</label>
+                <input
+                  type="text"
+                  value={formData.documentId}
+                  onChange={(e) => setFormData({...formData, documentId: e.target.value})}
+                  placeholder="National ID or passport number"
+                />
               </div>
               
               <div className="modal-actions">
@@ -1239,8 +1295,8 @@ function AthleteManagement({ user: userProp }) {
             
             <div className="import-instructions">
               <h4>CSV Format:</h4>
-              <p>firstName,lastName,email,alias,age,categoryId</p>
-              <p>Example: John,Doe,john@email.com,JD,25,category-1</p>
+              <p>firstName,lastName,email,alias,age,categoryId,telephoneNumber,city,socialSecurity,documentId</p>
+              <p>Example: John,Doe,john@email.com,JD,25,category-1,+1234567890,New York,123-45-6789,AB123456</p>
             </div>
 
             <input

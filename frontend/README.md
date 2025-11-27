@@ -59,6 +59,10 @@ The app will open at `http://localhost:3000`
 - **[IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)** - What was implemented
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture diagrams
 
+### Scoring System Documentation
+- **[SCORING_SYSTEM_GUIDE.md](./SCORING_SYSTEM_GUIDE.md)** - Complete scoring system documentation
+- **[SCORING_SYSTEM_QUICK_REFERENCE.md](./SCORING_SYSTEM_QUICK_REFERENCE.md)** - Quick reference for developers
+
 ### Progress Tracking
 - **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)** - Track migration progress
 
@@ -78,19 +82,53 @@ frontend/
 │   │   │   ├── ErrorBoundary/# Error handling
 │   │   │   └── Loading/      # Loading states
 │   │   ├── backoffice/       # Organizer features
+│   │   │   ├── ScoreEntry.jsx              # Main score entry container
+│   │   │   ├── ClassicScoreEntry.jsx       # Rank-based scoring
+│   │   │   ├── AdvancedScoreEntry.jsx      # Exercise-based scoring
+│   │   │   ├── TimeBasedScoreEntry.jsx     # Time/reps scoring
+│   │   │   ├── ScoringSystemIndicator.jsx  # Visual indicator
+│   │   │   ├── ScorePreview.jsx            # Score display
+│   │   │   ├── ScoringSystemError.jsx      # Error handling
+│   │   │   ├── ScoringSystemLoader.jsx     # Loading states
+│   │   │   └── ScoringSystemErrorBoundary.jsx
 │   │   └── layout/           # Layout components
 │   ├── hooks/                # Custom React hooks
 │   │   ├── useAthleteProfile.js
 │   │   ├── useEvents.js
 │   │   └── useScores.js
+│   ├── contexts/             # React contexts
+│   │   ├── OrganizationContext.jsx
+│   │   └── ScoringSystemContext.jsx  # Adaptive scoring system
 │   ├── lib/                  # Configuration
 │   │   └── queryClient.js    # React Query setup
-│   ├── contexts/             # React contexts
 │   ├── utils/                # Utility functions
 │   └── cypress/              # E2E tests
 ├── public/                   # Static assets
 └── build/                    # Production build
 ```
+
+### Scoring System Components
+
+The platform includes a comprehensive adaptive scoring system with the following components:
+
+**Core Components:**
+- `ScoringSystemContext` - Context provider for scoring system state
+- `ClassicScoreEntry` - Rank-based score entry (1st, 2nd, 3rd...)
+- `AdvancedScoreEntry` - Exercise-based with EQS ratings
+- `TimeBasedScoreEntry` - Completion time or total reps
+
+**Supporting Components:**
+- `ScoringSystemIndicator` - Visual badge with tooltip
+- `ScorePreview` - Real-time score calculation display
+- `ScoringSystemError` - User-friendly error messages
+- `ScoringSystemLoader` - Loading states with animations
+- `ScoringSystemErrorBoundary` - Error boundary wrapper
+
+**Custom Hooks:**
+- `useScoringSystem()` - Manage scoring system state
+- `useScoreCalculation()` - Real-time score calculation
+- `useScoreValidation()` - Context-aware validation
+- `useScoreEntryPersistence()` - Session state management
 
 ---
 
@@ -196,6 +234,75 @@ function MyComponent({ user }) {
 - `useEventScores(eventId)` - Get event scores
 - `useLeaderboard(eventId, categoryId)` - Get leaderboard
 
+### Scoring System Hooks
+
+The platform includes specialized hooks for adaptive scoring system interfaces:
+
+```javascript
+import { 
+  useScoringSystem, 
+  useScoreCalculation, 
+  useScoreValidation,
+  useScoreEntryPersistence 
+} from '../contexts/ScoringSystemContext';
+
+function ScoreEntryComponent({ wodId, eventId }) {
+  // Load and manage scoring system
+  const { 
+    scoringSystem, 
+    isLoading, 
+    error, 
+    loadScoringSystem,
+    retryLoadScoringSystem 
+  } = useScoringSystem();
+
+  // Real-time score calculation
+  const { calculatedScore, breakdown } = useScoreCalculation(
+    scoringSystem, 
+    rawData, 
+    exercises
+  );
+
+  // Context-aware validation
+  const { errors, validate } = useScoreValidation(
+    scoringSystem, 
+    rawData, 
+    wodData
+  );
+
+  // Session persistence
+  const { 
+    saveState, 
+    restoreState, 
+    clearState,
+    updateAfterSubmission 
+  } = useScoreEntryPersistence();
+
+  // Load scoring system when WOD is selected
+  useEffect(() => {
+    if (wodId) {
+      loadScoringSystem(wodId, eventId);
+    }
+  }, [wodId, eventId]);
+
+  return (
+    <div>
+      {isLoading && <LoadingSpinner />}
+      {error && <ErrorMessage error={error} onRetry={retryLoadScoringSystem} />}
+      {scoringSystem && <ScoreForm scoringSystem={scoringSystem} />}
+    </div>
+  );
+}
+```
+
+**Scoring System Hook Details:**
+- `useScoringSystem()` - Manages scoring system state, loading, and errors
+- `useScoreCalculation(scoringSystem, rawData, exercises)` - Real-time score calculation
+- `useScoreValidation(scoringSystem, rawData, wodData)` - Context-aware validation
+- `useScoreEntryPersistence()` - Session state management
+
+See [SCORING_SYSTEM_GUIDE.md](./SCORING_SYSTEM_GUIDE.md) for complete documentation.
+
 ---
 
 ## 📦 Scripts
@@ -272,6 +379,42 @@ npx cypress install
 
 ### Build errors
 Check console for specific errors, ensure all imports are correct.
+
+### Scoring System Issues
+
+**Problem: Scoring system not loading**
+```javascript
+// Check browser console for errors
+// Verify WOD has scoringSystemId configured
+// Try manual retry:
+const { retryLoadScoringSystem } = useScoringSystem();
+retryLoadScoringSystem();
+```
+
+**Problem: Score calculation incorrect**
+- Verify rawData structure matches scoring system type
+- Check exercise configurations have correct base scores and modifiers
+- Ensure EQS ratings are between 1-5 for advanced scoring
+- Validate time format (mm:ss) for time-based scoring
+
+**Problem: Validation errors not clearing**
+- Ensure all required fields are filled
+- Check that max reps don't exceed target reps (time-based)
+- Verify completion time doesn't exceed time cap
+- Call `validate()` after fixing errors
+
+**Problem: State not persisting**
+- Check sessionStorage is enabled in browser
+- Verify state timestamp is less than 1 hour old
+- Clear stale state: `clearState()` from useScoreEntryPersistence
+
+**Problem: Default scoring system showing**
+- WOD may not have scoringSystemId configured
+- Scoring system may not exist in database
+- Check network tab for 404 errors
+- Contact administrator to configure scoring system
+
+See [SCORING_SYSTEM_GUIDE.md](./SCORING_SYSTEM_GUIDE.md) for detailed troubleshooting.
 
 ---
 

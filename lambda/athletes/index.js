@@ -296,6 +296,10 @@ exports.handler = async (event) => {
         alias: body.alias || '',
         categoryId: body.categoryId || '',
         age: body.age || 0,
+        telephoneNumber: body.telephoneNumber || '',
+        city: body.city || '',
+        socialSecurity: body.socialSecurity || '',
+        documentId: body.documentId || '',
         createdAt: body.createdAt || new Date().toISOString(),
         updatedAt: body.updatedAt || new Date().toISOString()
       };

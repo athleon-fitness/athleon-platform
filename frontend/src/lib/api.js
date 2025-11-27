@@ -1,9 +1,10 @@
 // Helper functions for authenticated API calls with Amplify v6
 import { get as amplifyGet, post as amplifyPost, put as amplifyPut, del as amplifyDel } from 'aws-amplify/api';
 import { fetchAuthSession } from 'aws-amplify/auth';
+import awsConfig from '../aws-config.json';
 
 const API_NAME = 'CalisthenicsAPI';
-const API_ENDPOINT = 'https://api.dev.athleon.fitness';
+const API_ENDPOINT = awsConfig.aws_cloud_logic_custom[0].endpoint;
 
 // Get auth token for API requests
 const getAuthHeaders = async () => {
@@ -119,6 +120,154 @@ const DEFAULT_SCORING_SYSTEM = {
     timeBonuses: { 1: 10, 2: 7, 3: 5 }
   }
 };
+
+// ============================================
+// Schedule Editing API Methods
+// ============================================
+
+/**
+ * Update athlete status in a schedule
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {string} athleteId - Athlete ID
+ * @param {string} status - New status (pending_payment, ready, active, withdrawn, disqualified, injured)
+ * @returns {Promise<Object>} Updated schedule
+ */
+export const updateAthleteStatus = async (eventId, scheduleId, athleteId, status) => {
+  return await put(`/scheduler/${eventId}/${scheduleId}/athletes/${athleteId}`, { newStatus: status });
+};
+
+/**
+ * Substitute an athlete in a session
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {Object} data - Substitution data
+ * @param {string} data.sessionId - Session ID
+ * @param {string} data.oldAthleteId - Athlete to replace
+ * @param {string} data.newAthleteId - Substitute athlete
+ * @returns {Promise<Object>} Updated session
+ */
+export const substituteAthlete = async (eventId, scheduleId, data) => {
+  return await post(`/scheduler/${eventId}/${scheduleId}/substitute`, data);
+};
+
+/**
+ * Swap two athletes in a session
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {Object} data - Swap data
+ * @param {string} data.sessionId - Session ID
+ * @param {string} data.athlete1Id - First athlete
+ * @param {string} data.athlete2Id - Second athlete
+ * @returns {Promise<Object>} Updated session
+ */
+export const swapAthletes = async (eventId, scheduleId, data) => {
+  return await post(`/scheduler/${eventId}/${scheduleId}/swap`, data);
+};
+
+/**
+ * Adjust session start time
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {string} sessionId - Session ID
+ * @param {string} newTime - New start time (ISO 8601 format)
+ * @returns {Promise<Object>} Updated schedule
+ */
+export const adjustSessionTime = async (eventId, scheduleId, sessionId, newTime) => {
+  return await put(`/scheduler/${eventId}/${scheduleId}/sessions/${sessionId}/time`, { newStartTime: newTime });
+};
+
+/**
+ * Move athlete to a different heat
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {Object} data - Move data
+ * @param {string} data.sessionId - Session ID
+ * @param {string} data.athleteId - Athlete to move
+ * @param {string} data.targetHeatId - Target heat ID
+ * @returns {Promise<Object>} Updated session
+ */
+export const moveAthleteToHeat = async (eventId, scheduleId, data) => {
+  return await post(`/scheduler/${eventId}/${scheduleId}/heats/move`, data);
+};
+
+/**
+ * Add a new heat to a session
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {string} sessionId - Session ID
+ * @returns {Promise<Object>} Updated session
+ */
+export const addHeat = async (eventId, scheduleId, sessionId) => {
+  return await post(`/scheduler/${eventId}/${scheduleId}/heats`, { sessionId });
+};
+
+/**
+ * Remove a heat from a session
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {string} sessionId - Session ID
+ * @param {string} heatId - Heat ID to remove
+ * @param {boolean} forceRemove - Force removal even if heat has athletes
+ * @returns {Promise<Object>} Success response
+ */
+export const removeHeat = async (eventId, scheduleId, sessionId, heatId, forceRemove = false) => {
+  return await del(`/scheduler/${eventId}/${scheduleId}/heats/${heatId}`, {
+    body: { sessionId, forceRemove }
+  });
+};
+
+/**
+ * Validate schedule integrity
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @returns {Promise<Object>} Validation results {valid, issues, statistics}
+ */
+export const validateSchedule = async (eventId, scheduleId) => {
+  return await get(`/scheduler/${eventId}/${scheduleId}/validate`);
+};
+
+/**
+ * Get audit log for schedule modifications
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {Object} filters - Optional filters
+ * @param {string} filters.startDate - Start date filter
+ * @param {string} filters.endDate - End date filter
+ * @param {string} filters.changeType - Change type filter
+ * @param {string} filters.userId - User ID filter
+ * @returns {Promise<Array>} Audit log entries
+ */
+export const getAuditLog = async (eventId, scheduleId, filters = {}) => {
+  return await get(`/scheduler/${eventId}/${scheduleId}/audit-log`, {
+    queryParams: filters
+  });
+};
+
+/**
+ * Revert schedule to a previous version
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @param {string} versionId - Version ID to revert to
+ * @returns {Promise<Object>} Restored schedule
+ */
+export const revertSchedule = async (eventId, scheduleId, versionId) => {
+  return await post(`/scheduler/${eventId}/${scheduleId}/revert`, { versionId });
+};
+
+/**
+ * Get version history for a schedule
+ * @param {string} eventId - Event ID
+ * @param {string} scheduleId - Schedule ID
+ * @returns {Promise<Array>} Version history
+ */
+export const getVersionHistory = async (eventId, scheduleId) => {
+  return await get(`/scheduler/${eventId}/${scheduleId}/versions`);
+};
+
+// ============================================
+// Scoring System API Methods
+// ============================================
 
 /**
  * Get scoring system configuration for a WOD

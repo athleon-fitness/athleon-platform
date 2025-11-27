@@ -1,15 +1,62 @@
 {
   "environment": "production",
-  "account": "345678901234",
-  "region": "us-east-2",
+  "account": "039957032026",
+  "region": "us-east-1",
   "domain": "athleon.fitness",
-  "authDomain": "auth.athleon.fitness",
-  "authCertificateArn": "arn:aws:acm:us-east-1:345678901234:certificate/your-cert-id",
+  "dns": {
+    "skipDnsRecords": true,
+    "cognitoCustomDomain": false,
+    "certificateParameterNames": {
+      "cloudfront": "/athleon/production/certificates/cloudfront",
+      "api": "/athleon/production/certificates/api",
+      "auth": "/athleon/production/certificates/auth"
+    }
+  },
   "cognito": {
     "passwordPolicy": {
       "minLength": 12,
+      "requireUppercase": true,
+      "requireLowercase": true,
+      "requireNumbers": true,
       "requireSymbols": true
     },
-    "mfaConfiguration": "REQUIRED"
+    "mfaConfiguration": "OPTIONAL",
+    "emailVerification": true
+  },
+  "dynamodb": {
+    "billingMode": "PAY_PER_REQUEST",
+    "pointInTimeRecovery": true,
+    "deletionProtection": true
+  },
+  "lambda": {
+    "logRetention": 30,
+    "memorySize": 512,
+    "timeout": 30,
+    "environment": {
+      "LOG_LEVEL": "DEBUG",
+      "ALLOWED_ORIGINS": "https://athleon.fitness"
+    }
+  },
+  "s3": {
+    "versioning": true,
+    "lifecycleRules": []
+  },
+  "monitoring": {
+    "enableXRay": true,
+    "enableDetailedMetrics": true,
+    "alarmNotifications": true,
+    "notificationEmail": "ops@athleon.fitness",
+    "enableDashboard": true
+  },
+  "frontend": {
+    "customDomain": true,
+    "caching": {
+      "defaultTtl": 86400,
+      "maxTtl": 31536000
+    },
+    "waf": {
+      "enabled": true,
+      "rateLimiting": 2000
+    }
   }
 }

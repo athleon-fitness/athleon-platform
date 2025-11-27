@@ -7,6 +7,7 @@ import * as certificatemanager from 'aws-cdk-lib/aws-certificatemanager';
 import * as route53 from 'aws-cdk-lib/aws-route53';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { AthleonSharedLayer } from './lambda-layer';
 // import { SocialProviders } from './social-providers'; // Temporarily disabled
@@ -25,9 +26,6 @@ export class SharedStack extends Construct {
 
   constructor(scope: Construct, id: string, props: SharedStackProps) {
     super(scope, id);
-
-    // Get domain configuration based on stage
-    const domainConfig = this.getDomainConfig(props.stage);
 
     // CloudWatch Log Groups for Lambda triggers with retention policy
     const preSignupLogGroup = new logs.LogGroup(this, 'PreSignupTriggerLogGroup', {
@@ -124,34 +122,54 @@ export class SharedStack extends Construct {
       supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.COGNITO],
     });
 
-    // Custom Domain Setup
-    if (domainConfig.useCustomDomain) {
-      // Lookup existing hosted zone
-      const hostedZone = route53.HostedZone.fromLookup(this, 'HostedZone', {
-        domainName: domainConfig.rootDomain,
-      });
+    // Custom Domain Setup for Cognito (optional)
+    if (props.config?.frontend?.customDomain && props.config?.domain && props.config?.dns?.cognitoCustomDomain) {
+      const authDomain = `auth.${props.config.domain}`;
+      let authCertificate;
 
-      // Create certificate for auth subdomain
-      const certificate = new certificatemanager.Certificate(this, 'AuthCertificate', {
-        domainName: domainConfig.authDomain,
-        validation: certificatemanager.CertificateValidation.fromDns(hostedZone),
-      });
+      if (props.config?.dns?.certificateParameterNames?.auth) {
+        // Import certificate from Parameter Store (cross-account)
+        const certArn = ssm.StringParameter.valueForStringParameter(
+          this,
+          props.config.dns.certificateParameterNames.auth
+        );
+        authCertificate = certificatemanager.Certificate.fromCertificateArn(
+          this,
+          'AuthCertificate',
+          certArn
+        );
+      } else {
+        // Create certificate (same account) - must be in us-east-1 for Cognito
+        const hostedZone = route53.HostedZone.fromLookup(this, 'AuthHostedZone', {
+          domainName: props.config.domain,
+        });
+        
+        authCertificate = new certificatemanager.DnsValidatedCertificate(this, 'AuthCertificate', {
+          domainName: authDomain,
+          hostedZone: hostedZone,
+          region: 'us-east-1',  // Cognito requires us-east-1
+        });
+      }
 
-      // Add custom domain to User Pool
       const userPoolDomain = this.userPool.addDomain('UserPoolDomain', {
         customDomain: {
-          domainName: domainConfig.authDomain,
-          certificate: certificate,
+          domainName: authDomain,
+          certificate: authCertificate,
         },
       });
 
-      // Output custom auth domain
+      // Output the CloudFront domain for manual A record creation
       new cdk.CfnOutput(this, 'AuthDomain', {
-        value: domainConfig.authDomain,
+        value: authDomain,
         description: 'Custom auth domain',
       });
+      
+      new cdk.CfnOutput(this, 'AuthCloudFrontDomain', {
+        value: userPoolDomain.cloudFrontDomainName,
+        description: 'CloudFront domain for auth - create A record pointing to this',
+      });
     } else {
-      // Use Cognito domain for development
+      // Use Cognito domain
       this.userPool.addDomain('UserPoolDomain', {
         cognitoDomain: {
           domainPrefix: `athleon-${props.stage}`,
@@ -201,28 +219,6 @@ export class SharedStack extends Construct {
       value: preTokenGenerationTrigger.functionArn,
       description: 'ARN of Pre-Token Generation Lambda Trigger',
     });
-  }
-
-  private getDomainConfig(stage: string) {
-    const configs: Record<string, any> = {
-      development: {
-        useCustomDomain: false, // Disable for now
-        rootDomain: 'dev.athleon.fitness',
-        authDomain: 'auth.dev.athleon.fitness',
-      },
-      staging: {
-        useCustomDomain: false, // Disable for now
-        rootDomain: 'staging.athleon.fitness',
-        authDomain: 'auth.staging.athleon.fitness',
-      },
-      production: {
-        useCustomDomain: true,
-        rootDomain: 'athleon.fitness',
-        authDomain: 'auth.athleon.fitness',
-      },
-    };
-
-    return configs[stage] || { useCustomDomain: false };
   }
 
   private getCallbackUrls(stage: string): string[] {

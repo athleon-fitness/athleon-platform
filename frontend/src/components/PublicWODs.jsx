@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { get, post, put, del } from '../lib/api';
+import { publicGet } from '../lib/api';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './common/LanguageSwitcher';
@@ -16,8 +16,32 @@ function PublicWODs() {
 
   const fetchWods = async () => {
     try {
-      const response = await get('/public/wods');
-      setWods(response || []);
+      // First get template/global WODs
+      const templateWods = await publicGet('/public/wods');
+      templateWods.forEach(wod => {
+        wod.eventName = 'Global WODs';
+        wod.isTemplate = true;
+      });
+      
+      // Then get all published events
+      const events = await publicGet('/public/events');
+      
+      // Then fetch WODs from all events
+      const eventWods = [];
+      for (const event of events) {
+        try {
+          const wods = await publicGet(`/public/wods?eventId=${event.eventId}`);
+          wods.forEach(wod => {
+            wod.eventName = event.name;
+            wod.eventId = event.eventId;
+          });
+          eventWods.push(...wods);
+        } catch (error) {
+          console.error(`Error fetching WODs for event ${event.eventId}:`, error);
+        }
+      }
+      
+      setWods([...templateWods, ...eventWods]);
     } catch (error) {
       console.error('Error fetching WODs:', error);
       // Use fallback data based on known WODs in database
@@ -178,7 +202,11 @@ function PublicWODs() {
                     <span className="badge format-badge">{wod.format}</span>
                   )}
                   {wod.timeCap && (
-                    <span className="badge time-badge">{wod.timeCap}</span>
+                    <span className="badge time-badge">
+                      {typeof wod.timeCap === 'object' 
+                        ? `${wod.timeCap.minutes}:${String(wod.timeCap.seconds).padStart(2, '0')}` 
+                        : wod.timeCap}
+                    </span>
                   )}
                 </div>
               </div>

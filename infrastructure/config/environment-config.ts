@@ -6,6 +6,17 @@ export interface EnvironmentConfig {
   account: string;
   region: string;
   domain: string;
+  
+  dns?: {
+    hostedZoneId?: string;
+    skipDnsRecords?: boolean;
+    cognitoCustomDomain?: boolean;
+    certificateParameterNames?: {
+      cloudfront?: string;
+      api?: string;
+      auth?: string;
+    };
+  };
 
   cognito: {
     passwordPolicy: {

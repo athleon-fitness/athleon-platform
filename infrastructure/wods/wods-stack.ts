@@ -14,6 +14,7 @@ export interface WodsStackProps  {
   config: EnvironmentConfig;
   eventBus: events.EventBus;
   sharedLayer: AthleonSharedLayer;
+  organizationsTable: dynamodb.Table;
   organizationEventsTable: dynamodb.Table;
   organizationMembersTable: dynamodb.Table;
   scoresTable: dynamodb.Table;
@@ -47,6 +48,7 @@ export class WodsStack extends Construct {
       layers: [props.sharedLayer.layer],
       environment: {
         WODS_TABLE: this.wodsTable.tableName,
+        ORGANIZATIONS_TABLE: props.organizationsTable.tableName,
         ORGANIZATION_EVENTS_TABLE: props.organizationEventsTable.tableName,
         ORGANIZATION_MEMBERS_TABLE: props.organizationMembersTable.tableName,
         SCORES_TABLE: props.scoresTable.tableName,

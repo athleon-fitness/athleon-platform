@@ -17,6 +17,7 @@ class Event {
     this.registrationDeadline = data.registrationDeadline;
     this.organizationId = data.organizationId;
     this.imageUrl = data.imageUrl;
+    this.scoringType = data.scoringType || 'ADVANCED';
     this.createdAt = data.createdAt || new Date().toISOString();
     this.updatedAt = data.updatedAt || new Date().toISOString();
     

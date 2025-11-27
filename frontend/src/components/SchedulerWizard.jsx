@@ -17,7 +17,8 @@ const SchedulerWizard = ({ eventId, onScheduleGenerated }) => {
     startTime: '08:00',
     timezone: 'UTC',
     transitionTime: 5,
-    setupTime: 10
+    setupTime: 10,
+    breaks: [] // Dynamic breaks: [{name, startTime, duration, type}]
   });
   
   const [eventData, setEventData] = useState({
@@ -521,111 +522,219 @@ const Step1CompetitionMode = ({ config, setConfig, eventData }) => (
   </div>
 );
 
-const Step2BasicSettings = ({ config, setConfig }) => (
-  <div className="step-content">
-    <h3>Basic Schedule Settings</h3>
-    <p>Configure the timing and logistics for your competition:</p>
-    
-    <div className="settings-grid">
-      <div className="setting-group">
-        <label>Start Time</label>
-        <input
-          type="time"
-          value={config.startTime}
-          onChange={(e) => setConfig({...config, startTime: e.target.value})}
-        />
-      </div>
+const Step2BasicSettings = ({ config, setConfig }) => {
+  const addBreak = () => {
+    const newBreak = {
+      id: Date.now(),
+      name: 'Break',
+      startTime: '12:00',
+      duration: 30,
+      type: 'lunch'
+    };
+    setConfig({...config, breaks: [...(config.breaks || []), newBreak]});
+  };
 
-      <div className="setting-group">
-        <label>Timezone</label>
-        <select
-          value={config.timezone}
-          onChange={(e) => setConfig({...config, timezone: e.target.value})}
-        >
-          <option value="UTC">UTC</option>
-          <option value="EST">EST (UTC-5)</option>
-          <option value="CST">CST (UTC-6)</option>
-          <option value="MST">MST (UTC-7)</option>
-          <option value="PST">PST (UTC-8)</option>
-          <option value="CET">CET (UTC+1)</option>
-        </select>
-      </div>
+  const updateBreak = (id, field, value) => {
+    const updatedBreaks = config.breaks.map(b => 
+      b.id === id ? {...b, [field]: value} : b
+    );
+    setConfig({...config, breaks: updatedBreaks});
+  };
 
-      <div className="setting-group">
-        <label>Max Hours per Day</label>
-        <input
-          type="number"
-          value={config.maxDayHours}
-          onChange={(e) => setConfig({...config, maxDayHours: parseInt(e.target.value)})}
-          min="6" max="12"
-        />
-        <small>Competition will be split across multiple days if needed</small>
-      </div>
+  const removeBreak = (id) => {
+    setConfig({...config, breaks: config.breaks.filter(b => b.id !== id)});
+  };
 
-      <div className="setting-group">
-        <label>Transition Time (minutes)</label>
-        <input
-          type="number"
-          value={config.transitionTime}
-          onChange={(e) => setConfig({...config, transitionTime: parseInt(e.target.value)})}
-          min="1" max="15"
-        />
-        <small>Time between heats/matches</small>
-      </div>
-
-      {config.competitionMode === 'HEATS' && (
-        <>
-          <div className="setting-group">
-            <label>Athletes per Heat</label>
-            <input
-              type="number"
-              value={config.athletesPerHeat}
-              onChange={(e) => setConfig({...config, athletesPerHeat: parseInt(e.target.value)})}
-              min="4" max="16"
-            />
-            <small>How many athletes compete in each heat</small>
-          </div>
-
-          <div className="setting-group">
-            <label>Concurrent Heats</label>
-            <input
-              type="number"
-              value={config.concurrentHeats || 1}
-              onChange={(e) => setConfig({...config, concurrentHeats: parseInt(e.target.value)})}
-              min="1" max="4"
-            />
-            <small>How many heats run at the same time</small>
-          </div>
-
-          <div className="setting-group">
-            <label>Athletes Eliminated per Filter</label>
-            <input
-              type="number"
-              value={config.athletesEliminatedPerFilter || 0}
-              onChange={(e) => setConfig({...config, athletesEliminatedPerFilter: parseInt(e.target.value)})}
-              min="0"
-              max="50"
-            />
-            <small>How many athletes are eliminated per round (0 = no elimination)</small>
-          </div>
-        </>
-      )}
-
-      {config.competitionMode === 'VERSUS' && (
+  return (
+    <div className="step-content">
+      <h3>Basic Schedule Settings</h3>
+      <p>Configure the timing and logistics for your competition:</p>
+      
+      <div className="settings-grid">
         <div className="setting-group">
-          <label>Concurrent Matches</label>
+          <label>Start Time</label>
+          <input
+            type="time"
+            value={config.startTime}
+            onChange={(e) => setConfig({...config, startTime: e.target.value})}
+          />
+        </div>
+
+        <div className="setting-group">
+          <label>Timezone</label>
+          <select
+            value={config.timezone}
+            onChange={(e) => setConfig({...config, timezone: e.target.value})}
+          >
+            <option value="UTC">UTC</option>
+            <option value="EST">EST (UTC-5)</option>
+            <option value="CST">CST (UTC-6)</option>
+            <option value="MST">MST (UTC-7)</option>
+            <option value="PST">PST (UTC-8)</option>
+            <option value="CET">CET (UTC+1)</option>
+          </select>
+        </div>
+
+        <div className="setting-group">
+          <label>Max Hours per Day</label>
           <input
             type="number"
-            value={config.concurrentMatches || 1}
-            onChange={(e) => setConfig({...config, concurrentMatches: parseInt(e.target.value)})}
-            min="1" max="4"
+            value={config.maxDayHours}
+            onChange={(e) => setConfig({...config, maxDayHours: parseInt(e.target.value)})}
+            min="6" max="12"
           />
-          <small>How many 1v1 matches run at the same time</small>
+          <small>Competition will be split across multiple days if needed</small>
         </div>
-      )}
+
+        <div className="setting-group">
+          <label>Transition Time (minutes)</label>
+          <input
+            type="number"
+            value={config.transitionTime}
+            onChange={(e) => setConfig({...config, transitionTime: parseInt(e.target.value)})}
+            min="1" max="15"
+          />
+          <small>Time between heats/matches</small>
+        </div>
+
+        {config.competitionMode === 'HEATS' && (
+          <>
+            <div className="setting-group">
+              <label>Athletes per Heat</label>
+              <input
+                type="number"
+                value={config.athletesPerHeat}
+                onChange={(e) => setConfig({...config, athletesPerHeat: parseInt(e.target.value)})}
+                min="4" max="16"
+              />
+              <small>How many athletes compete in each heat</small>
+            </div>
+
+            <div className="setting-group">
+              <label>Concurrent Heats</label>
+              <input
+                type="number"
+                value={config.concurrentHeats || 1}
+                onChange={(e) => setConfig({...config, concurrentHeats: parseInt(e.target.value)})}
+                min="1" max="4"
+              />
+              <small>How many heats run at the same time</small>
+            </div>
+
+            <div className="setting-group">
+              <label>Athletes Eliminated per Filter</label>
+              <input
+                type="number"
+                value={config.athletesEliminatedPerFilter || 0}
+                onChange={(e) => setConfig({...config, athletesEliminatedPerFilter: parseInt(e.target.value)})}
+                min="0"
+                max="50"
+              />
+              <small>How many athletes are eliminated per round (0 = no elimination)</small>
+            </div>
+          </>
+        )}
+
+        {config.competitionMode === 'VERSUS' && (
+          <div className="setting-group">
+            <label>Concurrent Matches</label>
+            <input
+              type="number"
+              value={config.concurrentMatches || 1}
+              onChange={(e) => setConfig({...config, concurrentMatches: parseInt(e.target.value)})}
+              min="1" max="4"
+            />
+            <small>How many 1v1 matches run at the same time</small>
+          </div>
+        )}
+      </div>
+
+      {/* Breaks Section */}
+      <div className="breaks-section">
+        <div className="breaks-header">
+          <h4>☕ Rest & Break Times</h4>
+          <button 
+            type="button"
+            onClick={addBreak} 
+            className="btn-add-break"
+          >
+            + Add Break
+          </button>
+        </div>
+        <p className="breaks-description">
+          Add lunch breaks, coffee breaks, or pauses between sessions
+        </p>
+
+        {config.breaks && config.breaks.length > 0 ? (
+          <div className="breaks-list">
+            {config.breaks.map(breakItem => (
+              <div key={breakItem.id} className="break-item">
+                <div className="break-fields">
+                  <div className="break-field">
+                    <label>Name</label>
+                    <input
+                      type="text"
+                      value={breakItem.name}
+                      onChange={(e) => updateBreak(breakItem.id, 'name', e.target.value)}
+                      placeholder="e.g., Lunch Break"
+                    />
+                  </div>
+                  
+                  <div className="break-field">
+                    <label>Type</label>
+                    <select
+                      value={breakItem.type}
+                      onChange={(e) => updateBreak(breakItem.id, 'type', e.target.value)}
+                    >
+                      <option value="lunch">🍽️ Lunch</option>
+                      <option value="coffee">☕ Coffee Break</option>
+                      <option value="rest">😌 Rest Period</option>
+                      <option value="setup">🔧 Setup Time</option>
+                      <option value="other">📋 Other</option>
+                    </select>
+                  </div>
+
+                  <div className="break-field">
+                    <label>Start Time</label>
+                    <input
+                      type="time"
+                      value={breakItem.startTime}
+                      onChange={(e) => updateBreak(breakItem.id, 'startTime', e.target.value)}
+                    />
+                  </div>
+
+                  <div className="break-field">
+                    <label>Duration (min)</label>
+                    <input
+                      type="number"
+                      value={breakItem.duration}
+                      onChange={(e) => updateBreak(breakItem.id, 'duration', parseInt(e.target.value))}
+                      min="5"
+                      max="120"
+                    />
+                  </div>
+
+                  <button 
+                    type="button"
+                    onClick={() => removeBreak(breakItem.id)}
+                    className="btn-remove-break"
+                    title="Remove break"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="no-breaks-message">
+            <p>No breaks configured. Click "Add Break" to schedule rest periods.</p>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const Step3CategoryConfig = ({ config, setConfig, eventData }) => {
   console.log('Step3CategoryConfig - Rendering with:', {
@@ -915,6 +1024,26 @@ const Step5Review = ({ config, eventData, onGenerate: _onGenerate, loading: _loa
           <span>Max Hours/Day: {config.maxDayHours}h</span>
           <span>Transition Time: {config.transitionTime} min</span>
         </div>
+        {config.breaks && config.breaks.length > 0 && (
+          <div className="breaks-review">
+            <h5>☕ Scheduled Breaks:</h5>
+            {config.breaks.map((breakItem, idx) => (
+              <div key={idx} className="break-review-item">
+                <span className="break-name">
+                  {breakItem.type === 'lunch' && '🍽️ '}
+                  {breakItem.type === 'coffee' && '☕ '}
+                  {breakItem.type === 'rest' && '😌 '}
+                  {breakItem.type === 'setup' && '🔧 '}
+                  {breakItem.type === 'other' && '📋 '}
+                  {breakItem.name}
+                </span>
+                <span className="break-time-review">
+                  {breakItem.startTime} ({breakItem.duration} min)
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="review-section">
@@ -1156,65 +1285,114 @@ const Step6ScheduleManagement = ({
   </div>
 );
 
-const DayScheduleView = ({ day, competitionMode: _competitionMode, timezone: _timezone, eventData: _eventData }) => (
-  <div className="day-schedule">
-    <h5>Day {day.dayId}</h5>
-    <p>Duration: {day.totalDuration?.toFixed(1)} hours</p>
-    <p className={day.withinTimeLimit ? 'time-ok' : 'time-warning'}>
-      {day.withinTimeLimit ? '✓ Within time limit' : '⚠ Exceeds time limit'}
-    </p>
+const DayScheduleView = ({ day, competitionMode: _competitionMode, timezone: _timezone, eventData: _eventData }) => {
+  // Combine sessions and breaks into a single timeline
+  const timeline = [];
+  
+  // Add sessions
+  if (day.sessions && Array.isArray(day.sessions)) {
+    day.sessions.forEach(session => {
+      timeline.push({ type: 'session', data: session, startTime: session.startTime });
+    });
+  }
+  
+  // Add breaks (backwards compatibility - may not exist in old schedules)
+  if (day.breaks && Array.isArray(day.breaks)) {
+    day.breaks.forEach(breakItem => {
+      timeline.push({ type: 'break', data: breakItem, startTime: breakItem.startTime });
+    });
+  }
+  
+  // Sort by start time
+  timeline.sort((a, b) => {
+    const timeA = a.startTime.split(':').map(Number);
+    const timeB = b.startTime.split(':').map(Number);
+    return (timeA[0] * 60 + timeA[1]) - (timeB[0] * 60 + timeB[1]);
+  });
 
-    <div className="sessions">
-      {day.sessions?.map(session => (
-        <div key={session.sessionId} className="session">
-          <div className="session-header">
-            <div className="session-info">
-              <h6>{session.wodName || session.wodId} - {session.categoryName || session.categoryId}</h6>
-              <span className="session-mode">{session.competitionMode}</span>
-              {session.heatNumber && (
-                <span className="heat-indicator">Heat {session.heatNumber} of {session.numberOfHeats}</span>
-              )}
-              <div className="session-stats">
-                <span>Athletes: {session.athleteCount || 0}</span>
-                {session.heatCount && <span>Heats: {session.heatCount}</span>}
-                {session.matches && <span>Matches: {session.matches.length}</span>}
+  return (
+    <div className="day-schedule">
+      <h5>Day {day.dayId}</h5>
+      <p>Duration: {day.totalDuration?.toFixed(1)} hours</p>
+      <p className={day.withinTimeLimit ? 'time-ok' : 'time-warning'}>
+        {day.withinTimeLimit ? '✓ Within time limit' : '⚠ Exceeds time limit'}
+      </p>
+
+      <div className="sessions">
+        {timeline.map((item, index) => 
+          item.type === 'break' ? (
+            <div key={`break-${index}`} className="break-item-display">
+              <div className="break-header">
+                <div className="break-info">
+                  <h6>
+                    {item.data.type === 'lunch' && '🍽️ '}
+                    {item.data.type === 'coffee' && '☕ '}
+                    {item.data.type === 'rest' && '😌 '}
+                    {item.data.type === 'setup' && '🔧 '}
+                    {item.data.type === 'other' && '📋 '}
+                    {item.data.name}
+                  </h6>
+                  <span className="break-badge">Break</span>
+                </div>
+                <div className="break-time">
+                  <span className="start-time">{item.data.startTime}</span>
+                  <span className="duration">{item.data.duration} min</span>
+                  <span className="end-time">→ {item.data.endTime}</span>
+                </div>
               </div>
             </div>
-            <div className="session-time">
-              <span className="start-time">{session.startTime}</span>
-              <span className="duration">{session.duration} min</span>
-            </div>
-          </div>
-
-          {session.competitionMode === 'VERSUS' && session.matches && (
-            <div className="versus-display">
-              {session.matches.map((match, _idx) => (
-                <div key={match.matchId} className="versus-match-card">
-                  <div className="versus-athletes">
-                    <div className="athlete-card athlete-1">
-                      <div className="athlete-name">{match.athlete1?.firstName} {match.athlete1?.lastName}</div>
-                    </div>
-                    <div className="versus-divider">
-                      <span className="vs-text">VS</span>
-                    </div>
-                    <div className="athlete-card athlete-2">
-                      {match.athlete2 ? (
-                        <div className="athlete-name">{match.athlete2.firstName} {match.athlete2.lastName}</div>
-                      ) : (
-                        <div className="bye-card">
-                          <div className="bye-text">BYE</div>
-                        </div>
-                      )}
-                    </div>
+          ) : (
+            <div key={item.data.sessionId} className="session">
+              <div className="session-header">
+                <div className="session-info">
+                  <h6>{item.data.wodName || item.data.wodId} - {item.data.categoryName || item.data.categoryId}</h6>
+                  <span className="session-mode">{item.data.competitionMode}</span>
+                  {item.data.heatNumber && (
+                    <span className="heat-indicator">Heat {item.data.heatNumber} of {item.data.numberOfHeats}</span>
+                  )}
+                  <div className="session-stats">
+                    <span>Athletes: {item.data.athleteCount || 0}</span>
+                    {item.data.heatCount && <span>Heats: {item.data.heatCount}</span>}
+                    {item.data.matches && <span>Matches: {item.data.matches.length}</span>}
                   </div>
                 </div>
-              ))}
+                <div className="session-time">
+                  <span className="start-time">{item.data.startTime}</span>
+                  <span className="duration">{item.data.duration} min</span>
+                </div>
+              </div>
+
+              {item.data.competitionMode === 'VERSUS' && item.data.matches && (
+                <div className="versus-display">
+                  {item.data.matches.map((match, _idx) => (
+                    <div key={match.matchId} className="versus-match-card">
+                      <div className="versus-athletes">
+                        <div className="athlete-card athlete-1">
+                          <div className="athlete-name">{match.athlete1?.firstName} {match.athlete1?.lastName}</div>
+                        </div>
+                        <div className="versus-divider">
+                          <span className="vs-text">VS</span>
+                        </div>
+                        <div className="athlete-card athlete-2">
+                          {match.athlete2 ? (
+                            <div className="athlete-name">{match.athlete2.firstName} {match.athlete2.lastName}</div>
+                          ) : (
+                            <div className="bye-card">
+                              <div className="bye-text">BYE</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      ))}
+          )
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default SchedulerWizard;

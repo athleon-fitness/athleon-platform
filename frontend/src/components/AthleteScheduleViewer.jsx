@@ -300,7 +300,7 @@ const AthleteScheduleViewer = ({ eventId }) => {
                               <div className="vs-container">
                                 <div className={`athlete-card athlete-1 ${match.winnerId === match.athlete1?.userId ? 'winner' : match.winnerId ? 'loser' : ''}`}>
                                   <span className="athlete-name">
-                                    {match.athlete1?.userId === 'TBD' ? 'TBD' : `${match.athlete1?.firstName || ''} ${match.athlete1?.lastName || ''}`}
+                                    {match.athlete1?.userId === 'TBD' ? 'TBD' : (match.athlete1?.alias || `${match.athlete1?.firstName || ''} ${match.athlete1?.lastName || ''}`)}
                                   </span>
                                   {match.winnerId === match.athlete1?.userId && <span className="winner-badge">✓ Winner</span>}
                                 </div>
@@ -310,7 +310,7 @@ const AthleteScheduleViewer = ({ eventId }) => {
                                 {match.athlete2 ? (
                                   <div className={`athlete-card athlete-2 ${match.winnerId === match.athlete2?.userId ? 'winner' : match.winnerId ? 'loser' : ''}`}>
                                     <span className="athlete-name">
-                                      {match.athlete2.userId === 'TBD' ? 'TBD' : `${match.athlete2.firstName || ''} ${match.athlete2.lastName || ''}`}
+                                      {match.athlete2.userId === 'TBD' ? 'TBD' : (match.athlete2.alias || `${match.athlete2.firstName || ''} ${match.athlete2.lastName || ''}`)}
                                     </span>
                                     {match.winnerId === match.athlete2?.userId && <span className="winner-badge">✓ Winner</span>}
                                   </div>
@@ -379,7 +379,7 @@ const AthleteScheduleViewer = ({ eventId }) => {
                                             <span className="you">You</span>
                                             <span className="vs">VS</span>
                                             <span className="opponent">
-                                              {opponent ? `${opponent.firstName} ${opponent.lastName}` : 'BYE'}
+                                              {opponent ? (opponent.alias || `${opponent.firstName} ${opponent.lastName}`) : 'BYE'}
                                             </span>
                                           </div>
                                         </div>

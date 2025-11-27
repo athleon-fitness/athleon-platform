@@ -59,6 +59,7 @@ export class NetworkStack extends Construct {
       });
 
       // Create Route 53 CNAME record for API domain
+      // Note: For cross-account scenarios, this should be skipped and created manually
       if (props.hostedZone && props.apiDomain) {
         new route53.CnameRecord(this, 'ApiCnameRecord', {
           zone: props.hostedZone,

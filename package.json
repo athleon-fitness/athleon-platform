@@ -18,7 +18,8 @@
     "@aws-sdk/client-dynamodb": "^3.926.0",
     "@aws-sdk/lib-dynamodb": "^3.926.0",
     "aws-cdk-lib": "^2.222.0",
-    "constructs": "^10.4.3"
+    "constructs": "^10.4.3",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@aws-cdk/assertions": "^1.203.0",

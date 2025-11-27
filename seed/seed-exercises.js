@@ -1,10 +1,11 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
-const client = new DynamoDBClient({ region: 'us-east-2' });
+const region = process.env.AWS_REGION || 'us-east-2';
+const client = new DynamoDBClient({ region });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const EXERCISE_LIBRARY_TABLE = 'Athleon-development-ScoringExerciseLibraryTable4BA87342-XHHEA1QX03IF';
+const EXERCISE_LIBRARY_TABLE = process.env.EXERCISE_LIBRARY_TABLE || 'Athleon-development-ScoringExerciseLibraryTable4BA87342-XHHEA1QX03IF';
 
 const exercises = [
   {

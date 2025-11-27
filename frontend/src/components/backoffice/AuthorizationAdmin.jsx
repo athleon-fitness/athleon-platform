@@ -42,16 +42,21 @@ const AuthorizationAdmin = () => {
     setLoading(true);
     try {
       const [rolesRes, permissionsRes, userRolesRes] = await Promise.all([
-        get('/authorization/roles'),
-        get('/authorization/permissions'),
-        get('/authorization/user-roles')
+        get('/authorization/roles').catch(err => { console.error('Roles error:', err); return []; }),
+        get('/authorization/permissions').catch(err => { console.error('Permissions error:', err); return []; }),
+        get('/authorization/user-roles').catch(err => { console.error('User roles error:', err); return []; })
       ]);
       
-      setRoles(rolesRes);
-      setPermissions(permissionsRes);
-      setUserRoles(userRolesRes);
+      console.log('Authorization data fetched:', { rolesRes, permissionsRes, userRolesRes });
+      
+      setRoles(rolesRes || []);
+      setPermissions(permissionsRes || []);
+      setUserRoles(userRolesRes || []);
     } catch (error) {
       console.error('Error fetching authorization data:', error);
+      setRoles([]);
+      setPermissions([]);
+      setUserRoles([]);
     }
     setLoading(false);
   };
@@ -301,7 +306,7 @@ const AuthorizationAdmin = () => {
                       const permission = permissions.find(p => p.roleId === role.roleId && p.resource === resource);
                       return (
                         <div key={resource} className="matrix-cell permission-cell">
-                          {permission ? (
+                          {permission && permission.actions ? (
                             <div className="permission-content">
                               <div className="permission-actions">
                                 {permission.actions.includes('*') ? (

@@ -50,7 +50,7 @@ export class CategoriesStack extends Construct {
         AUTHORIZATION_API: `https://api.${props.stage === 'production' ? '' : props.stage + '.'}athleon.fitness/authorization`,
         DOMAIN_EVENT_BUS: this.categoriesEventBus.eventBusName,
         CENTRAL_EVENT_BUS: props.eventBus.eventBusName,
-        CORS_ORIGINS: props.config.lambda.environment.CORS_ORIGINS || '*',
+        CORS_ORIGINS: props.config.lambda.environment.ALLOWED_ORIGINS || '*',
         ...props.config.lambda.environment,
       },
     });

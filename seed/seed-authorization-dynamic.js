@@ -3,7 +3,8 @@
 const { DynamoDBClient } = require('@aws-sdk/client-dynamodb');
 const { DynamoDBDocumentClient, PutCommand } = require('@aws-sdk/lib-dynamodb');
 
-const client = new DynamoDBClient({ region: 'us-east-2' });
+const region = process.env.AWS_REGION || 'us-east-2';
+const client = new DynamoDBClient({ region });
 const ddb = DynamoDBDocumentClient.from(client);
 
 // Get table names from environment variables
@@ -26,24 +27,14 @@ async function seedRoles() {
       description: 'Full system access'
     },
     {
-      roleId: 'org_owner',
-      name: 'Organization Owner',
-      description: 'Full organization control'
-    },
-    {
-      roleId: 'org_admin',
-      name: 'Organization Admin',
-      description: 'Manage members and events'
-    },
-    {
-      roleId: 'org_member',
-      name: 'Organization Member',
-      description: 'Create and edit events'
+      roleId: 'organizer',
+      name: 'Organizer',
+      description: 'Organization owner/admin/member - manages events and athletes'
     },
     {
       roleId: 'athlete',
       name: 'Athlete',
-      description: 'Register for events and submit scores'
+      description: 'Register for events and view scores'
     }
   ];
 
@@ -65,26 +56,26 @@ async function seedPermissions() {
 
   // Permissions are organized by roleId and resource (composite key)
   const permissions = [
-    // Super Admin permissions
-    { roleId: 'super_admin', resource: 'organizations', action: 'manage', name: 'Manage All Organizations' },
-    { roleId: 'super_admin', resource: 'events', action: 'manage', name: 'Manage All Events' },
-    { roleId: 'super_admin', resource: 'users', action: 'manage', name: 'Manage All Users' },
+    // Super Admin permissions - full access to everything
+    { roleId: 'super_admin', resource: 'organizations', actions: ['*'], name: 'Full Organizations Access' },
+    { roleId: 'super_admin', resource: 'events', actions: ['*'], name: 'Full Events Access' },
+    { roleId: 'super_admin', resource: 'wods', actions: ['*'], name: 'Full WODs Access' },
+    { roleId: 'super_admin', resource: 'categories', actions: ['*'], name: 'Full Categories Access' },
+    { roleId: 'super_admin', resource: 'athletes', actions: ['*'], name: 'Full Athletes Access' },
+    { roleId: 'super_admin', resource: 'scores', actions: ['*'], name: 'Full Scores Access' },
+    { roleId: 'super_admin', resource: 'system', actions: ['*'], name: 'System Administration' },
     
-    // Organization Owner permissions
-    { roleId: 'org_owner', resource: 'organizations', action: 'manage', name: 'Manage Organization' },
-    { roleId: 'org_owner', resource: 'events', action: 'manage', name: 'Manage Events' },
-    { roleId: 'org_owner', resource: 'members', action: 'manage', name: 'Manage Members' },
+    // Organizer permissions (covers owner/admin/member based on organization role)
+    { roleId: 'organizer', resource: 'organizations', actions: ['read', 'update'], name: 'Manage Organization' },
+    { roleId: 'organizer', resource: 'events', actions: ['create', 'read', 'update', 'delete'], name: 'Manage Events' },
+    { roleId: 'organizer', resource: 'wods', actions: ['create', 'read', 'update', 'delete'], name: 'Manage WODs' },
+    { roleId: 'organizer', resource: 'categories', actions: ['create', 'read', 'update', 'delete'], name: 'Manage Categories' },
+    { roleId: 'organizer', resource: 'athletes', actions: ['create', 'read', 'update', 'delete'], name: 'Manage Athletes & Register' },
+    { roleId: 'organizer', resource: 'scores', actions: ['create', 'read', 'update', 'delete'], name: 'Manage Scores' },
     
-    // Organization Admin permissions
-    { roleId: 'org_admin', resource: 'events', action: 'manage', name: 'Manage Events' },
-    { roleId: 'org_admin', resource: 'members', action: 'manage', name: 'Manage Members' },
-    
-    // Organization Member permissions
-    { roleId: 'org_member', resource: 'events', action: 'create', name: 'Create Events' },
-    
-    // Athlete permissions
-    { roleId: 'athlete', resource: 'events', action: 'register', name: 'Register for Events' },
-    { roleId: 'athlete', resource: 'scores', action: 'create', name: 'Submit Scores' }
+    // Athlete permissions - read only, no score creation
+    { roleId: 'athlete', resource: 'events', actions: ['read'], name: 'View Events' },
+    { roleId: 'athlete', resource: 'scores', actions: ['read'], name: 'View Scores' }
   ];
 
   console.log('🔑 Creating permissions...');
@@ -94,7 +85,7 @@ async function seedPermissions() {
       Item: permission
     }));
   }
-  console.log('✅ Created 11 permissions');
+  console.log(`✅ Created ${permissions.length} permissions`);
 }
 
 async function seedUserRoles() {
@@ -104,10 +95,10 @@ async function seedUserRoles() {
   }
 
   const userRoles = [
-    { userId: 'admin@athleon.fitness', contextId: 'global', roleId: 'super_admin' },
-    { userId: 'organizer1@test.com', contextId: 'global', roleId: 'org_owner' },
-    { userId: 'organizer2@test.com', contextId: 'global', roleId: 'org_owner' },
-    { userId: 'athlete1@test.com', contextId: 'global', roleId: 'athlete' }
+    { userId: 'admin@athleon.fitness', email: 'admin@athleon.fitness', contextId: 'global', roleId: 'super_admin' },
+    { userId: 'organizer1@test.com', email: 'organizer1@test.com', contextId: 'global', roleId: 'organizer' },
+    { userId: 'organizer2@test.com', email: 'organizer2@test.com', contextId: 'global', roleId: 'organizer' },
+    { userId: 'athlete1@test.com', email: 'athlete1@test.com', contextId: 'global', roleId: 'athlete' }
   ];
 
   console.log('👥 Assigning user roles...');

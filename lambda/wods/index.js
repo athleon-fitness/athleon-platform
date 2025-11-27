@@ -316,29 +316,45 @@ exports.handler = async (event) => {
           body: JSON.stringify(Items || [])
         };
       } else {
-        // Return template and transversal WODs for public access
-        const templateWods = await ddb.send(new QueryCommand({
-          TableName: WODS_TABLE,
-          KeyConditionExpression: 'eventId = :eventId',
-          ExpressionAttributeValues: { ':eventId': 'template' }
-        }));
+        // No eventId provided
+        const { isSuperAdmin } = await checkWodAccess(userId, userEmail, 'read');
         
-        const transversalWods = await ddb.send(new ScanCommand({
-          TableName: WODS_TABLE,
-          FilterExpression: 'isTransversal = :isTransversal',
-          ExpressionAttributeValues: { ':isTransversal': true }
-        }));
-        
-        const allPublicWods = [
-          ...(templateWods.Items || []),
-          ...(transversalWods.Items || [])
-        ];
-        
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify(allPublicWods)
-        };
+        if (isSuperAdmin) {
+          // Super admin sees ALL WODs from all events
+          const { Items } = await ddb.send(new ScanCommand({
+            TableName: WODS_TABLE
+          }));
+          
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(Items || [])
+          };
+        } else {
+          // Regular users see template and transversal WODs only
+          const templateWods = await ddb.send(new QueryCommand({
+            TableName: WODS_TABLE,
+            KeyConditionExpression: 'eventId = :eventId',
+            ExpressionAttributeValues: { ':eventId': 'template' }
+          }));
+          
+          const transversalWods = await ddb.send(new ScanCommand({
+            TableName: WODS_TABLE,
+            FilterExpression: 'isTransversal = :isTransversal',
+            ExpressionAttributeValues: { ':isTransversal': true }
+          }));
+          
+          const allPublicWods = [
+            ...(templateWods.Items || []),
+            ...(transversalWods.Items || [])
+          ];
+          
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify(allPublicWods)
+          };
+        }
       }
     } catch (error) {
       logger.error('Error fetching public WODs', { error: error.message });

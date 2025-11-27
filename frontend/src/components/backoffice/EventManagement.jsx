@@ -27,7 +27,9 @@ function EventManagement() {
     workouts: [],
     categories: [],
     imageUrl: '',
-    published: false
+    published: false,
+    publicLeaderboard: false,
+    scoringType: 'ADVANCED'
   });
 
   const [imageFile, setImageFile] = useState(null);
@@ -147,7 +149,9 @@ function EventManagement() {
       workouts: [],
       categories: [],
       imageUrl: '',
-      published: false
+      published: false,
+      publicLeaderboard: false,
+      scoringType: 'ADVANCED'
     });
     setImageFile(null);
     setShowEditPage(true);
@@ -282,7 +286,9 @@ function EventManagement() {
         workouts: [],
         categories: [],
         imageUrl: '',
-        published: false
+        published: false,
+        publicLeaderboard: false,
+        scoringType: 'ADVANCED'
       });
       setImageFile(null);
       fetchEvents();
@@ -458,32 +464,78 @@ function EventManagement() {
               <p className="section-description">Select the categories available for this event</p>
               <div className="categories-grid">
                 {availableCategories.map(category => (
-                  <label key={category.categoryId} className="category-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={formData.categories.includes(category.categoryId)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setFormData({
-                            ...formData,
-                            categories: [...formData.categories, category.categoryId]
-                          });
-                        } else {
-                          setFormData({
-                            ...formData,
-                            categories: formData.categories.filter(id => id !== category.categoryId)
-                          });
-                        }
-                      }}
-                    />
-                    <span className="category-name">{category.name}</span>
-                    <span className="category-details">
-                      {category.gender && `${category.gender} • `}
-                      {category.minAge && category.maxAge ? `${category.minAge}-${category.maxAge} years` : 
-                       category.minAge ? `${category.minAge}+ years` : 
-                       category.maxAge ? `Under ${category.maxAge} years` : 'All ages'}
-                    </span>
-                  </label>
+                  <div key={category.categoryId} className="category-item-with-quota">
+                    <div className="category-main-info">
+                      <label className="category-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={formData.categories.some(c => 
+                            typeof c === 'object' ? c.categoryId === category.categoryId : c === category.categoryId
+                          )}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                categories: [...formData.categories, { 
+                                  ...category, 
+                                  maxParticipants: null 
+                                }]
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                categories: formData.categories.filter(c => 
+                                  typeof c === 'object' ? c.categoryId !== category.categoryId : c !== category.categoryId
+                                )
+                              });
+                            }
+                          }}
+                        />
+                        <div>
+                          <span className="category-name">{category.name}</span>
+                          <span className="category-details">
+                            {category.gender && `${category.gender} • `}
+                            {category.minAge && category.maxAge ? `${category.minAge}-${category.maxAge} years` : 
+                             category.minAge ? `${category.minAge}+ years` : 
+                             category.maxAge ? `Under ${category.maxAge} years` : 'All ages'}
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+                    
+                    {formData.categories.some(c => 
+                      typeof c === 'object' ? c.categoryId === category.categoryId : c === category.categoryId
+                    ) && (
+                      <div className="category-quota-settings">
+                        <label>Max Participants for this category:</label>
+                        <input
+                          type="number"
+                          value={(() => {
+                            const cat = formData.categories.find(c => 
+                              typeof c === 'object' ? c.categoryId === category.categoryId : c === category.categoryId
+                            );
+                            return typeof cat === 'object' ? (cat.maxParticipants || '') : '';
+                          })()}
+                          onChange={(e) => {
+                            setFormData({
+                              ...formData,
+                              categories: formData.categories.map(c => {
+                                if (typeof c === 'object' && c.categoryId === category.categoryId) {
+                                  return { ...c, maxParticipants: e.target.value ? parseInt(e.target.value) : null };
+                                } else if (c === category.categoryId) {
+                                  return { ...category, maxParticipants: e.target.value ? parseInt(e.target.value) : null };
+                                }
+                                return c;
+                              })
+                            });
+                          }}
+                          placeholder="Leave empty for unlimited"
+                          min="1"
+                          className="quota-input"
+                        />
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -492,9 +544,46 @@ function EventManagement() {
           {/* Scoring System Section */}
           <div className="form-section">
             <h3 className="section-title">🎯 Scoring System</h3>
+            <p className="section-description">Select the scoring type for this event</p>
+            <div className="scoring-options">
+              <label className="scoring-option">
+                <input
+                  type="checkbox"
+                  checked={formData.scoringType === 'ADVANCED'}
+                  onChange={(e) => e.target.checked && setFormData({...formData, scoringType: 'ADVANCED'})}
+                />
+                <div className="scoring-content">
+                  <span className="scoring-name">Advanced Scoring</span>
+                  <span className="scoring-description">Exercise-based scoring (EDS × EQS + Time Bonus). Each exercise has difficulty score multiplied by execution quality (1-5), plus time-based ranking bonus.</span>
+                </div>
+              </label>
+              
+              <label className="scoring-option">
+                <input
+                  type="checkbox"
+                  checked={formData.scoringType === 'TIME'}
+                  onChange={(e) => e.target.checked && setFormData({...formData, scoringType: 'TIME'})}
+                />
+                <div className="scoring-content">
+                  <span className="scoring-name">Time-Based Scoring</span>
+                  <span className="scoring-description">Athletes ranked by completion time, with penalties for incomplete reps.</span>
+                </div>
+              </label>
+              
+              <label className="scoring-option">
+                <input
+                  type="checkbox"
+                  checked={formData.scoringType === 'CLASSIC'}
+                  onChange={(e) => e.target.checked && setFormData({...formData, scoringType: 'CLASSIC'})}
+                />
+                <div className="scoring-content">
+                  <span className="scoring-name">Classic Scoring</span>
+                  <span className="scoring-description">Simple scoring based on total reps or rounds completed.</span>
+                </div>
+              </label>
+            </div>
             <div className="info-note">
-              <p><strong>Note:</strong> Scoring systems can be configured after creating the event.</p>
-              <p>By default, events use the transversal scoring system. You can create custom scoring systems in the event details page.</p>
+              <p><strong>Important:</strong> The scoring system determines how WOD performance is evaluated. Choose carefully as it affects how scores are calculated and displayed.</p>
             </div>
           </div>
 
@@ -634,14 +723,35 @@ function EventManagement() {
                   checked={formData.published}
                   onChange={(e) => setFormData({...formData, published: e.target.checked})}
                   className="toggle-input"
+                  id="publish-toggle"
                 />
-                <span className="toggle-slider"></span>
+                <label htmlFor="publish-toggle" className="toggle-slider"></label>
               </div>
               <div className="status-text">
                 {formData.published ? 'Event is published (visible to public)' : 'Event is draft (not visible to public)'}
               </div>
               <small className="field-hint">
                 Published events are visible to athletes and allow registrations
+              </small>
+            </div>
+            
+            <div className="form-group">
+              <label>Public Leaderboard</label>
+              <div className="toggle-container">
+                <input
+                  type="checkbox"
+                  checked={formData.publicLeaderboard}
+                  onChange={(e) => setFormData({...formData, publicLeaderboard: e.target.checked})}
+                  className="toggle-input"
+                  id="leaderboard-toggle"
+                />
+                <label htmlFor="leaderboard-toggle" className="toggle-slider"></label>
+              </div>
+              <div className="status-text">
+                {formData.publicLeaderboard ? 'Leaderboard is public (visible to everyone)' : 'Leaderboard is private (sign-in required)'}
+              </div>
+              <small className="field-hint">
+                {formData.publicLeaderboard ? 'Anyone can view scores without signing in' : 'Only authenticated users can view scores'}
               </small>
             </div>
           </div>

@@ -27,12 +27,22 @@ exports.handler = async (event) => {
     if (httpMethod === 'GET') {
       const eventId = queryStringParameters?.eventId;
       
+      // If no eventId, return template/global WODs
       if (!eventId) {
+        console.log('Querying template WODs');
+        const { Items } = await dynamodb.send(new QueryCommand({
+          TableName: WODS_TABLE,
+          KeyConditionExpression: 'eventId = :eventId',
+          ExpressionAttributeValues: {
+            ':eventId': 'template'
+          }
+        }));
+        
         return {
-          statusCode: 400,
+          statusCode: 200,
           headers,
-          body: JSON.stringify({ error: 'eventId query parameter is required' })
-        };
+          body: JSON.stringify(Items || [])
+      }
       }
 
       console.log('Querying WODs for eventId:', eventId);
